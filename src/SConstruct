@@ -1,0 +1,28 @@
+import os
+from SCons.Script import DefaultEnvironment, Glob
+
+env = DefaultEnvironment()
+
+GODOT_CPP_PATH = os.path.join('..', 'godot-cpp')
+INCLUDE_PATHS = [
+    GODOT_CPP_PATH + '/include',
+    GODOT_CPP_PATH + '/include/core',
+    GODOT_CPP_PATH + '/include/gen',
+]
+
+LIB_PATH = GODOT_CPP_PATH + '/bin'
+LIB_NAME = 'godot-cpp.windows.release.x86_64'
+
+env.Append(CPPPATH=INCLUDE_PATHS)
+env.Append(LIBPATH=[LIB_PATH])
+env.Append(LIBS=[LIB_NAME])
+
+env.Append(CCFLAGS=['-std=c++17'])
+env.Append(LINKFLAGS=['-static-libgcc', '-static-libstdc++'])
+env.Append(CPPDEFINES=['WIN32', '_WINDOWS'])
+
+# Grab all .cpp files in the current directory
+sources = Glob('*.cpp')
+
+# Build a shared library (DLL) named my_module (you can change this)
+env.SharedLibrary(target='my_module', source=sources)

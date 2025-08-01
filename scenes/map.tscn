@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://begaa0wjidhr8"]
+
+[ext_resource type="TileSet" uid="uid://dtohkuhap5att" path="res://assets/Terrain/tiles/terrain.tres" id="1_4xfga"]
+
+[sub_resource type="Curve2D" id="Curve2D_hrmi8"]
+
+[node name="map" type="Node2D"]
+
+[node name="Path2D" type="Path2D" parent="."]
+curve = SubResource("Curve2D_hrmi8")
+
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
+tile_set = ExtResource("1_4xfga")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+visible = false
+offset_right = 1920.0
+offset_bottom = 1080.0
