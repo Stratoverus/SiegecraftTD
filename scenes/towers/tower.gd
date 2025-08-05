@@ -2,7 +2,7 @@ extends Node2D
 
 # Tower stats and attack logic
 @export var tower_data: Resource  # Assign your TowerData resource in the editor
-var range: float
+var attack_range: float
 var attack_speed: float
 var damage: int
 var attack_cooldown := 0.0
@@ -14,7 +14,7 @@ var target = null
 @export var weapon_offset_from_top: int = 20
 
 func _ready():
-	range = tower_data.range
+	attack_range = tower_data.attaci_range
 	attack_speed = tower_data.attack_speed
 	damage = tower_data.damage
 	update_base_sprite()
@@ -34,7 +34,7 @@ func _process(delta):
 
 # --- Attack logic ---
 func is_valid_target(enemy):
-	return enemy and enemy.is_inside_tree() and enemy.health > 0 and position.distance_to(enemy.position) <= range
+	return enemy and enemy.is_inside_tree() and enemy.health > 0 and position.distance_to(enemy.position) <= attack_range
 
 func find_target():
 	var enemies = get_tree().get_nodes_in_group("enemies")
@@ -43,7 +43,7 @@ func find_target():
 	for enemy in enemies:
 		if enemy.health > 0:
 			var dist = position.distance_to(enemy.position)
-			if dist <= range and dist < best_dist:
+			if dist <= attack_range and dist < best_dist:
 				best = enemy
 				best_dist = dist
 	return best

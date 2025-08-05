@@ -1,9 +1,9 @@
 extends Node2D
-var range = 0.0
+var attack_range = 0.0
 
 func set_tower_data(tower_data):
 	$Sprite2D.texture = tower_data.icon
-	range = tower_data.range
+	attack_range = tower_data.attack_range
 	queue_redraw()
 	var sprite = $Sprite2D
 	var texture_height = sprite.texture.get_height()
@@ -17,4 +17,4 @@ func _draw():
 		if main.has_method("can_place_tower_at"):
 			can_place = main.can_place_tower_at(global_position)
 	var color = Color(0,1,0,0.3) if can_place else Color(1,0,0,0.3)
-	draw_circle(Vector2.ZERO, range, color)
+	draw_circle(Vector2.ZERO, attack_range, color)

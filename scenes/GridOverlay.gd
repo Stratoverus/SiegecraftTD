@@ -1,7 +1,7 @@
 extends Node2D
 
 @export var cell_size: Vector2 = Vector2(64, 64)
-@export var grid_color: Color = Color(1, 1, 1, 0.2) # semi-transparent white
+@export var grid_color: Color = Color(1, 1, 1, 0.6) # semi-transparent white
 @export var grid_size: Vector2 = Vector2(1920, 1080) # adjust to your map size
 @export var start_cell: Vector2i = Vector2i(0, 0)
 

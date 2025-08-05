@@ -246,9 +246,11 @@ func _on_enemy_died(gold):
 func hide_all_grid_overlays():
 	for child in $LevelContainer.get_children():
 		if child.has_node("gridOverlay"):
+			print("Hiding gridOverlay in:", child)
 			child.get_node("gridOverlay").visible = false
 
 func show_all_grid_overlays():
 	for child in $LevelContainer.get_children():
 		if child.has_node("gridOverlay"):
+			print("Showing gridOverlay in:", child)
 			child.get_node("gridOverlay").visible = true

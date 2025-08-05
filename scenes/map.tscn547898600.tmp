@@ -1,14 +1,11 @@
-[gd_scene load_steps=5 format=4 uid="uid://begaa0wjidhr8"]
+[gd_scene load_steps=4 format=4 uid="uid://begaa0wjidhr8"]
 
 [ext_resource type="TileSet" uid="uid://dtohkuhap5att" path="res://assets/Terrain/tiles/terrain.tres" id="1_4xfga"]
-[ext_resource type="Script" uid="uid://d1vqkumvwf7m0" path="res://scenes/map.gd" id="1_gldc4"]
 [ext_resource type="Script" uid="uid://kku0mo1kywfd" path="res://scenes/GridOverlay.gd" id="1_paxxb"]
 
 [sub_resource type="Curve2D" id="Curve2D_4xfga"]
 
 [node name="map" type="Node2D"]
-script = ExtResource("1_gldc4")
-start_cell = Vector2i(0, 4)
 
 [node name="Path2D" type="Path2D" parent="."]
 curve = SubResource("Curve2D_4xfga")
