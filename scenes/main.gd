@@ -10,7 +10,6 @@ var tower_preview : Node2D = null
 
 
 
-
 func _ready():
 	load_map("res://scenes/map.tscn")
 	update_ui()
@@ -34,25 +33,36 @@ func build_path(tilemap_ground, tilemap_bridge, start_cell):
 		var data_bridge = tilemap_bridge.get_cell_tile_data(cell)
 		var data_ground = tilemap_ground.get_cell_tile_data(cell)
 		var world_pos = null
-		# Check for horizontal bridge sequence
-		if i + 2 < ordered_cells.size():
-			var cell1 = ordered_cells[i]
-			var cell2 = ordered_cells[i + 1]
-			var cell3 = ordered_cells[i + 2]
-			var is_horizontal_bridge = (
-				tilemap_bridge.get_cell_tile_data(cell1) and tilemap_bridge.get_cell_tile_data(cell1).get_custom_data("is_path") == true and
-				tilemap_bridge.get_cell_tile_data(cell2) and tilemap_bridge.get_cell_tile_data(cell2).get_custom_data("is_path") == true and
-				tilemap_bridge.get_cell_tile_data(cell3) and tilemap_bridge.get_cell_tile_data(cell3).get_custom_data("is_path") == true and
-				cell1.y == cell2.y and cell2.y == cell3.y and
-				cell1.x + 1 == cell2.x and cell2.x + 1 == cell3.x
-			)
-			if is_horizontal_bridge:
-				# Use your exact coordinates for the 3-tile horizontal bridge
-				path_points.append(Vector2(36, 16))   # ramp up
-				path_points.append(Vector2(156, 16))  # flat
-				path_points.append(Vector2(192, 0))   # ramp down
-				i += 3
+
+		# Detect horizontal bridge sequence
+		if data_bridge and data_bridge.get_custom_data("is_path") == true:
+			# Find length of horizontal bridge
+			var bridge_start = i
+			var bridge_end = i
+			while bridge_end + 1 < ordered_cells.size():
+				var next_cell = ordered_cells[bridge_end + 1]
+				var next_data = tilemap_bridge.get_cell_tile_data(next_cell)
+				if next_data and next_data.get_custom_data("is_path") == true and next_cell.y == cell.y and next_cell.x == ordered_cells[bridge_end].x + 1:
+					bridge_end += 1
+				else:
+					break
+			var bridge_len = bridge_end - bridge_start + 1
+			if bridge_len > 1:
+				var ramp_up_offset = Vector2(36, -18)
+				var flat_offset = Vector2(36, -18)
+				var ramp_down_offset = Vector2(0, 0) # Try Vector2(0, 0) or tweak as needed
+				for j in range(bridge_start, bridge_end + 1):
+					var bridge_cell = ordered_cells[j]
+					var base_pos = tilemap_bridge.map_to_local(bridge_cell)
+					if j == bridge_start:
+						path_points.append(base_pos + ramp_up_offset)
+					elif j == bridge_end:
+						path_points.append(base_pos + ramp_down_offset)
+					else:
+						path_points.append(base_pos + flat_offset)
+				i = bridge_end + 1
 				continue
+
 		# Default logic for ground and vertical bridges
 		if data_bridge and data_bridge.get_custom_data("is_path") == true:
 			world_pos = tilemap_bridge.map_to_local(cell)
@@ -210,3 +220,7 @@ func spawn_enemy(path_points):
 	enemy.path = path_points
 	$EnemyContainer.add_child(enemy)
 	enemy.play_walk_animation()
+
+
+func _on_enemy_spawn_timer_timeout():
+	spawn_enemy(path_points)

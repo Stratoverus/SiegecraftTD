@@ -8,3 +8,4 @@ class_name TowerData
 @export var damage: int
 @export var type: String
 @export var range: float
+@export var attack_speed: float

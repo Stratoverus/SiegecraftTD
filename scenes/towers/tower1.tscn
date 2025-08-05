@@ -1,12 +1,14 @@
-[gd_scene load_steps=4 format=3 uid="uid://dnujv8lrg3ced"]
+[gd_scene load_steps=5 format=3 uid="uid://dnujv8lrg3ced"]
 
-[ext_resource type="Script" uid="uid://dx1b6p8py0u26" path="res://scenes/towers/tower_1.gd" id="1_l0lf5"]
+[ext_resource type="Script" uid="uid://d35mn7meqi8ve" path="res://scenes/towers/tower.gd" id="1_l0lf5"]
 [ext_resource type="Texture2D" uid="uid://db5c5hxxyt2mc" path="res://assets/Towers/tower1/base/Tower 01.png" id="1_lkjrt"]
 [ext_resource type="Texture2D" uid="uid://dn1fi8xiyyj76" path="res://assets/Towers/tower1/weapon/weapon1Icon.tres" id="2_l0lf5"]
+[ext_resource type="Resource" uid="uid://dnrtegen4bbwb" path="res://assets/Towers/tower1/tower1.tres" id="2_si5hj"]
 
 [node name="Tower1" type="Node2D"]
 script = ExtResource("1_l0lf5")
-level_regions = Array[Rect2]([Rect2(0, 30, 64, 98), Rect2(64, 20, 64, 107), Rect2(128, 12, 64, 116)])
+tower_data = ExtResource("2_si5hj")
+level_regions = Array[Rect2]([Rect2(0, 30, 64, 98), Rect2(0, 20, 128, 107), Rect2(0, 12, 192, 116)])
 weapon_offset_from_top = 0
 
 [node name="towerBase" type="Sprite2D" parent="."]
