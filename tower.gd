@@ -24,13 +24,12 @@ func _process(delta):
 	attack_cooldown -= delta
 	if not is_valid_target(target):
 		target = find_target()
+		if target:
+			print("[Tower] New target acquired:", target)
 	if target and attack_cooldown <= 0.0:
+		print("[Tower] Attacking target:", target, "for", damage, "damage")
 		attack_target(target)
 		attack_cooldown = 1.0 / attack_speed
-
-	# Rotate weapon if needed
-	if target and tower_data.weapon_rotates:
-		point_weapon_at(target.global_position)
 
 # --- Attack logic ---
 func is_valid_target(enemy):
@@ -48,23 +47,9 @@ func find_target():
 				best_dist = dist
 	return best
 
-
 func attack_target(enemy):
-	# Play firing animation and scale speed with attack speed
-	if has_node("towerWeapon") and $towerWeapon is AnimatedSprite2D:
-		$towerWeapon.speed_scale = attack_speed
-		$towerWeapon.play("firing")
-
-	# Instance and launch projectile
-	var projectile_scene = preload("res://scenes/towers/tower1/projectile1.tscn")
-	var projectile = projectile_scene.instantiate()
-	projectile.global_position = $towerWeapon.get_global_position() if has_node("towerWeapon") else global_position
-	projectile.damage = damage
-	projectile.target = enemy
-	projectile.z_index = 1000
-	get_tree().current_scene.add_child(projectile)
-	if projectile.has_method("launch"):
-		projectile.launch(enemy)
+	print("[Tower] Calling take_damage on:", enemy)
+	enemy.take_damage(damage)
 
 # --- Upgrade and sprite logic ---
 func upgrade():
@@ -88,11 +73,3 @@ func update_weapon_position():
 		var top_y = base_sprite.position.y - base_sprite.region_rect.size.y / 2 if base_sprite.region_enabled else base_sprite.position.y - base_sprite.texture.get_height() / 2
 		weapon_sprite.position.y = top_y + weapon_offset_from_top
 		weapon_sprite.position.x = base_sprite.position.x
-
-# Rotates the weapon to point at the given target position (in global coordinates)
-func point_weapon_at(target_position: Vector2) -> void:
-	if has_node("towerWeapon"):
-		var weapon_sprite = $towerWeapon
-		var weapon_global_pos = weapon_sprite.get_global_position()
-		var angle = weapon_global_pos.angle_to_point(target_position)
-		weapon_sprite.rotation = angle + PI / 2

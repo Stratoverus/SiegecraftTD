@@ -9,3 +9,4 @@ class_name TowerData
 @export var type: String
 @export var range: float
 @export var attack_speed: float
+@export var weapon_rotates: bool

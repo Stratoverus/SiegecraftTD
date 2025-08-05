@@ -239,9 +239,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_k4gvh")
 }],
-"loop": true,
+"loop": false,
 "name": &"die",
-"speed": 5.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -277,9 +277,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_7ob2q")
 }],
-"loop": true,
+"loop": false,
 "name": &"dieDown",
-"speed": 5.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -354,7 +354,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"walk",
-"speed": 10.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -383,13 +383,14 @@ animations = [{
 }],
 "loop": true,
 "name": &"walkDown",
-"speed": 10.0
+"speed": 15.0
 }]
 
-[node name="Enemy" type="Node2D"]
+[node name="Enemy" type="Node2D" groups=["enemies"]]
 script = ExtResource("1_6xk8f")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 scale = Vector2(0.5, 0.5)
 sprite_frames = SubResource("SpriteFrames_7v5dn")
 animation = &"walkDown"
+frame_progress = 0.817991

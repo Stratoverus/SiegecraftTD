@@ -1,0 +1,41 @@
+[gd_scene load_steps=7 format=3 uid="uid://dxjv1alqimg4y"]
+
+[ext_resource type="Texture2D" uid="uid://cpfykl2ufisrf" path="res://assets/Towers/tower1/projectile/Tower 01 - Level 01 - Projectile.png" id="1_bhq2l"]
+[ext_resource type="Script" uid="uid://b7jx873kaco5r" path="res://scenes/towers/tower1/projectile1.gd" id="1_tdn6u"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tdn6u"]
+atlas = ExtResource("1_bhq2l")
+region = Rect2(0, 0, 8, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qwo54"]
+atlas = ExtResource("1_bhq2l")
+region = Rect2(8, 0, 8, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mj123"]
+atlas = ExtResource("1_bhq2l")
+region = Rect2(16, 0, 8, 40)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_de0xi"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tdn6u")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qwo54")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mj123")
+}],
+"loop": true,
+"name": &"default",
+"speed": 15.0
+}]
+
+[node name="Projectile" type="Node2D"]
+script = ExtResource("1_tdn6u")
+
+[node name="projectileAnim" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_de0xi")
+frame = 1
+frame_progress = 0.726207

@@ -1,9 +1,62 @@
-[gd_scene load_steps=5 format=3 uid="uid://dnujv8lrg3ced"]
+[gd_scene load_steps=12 format=3 uid="uid://dnujv8lrg3ced"]
 
 [ext_resource type="Script" uid="uid://d35mn7meqi8ve" path="res://scenes/towers/tower.gd" id="1_l0lf5"]
 [ext_resource type="Texture2D" uid="uid://db5c5hxxyt2mc" path="res://assets/Towers/tower1/base/Tower 01.png" id="1_lkjrt"]
-[ext_resource type="Texture2D" uid="uid://dn1fi8xiyyj76" path="res://assets/Towers/tower1/weapon/weapon1Icon.tres" id="2_l0lf5"]
 [ext_resource type="Resource" uid="uid://dnrtegen4bbwb" path="res://assets/Towers/tower1/tower1.tres" id="2_si5hj"]
+[ext_resource type="Texture2D" uid="uid://bob4sbrwuuhiq" path="res://assets/Towers/tower1/weapon/Tower 01 - Level 01 - Weapon.png" id="4_si5hj"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qapld"]
+atlas = ExtResource("4_si5hj")
+region = Rect2(0, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8ndv6"]
+atlas = ExtResource("4_si5hj")
+region = Rect2(96, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ssumn"]
+atlas = ExtResource("4_si5hj")
+region = Rect2(192, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4c8cu"]
+atlas = ExtResource("4_si5hj")
+region = Rect2(288, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b8jpf"]
+atlas = ExtResource("4_si5hj")
+region = Rect2(384, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mc6r1"]
+atlas = ExtResource("4_si5hj")
+region = Rect2(480, 0, 96, 96)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_0app0"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qapld")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8ndv6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ssumn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4c8cu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b8jpf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mc6r1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qapld")
+}],
+"loop": false,
+"name": &"firing",
+"speed": 10.0
+}]
 
 [node name="Tower1" type="Node2D"]
 script = ExtResource("1_l0lf5")
@@ -16,6 +69,9 @@ texture = ExtResource("1_lkjrt")
 region_enabled = true
 region_rect = Rect2(0, 12, 64, 116)
 
-[node name="towerWeapon" type="Sprite2D" parent="."]
-position = Vector2(-1, -16)
-texture = ExtResource("2_l0lf5")
+[node name="towerWeapon" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -19)
+sprite_frames = SubResource("SpriteFrames_0app0")
+animation = &"firing"
+frame = 6
+frame_progress = 1.0

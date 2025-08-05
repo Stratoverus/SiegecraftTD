@@ -13,6 +13,7 @@ var tower_preview : Node2D = null
 func _ready():
 	load_map("res://scenes/map.tscn")
 	update_ui()
+	hide_all_grid_overlays()
 
 
 func load_level(level_path):
@@ -22,6 +23,13 @@ func load_level(level_path):
 	# Load and add the new level
 	var level = load(level_path).instantiate()
 	$LevelContainer.add_child(level)
+
+
+func is_tower_at_position(pos: Vector2) -> bool:
+	for tower in $TowerContainer.get_children():
+		if tower.position == pos:
+			return true
+	return false
 
 
 func build_path(tilemap_ground, tilemap_bridge, start_cell):
@@ -140,7 +148,7 @@ func can_place_tower_at(pos: Vector2) -> bool:
 	var tilemap = $LevelContainer/map/tileLayer1
 	var cell = tilemap.local_to_map(pos)
 	var data = tilemap.get_cell_tile_data(cell)
-	return data and data.get_custom_data("can_build") == true
+	return data and data.get_custom_data("can_build") == true and not is_tower_at_position(tilemap.map_to_local(cell))
 
 # Example: Call this in _unhandled_input to place the tower
 func _unhandled_input(event):
@@ -149,10 +157,11 @@ func _unhandled_input(event):
 		var snapped_pos = get_snapped_position(mouse_pos)
 		if can_place_tower_at(mouse_pos):
 			add_tower(load(selected_tower_data.scene_path), snapped_pos, selected_tower_data.cost)
-		placing_tower = false
-		if tower_preview:
-			tower_preview.queue_free()
-			tower_preview = null
+			placing_tower = false
+			hide_all_grid_overlays()
+			if tower_preview:
+				tower_preview.queue_free()
+				tower_preview = null
 
 func load_map(map_path):
 	# Remove any existing map
@@ -161,6 +170,8 @@ func load_map(map_path):
 	# Load and add the map
 	var map = load(map_path).instantiate()
 	$LevelContainer.add_child(map)
+	# Always hide grid overlay after loading map
+	hide_all_grid_overlays()
 	var start_cell = map.start_cell
 	var tilemap_ground = $LevelContainer/map/tileLayer1
 	var tilemap_bridge = $LevelContainer/map/tileLayer1/tileLayer2
@@ -172,6 +183,7 @@ func on_tower_button_pressed(tower_data: TowerData):
 	selected_tower_data = tower_data
 	placing_tower = true
 	show_tower_preview()
+	show_all_grid_overlays()
 
 func show_tower_preview():
 	print("show_tower_preview called")
@@ -186,6 +198,7 @@ func _process(delta):
 		var mouse_pos = get_global_mouse_position()
 		tower_preview.position = get_snapped_position(mouse_pos)
 		tower_preview.visible = true
+		tower_preview.queue_redraw()
 
 
 func _on_tower_button_1_pressed() -> void:
@@ -220,7 +233,22 @@ func spawn_enemy(path_points):
 	enemy.path = path_points
 	$EnemyContainer.add_child(enemy)
 	enemy.play_walk_animation()
+	enemy.connect("enemy_died", Callable(self, "_on_enemy_died"))
 
 
 func _on_enemy_spawn_timer_timeout():
 	spawn_enemy(path_points)
+
+func _on_enemy_died(gold):
+	earn_gold(gold)
+
+
+func hide_all_grid_overlays():
+	for child in $LevelContainer.get_children():
+		if child.has_node("gridOverlay"):
+			child.get_node("gridOverlay").visible = false
+
+func show_all_grid_overlays():
+	for child in $LevelContainer.get_children():
+		if child.has_node("gridOverlay"):
+			child.get_node("gridOverlay").visible = true
