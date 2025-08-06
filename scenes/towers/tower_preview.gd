@@ -1,9 +1,11 @@
 extends Node2D
 var attack_range = 0.0
+var level := 1
 
+# This is only used when placing the tower. Since you can only place level 1 towers for right now, this only grabs level 1 details.
 func set_tower_data(tower_data):
-	$Sprite2D.texture = tower_data.icon
-	attack_range = tower_data.attack_range
+	$Sprite2D.texture = tower_data.icon[0]
+	attack_range = tower_data.attack_range[level - 1]
 	queue_redraw()
 	var sprite = $Sprite2D
 	var texture_height = sprite.texture.get_height()

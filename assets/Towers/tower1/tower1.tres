@@ -1,20 +1,21 @@
-[gd_resource type="Resource" script_class="TowerData" load_steps=3 format=3 uid="uid://dnrtegen4bbwb"]
+[gd_resource type="Resource" script_class="TowerData" load_steps=5 format=3 uid="uid://dnrtegen4bbwb"]
 
-[ext_resource type="Texture2D" uid="uid://bp887cac0kmiu" path="res://assets/Towers/tower1/base/tower1Icon.tres" id="1_lanmx"]
 [ext_resource type="Script" uid="uid://c15bjue8jm284" path="res://assets/Towers/towerData.gd" id="1_n24qa"]
+[ext_resource type="Texture2D" uid="uid://bp887cac0kmiu" path="res://assets/Towers/tower1/base/tower1L1Icon.tres" id="1_upuqh"]
+[ext_resource type="Texture2D" uid="uid://fdwlj70n8kml" path="res://assets/Towers/tower1/base/tower1L2Icon.tres" id="2_uli2f"]
+[ext_resource type="Texture2D" uid="uid://sdcd0bhj6kl1" path="res://assets/Towers/tower1/base/tower1L3Icon.tres" id="3_f6iaf"]
 
 [resource]
 script = ExtResource("1_n24qa")
-scene_path = "res://scenes/towers/tower1.tscn"
-icon = ExtResource("1_lanmx")
-cost = 30
+scene_path = "res://scenes/towers/tower1/tower1.tscn"
 type = "physical"
 weapon_rotates = true
 weapon_offset_from_top = 0
+projectile_scene = "res://scenes/towers/tower1/projectileT1.tscn"
+cost = Array[int]([30, 100, 200])
 damage = Array[int]([5, 10, 20])
-attack_range = Array[float]([250.0])
+attack_range = Array[float]([250.0, 250.0, 250.0])
 attack_speed = Array[float]([1.0, 2.0, 3.0])
-weapon_sprites = Array[Texture]([null, null, null])
-projectile_animations = Array[Resource]([])
-level_regions = Array[Rect2]([])
+projectile_speed = Array[float]([800.0, 800.0, 800.0])
+icon = Array[Texture]([ExtResource("1_upuqh"), ExtResource("2_uli2f"), ExtResource("3_f6iaf")])
 metadata/_custom_type_script = "uid://c15bjue8jm284"

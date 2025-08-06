@@ -1,13 +1,15 @@
 extends Node2D
 
 @export var damage: int = 1
+@export var speed: float = 200.0
+@export var level: int = 1
 var target = null
-var speed: float = 800.0
+
 
 func launch(enemy):
 	target = enemy
 	if has_node("projectileAnim"):
-		$projectileAnim.play("default")
+		$projectileAnim.play("level" + str(level))
 
 func _process(delta):
 	if not is_instance_valid(target):

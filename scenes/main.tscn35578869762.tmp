@@ -210,5 +210,4 @@ text = "Delete Tower"
 [connection signal="pressed" from="pauseFade/gameMenu/resume" to="." method="_on_resume_pressed"]
 [connection signal="pressed" from="pauseFade/gameMenu/quitDesktop" to="." method="_on_quit_desktop_pressed"]
 [connection signal="timeout" from="EnemySpawnTimer" to="." method="_on_enemy_spawn_timer_timeout"]
-[connection signal="pressed" from="TowerMenu/upgradeButton" to="." method="_on_upgrade_button_pressed"]
 [connection signal="pressed" from="TowerMenu/deleteButton" to="." method="_on_delete_button_pressed"]

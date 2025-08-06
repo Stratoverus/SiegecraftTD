@@ -49,9 +49,6 @@ func _on_back_pressed() -> void:
 		$CenterContainer/SettingsMenu.visible = false
 		$CenterContainer/MainButtons/settings.grab_focus()
 
-	
-	
-
 
 func _on_fullscreen_toggled(toggled_on: bool) -> void:
 	if toggled_on:
