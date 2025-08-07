@@ -322,6 +322,8 @@ func _on_tower_button_1_pressed() -> void:
 
 
 func _on_tower_button_2_pressed() -> void:
+	var tower_data = preload("res://assets/towers/tower2/tower2.tres")
+	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
 		if not is_mouse_over_menu($TowerMenu, mouse_pos):
@@ -329,6 +331,8 @@ func _on_tower_button_2_pressed() -> void:
 
 
 func _on_tower_button_3_pressed() -> void:
+	var tower_data = preload("res://assets/towers/tower3/tower3.tres")
+	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
 		if not is_mouse_over_menu($TowerMenu, mouse_pos):
@@ -403,8 +407,22 @@ func get_snapped_position(mouse_pos: Vector2) -> Vector2:
 func spawn_enemy(path_points):
 	var enemy_scene = preload("res://scenes/enemies/enemy.tscn")
 	var enemy = enemy_scene.instantiate()
-	enemy.position = path_points[0]
-	enemy.path = path_points
+	var spawn_offset = Vector2.ZERO
+	if path_points.size() > 1:
+		var direction = (path_points[1] - path_points[0]).normalized()
+		spawn_offset = -direction * 100 # 100 pixels off-screen (adjust as needed)
+	# Create a randomized path
+	var random_path = []
+	var tile_random_range = 12 # pixels, adjust for how much randomness you want
+	for i in range(path_points.size()):
+		var pt = path_points[i]
+		# Don't randomize first or last point (optional)
+		if i != 0 and i != path_points.size() - 1:
+			var offset = Vector2(randf_range(-tile_random_range, tile_random_range), randf_range(-tile_random_range, tile_random_range))
+			pt += offset
+		random_path.append(pt)
+	enemy.position = random_path[0] + spawn_offset
+	enemy.path = random_path
 	$EnemyContainer.add_child(enemy)
 	enemy.play_walk_animation()
 	enemy.connect("enemy_died", Callable(self, "_on_enemy_died"))
@@ -471,6 +489,36 @@ func show_tower_menu(tower):
 	menu.get_node("TowerStats/attackSpeedLabel").text = "Attack Speed: " + str(attack_speed)
 	tower_to_delete = tower
 	tower_menu_open_for = tower
+
+	# Hide upgrade button and show 'Max level' label if tower is max level
+	var upgrade_button = menu.get_node("upgradeButton")
+	var max_level_label = null
+	if menu.has_node("maxLevelLabel"):
+		max_level_label = menu.get_node("maxLevelLabel")
+	else:
+		max_level_label = Label.new()
+		max_level_label.name = "maxLevelLabel"
+		max_level_label.text = "Max level"
+		max_level_label.visible = false
+		# Place the label at the same position and size as the upgrade button
+		max_level_label.position = upgrade_button.position
+		max_level_label.size = upgrade_button.size if upgrade_button.has_method("size") else Vector2(120, 32)
+		max_level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		max_level_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		menu.add_child(max_level_label)
+		var upgrade_index = menu.get_children().find(upgrade_button)
+		if upgrade_index != -1:
+			menu.move_child(max_level_label, upgrade_index)
+
+	if tower.level >= 3:
+		upgrade_button.visible = false
+		max_level_label.visible = true
+		max_level_label.position = upgrade_button.position
+		max_level_label.size = upgrade_button.size if upgrade_button.has_method("size") else Vector2(120, 32)
+	else:
+		upgrade_button.visible = true
+		max_level_label.visible = false
+
 	await get_tree().process_frame
 	# Only update if both menu and bg are still valid
 	if is_instance_valid(menu) and is_instance_valid(bg):

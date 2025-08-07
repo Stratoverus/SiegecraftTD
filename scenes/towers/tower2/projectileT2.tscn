@@ -1,0 +1,137 @@
+[gd_scene load_steps=21 format=3 uid="uid://brjsnt87l5lk5"]
+
+[ext_resource type="Script" uid="uid://b7jx873kaco5r" path="res://scenes/towers/projectile.gd" id="1_m3qxw"]
+[ext_resource type="Texture2D" uid="uid://dcdft06422fww" path="res://assets/Towers/tower2/projectile/Tower 02 - Level 01 - Projectile.png" id="2_p58lp"]
+[ext_resource type="Texture2D" uid="uid://dkhds7alqii8f" path="res://assets/Towers/tower2/projectile/Tower 02 - Level 02 - Projectile.png" id="3_6ucy8"]
+[ext_resource type="Texture2D" uid="uid://da0yspbe0rp01" path="res://assets/Towers/tower2/projectile/Tower 02 - Level 03 - Projectile.png" id="4_cxbqx"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_58r0p"]
+atlas = ExtResource("2_p58lp")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k8k2k"]
+atlas = ExtResource("2_p58lp")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rj03g"]
+atlas = ExtResource("2_p58lp")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u8dki"]
+atlas = ExtResource("2_p58lp")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2rlyg"]
+atlas = ExtResource("2_p58lp")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ad7lo"]
+atlas = ExtResource("3_6ucy8")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_we88g"]
+atlas = ExtResource("3_6ucy8")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4weep"]
+atlas = ExtResource("3_6ucy8")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sdrfu"]
+atlas = ExtResource("3_6ucy8")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lo256"]
+atlas = ExtResource("3_6ucy8")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_noj7y"]
+atlas = ExtResource("4_cxbqx")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6hn21"]
+atlas = ExtResource("4_cxbqx")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_68rup"]
+atlas = ExtResource("4_cxbqx")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ovbqo"]
+atlas = ExtResource("4_cxbqx")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kwloy"]
+atlas = ExtResource("4_cxbqx")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_de0xi"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_58r0p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k8k2k")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rj03g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u8dki")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2rlyg")
+}],
+"loop": true,
+"name": &"level1",
+"speed": 15.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ad7lo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_we88g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4weep")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sdrfu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lo256")
+}],
+"loop": true,
+"name": &"level2",
+"speed": 15.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_noj7y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6hn21")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_68rup")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ovbqo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kwloy")
+}],
+"loop": true,
+"name": &"level3",
+"speed": 15.0
+}]
+
+[node name="Projectile" type="Node2D"]
+script = ExtResource("1_m3qxw")
+
+[node name="projectileAnim" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_de0xi")
+animation = &"level2"
+frame_progress = 0.398905

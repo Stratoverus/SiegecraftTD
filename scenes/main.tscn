@@ -1,8 +1,12 @@
-[gd_scene load_steps=5 format=3 uid="uid://c3kpjtu13d4kk"]
+[gd_scene load_steps=9 format=3 uid="uid://c3kpjtu13d4kk"]
 
 [ext_resource type="Script" uid="uid://ds1mdpvgt2qu3" path="res://scenes/main.gd" id="1_o5qli"]
 [ext_resource type="Texture2D" uid="uid://bp887cac0kmiu" path="res://assets/Towers/tower1/base/tower1L1Icon.tres" id="3_sugp2"]
 [ext_resource type="Texture2D" uid="uid://dn1fi8xiyyj76" path="res://assets/Towers/tower1/weapon/weapon1Icon.tres" id="4_jyhfs"]
+[ext_resource type="Texture2D" uid="uid://d18gbpfxkbwop" path="res://assets/Towers/tower2/base/tower2L1Icon.tres" id="4_tbgi4"]
+[ext_resource type="Texture2D" uid="uid://bqg7jma0l7v8j" path="res://assets/Towers/tower2/weapon/weapon1Icon.tres" id="5_tbgi4"]
+[ext_resource type="Texture2D" uid="uid://dlfrncgpjsudm" path="res://assets/Towers/tower3/base/tower3L1Icon.tres" id="6_tefeu"]
+[ext_resource type="Texture2D" uid="uid://b67ct55l67jgr" path="res://assets/Towers/tower3/weapon/weapon1Icon.tres" id="7_o6xl0"]
 
 [sub_resource type="Theme" id="Theme_sugp2"]
 
@@ -93,14 +97,41 @@ texture = ExtResource("4_jyhfs")
 [node name="towerButton2" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
+icon = ExtResource("4_tbgi4")
 icon_alignment = 1
 expand_icon = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton2"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -13.0
+offset_right = 37.0
+offset_bottom = 50.0
+grow_horizontal = 2
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("5_tbgi4")
 
 [node name="towerButton3" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
+icon = ExtResource("6_tefeu")
 icon_alignment = 1
 expand_icon = true
+
+[node name="TextureRect2" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton3"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -13.0
+offset_top = 1.0
+offset_right = 37.0
+offset_bottom = 51.0
+grow_horizontal = 2
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("7_o6xl0")
 
 [node name="towerButton4" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
 custom_minimum_size = Vector2(64, 64)

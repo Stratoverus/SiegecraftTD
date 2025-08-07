@@ -163,7 +163,7 @@ animations = [{
 "speed": 10.0
 }]
 
-[node name="Tower1" type="Node2D"]
+[node name="Tower" type="Node2D"]
 script = ExtResource("1_l0lf5")
 tower_data = ExtResource("2_si5hj")
 level_regions = Array[Rect2]([Rect2(0, 30, 64, 98), Rect2(64, 20, 64, 107), Rect2(128, 12, 64, 116)])

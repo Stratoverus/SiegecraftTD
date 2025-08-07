@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="TowerData" load_steps=3 format=3 uid="uid://dokoef8867v3i"]
+
+[ext_resource type="Texture2D" uid="uid://d18gbpfxkbwop" path="res://assets/Towers/tower2/base/tower2L1Icon.tres" id="1_5fbu5"]
+[ext_resource type="Script" uid="uid://c15bjue8jm284" path="res://assets/Towers/towerData.gd" id="4_c66cq"]
+
+[resource]
+script = ExtResource("4_c66cq")
+scene_path = "res://scenes/towers/tower2/tower2.tscn"
+type = "magic"
+weapon_rotates = false
+weapon_offset_from_top = 0
+projectile_scene = "res://scenes/towers/tower2/projectileT2.tscn"
+cost = Array[int]([50, 150, 300])
+damage = Array[int]([20, 40, 80])
+attack_range = Array[float]([300.0, 300.0, 300.0])
+attack_speed = Array[float]([0.5, 0.7, 1.0])
+projectile_speed = Array[float]([600.0, 600.0, 600.0])
+icon = Array[Texture]([ExtResource("1_5fbu5"), ExtResource("1_5fbu5"), ExtResource("1_5fbu5")])
+metadata/_custom_type_script = "uid://c15bjue8jm284"
