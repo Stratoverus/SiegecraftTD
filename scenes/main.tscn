@@ -1,12 +1,23 @@
-[gd_scene load_steps=9 format=3 uid="uid://c3kpjtu13d4kk"]
+[gd_scene load_steps=20 format=3 uid="uid://c3kpjtu13d4kk"]
 
 [ext_resource type="Script" uid="uid://ds1mdpvgt2qu3" path="res://scenes/main.gd" id="1_o5qli"]
+[ext_resource type="Texture2D" uid="uid://lynys0otyc4c" path="res://assets/goldCoin.tres" id="2_dp3eg"]
 [ext_resource type="Texture2D" uid="uid://bp887cac0kmiu" path="res://assets/Towers/tower1/base/tower1L1Icon.tres" id="3_sugp2"]
 [ext_resource type="Texture2D" uid="uid://dn1fi8xiyyj76" path="res://assets/Towers/tower1/weapon/weapon1Icon.tres" id="4_jyhfs"]
 [ext_resource type="Texture2D" uid="uid://d18gbpfxkbwop" path="res://assets/Towers/tower2/base/tower2L1Icon.tres" id="4_tbgi4"]
 [ext_resource type="Texture2D" uid="uid://bqg7jma0l7v8j" path="res://assets/Towers/tower2/weapon/weapon1Icon.tres" id="5_tbgi4"]
 [ext_resource type="Texture2D" uid="uid://dlfrncgpjsudm" path="res://assets/Towers/tower3/base/tower3L1Icon.tres" id="6_tefeu"]
 [ext_resource type="Texture2D" uid="uid://b67ct55l67jgr" path="res://assets/Towers/tower3/weapon/weapon1Icon.tres" id="7_o6xl0"]
+[ext_resource type="Texture2D" uid="uid://bsduh72ppslga" path="res://assets/Towers/tower4/base/tower4L1Icon.tres" id="8_tipki"]
+[ext_resource type="Texture2D" uid="uid://bfwedeq8cxw3x" path="res://assets/Towers/tower4/weapon/projectileT4Icon.tres" id="9_85g3d"]
+[ext_resource type="Texture2D" uid="uid://bj2jwuhhpc28r" path="res://assets/Towers/tower5/base/towerT5L1Icon.tres" id="10_ya4ey"]
+[ext_resource type="Texture2D" uid="uid://bg6d071qvdahd" path="res://assets/Towers/tower5/weapon/weasponT5L1Icon.tres" id="11_eb6dy"]
+[ext_resource type="Texture2D" uid="uid://bu5a40yv6r30t" path="res://assets/Towers/tower6/base/towerT6L1Icon.tres" id="12_trceg"]
+[ext_resource type="Texture2D" uid="uid://deygqg3vptx0j" path="res://assets/Towers/tower6/weapon/weaponT6L1Icon.tres" id="13_a8y0u"]
+[ext_resource type="Texture2D" uid="uid://wrwfeei5ork1" path="res://assets/Towers/tower7/base/tower7L1Icon.tres" id="14_jkv2x"]
+[ext_resource type="Texture2D" uid="uid://rx2tk76xupkm" path="res://assets/Towers/tower8/base/tower8L1Icon.tres" id="15_jbj1t"]
+[ext_resource type="Texture2D" uid="uid://dkrsrave3h1ee" path="res://assets/Towers/tower7/weapon/weaponT7L1Icon.tres" id="16_jbj1t"]
+[ext_resource type="Texture2D" uid="uid://dhnjlh60r41ax" path="res://assets/Towers/tower8/weapon/weaponT8L1Icon.tres" id="17_muem4"]
 
 [sub_resource type="Theme" id="Theme_sugp2"]
 
@@ -42,8 +53,10 @@ offset_right = 40.0
 grow_vertical = 0
 
 [node name="goldIcon" type="TextureRect" parent="CanvasLayer/ui/goldContainer"]
-custom_minimum_size = Vector2(32, 32)
+custom_minimum_size = Vector2(32, 20)
 layout_mode = 2
+texture = ExtResource("2_dp3eg")
+expand_mode = 2
 
 [node name="goldLabel" type="Label" parent="CanvasLayer/ui/goldContainer"]
 layout_mode = 2
@@ -94,6 +107,18 @@ grow_horizontal = 2
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("4_jyhfs")
 
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton1"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
+
 [node name="towerButton2" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
@@ -112,6 +137,18 @@ offset_bottom = 50.0
 grow_horizontal = 2
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("5_tbgi4")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton2"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
 
 [node name="towerButton3" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
 custom_minimum_size = Vector2(64, 64)
@@ -133,35 +170,193 @@ grow_horizontal = 2
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("7_o6xl0")
 
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton3"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
+
 [node name="towerButton4" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
+icon = ExtResource("8_tipki")
 icon_alignment = 1
 expand_icon = true
+
+[node name="TextureRect3" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton4"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -8.0
+offset_top = 2.0
+offset_right = 24.0
+offset_bottom = 80.0
+grow_horizontal = 2
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("9_85g3d")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton4"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
 
 [node name="towerButton5" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
+icon = ExtResource("10_ya4ey")
 icon_alignment = 1
 expand_icon = true
+
+[node name="TextureRect4" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton5"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -12.0
+offset_top = 3.0
+offset_right = 20.0
+offset_bottom = 35.0
+grow_horizontal = 2
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("11_eb6dy")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton5"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
 
 [node name="towerButton6" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
+icon = ExtResource("12_trceg")
 icon_alignment = 1
 expand_icon = true
+
+[node name="TextureRect5" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton6"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -12.0
+offset_top = 1.0
+offset_right = 20.0
+offset_bottom = 35.0
+grow_horizontal = 2
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("13_a8y0u")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton6"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
 
 [node name="towerButton7" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
+icon = ExtResource("14_jkv2x")
 icon_alignment = 1
 expand_icon = true
+
+[node name="TextureRect6" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton7"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -13.0
+offset_top = 2.99999
+offset_right = 19.0
+offset_bottom = 37.0
+grow_horizontal = 2
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("16_jbj1t")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton7"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
 
 [node name="towerButton8" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
+icon = ExtResource("15_jbj1t")
 icon_alignment = 1
 expand_icon = true
+
+[node name="TextureRect7" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton8"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -13.0
+offset_top = -2.0
+offset_right = 19.0
+offset_bottom = 38.0
+grow_horizontal = 2
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("17_muem4")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton8"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
+
+[node name="round" type="Label" parent="CanvasLayer/ui"]
+layout_mode = 0
+offset_left = 278.0
+offset_top = 152.0
+offset_right = 337.0
+offset_bottom = 175.0
+text = "Round: "
+
+[node name="timer" type="Label" parent="CanvasLayer/ui"]
+layout_mode = 0
+offset_left = 120.0
+offset_top = 152.0
+offset_right = 201.0
+offset_bottom = 175.0
+text = "Time Left: "
 
 [node name="pauseFade" type="CenterContainer" parent="."]
 process_mode = 3

@@ -752,7 +752,6 @@ shape = SubResource("RectangleShape2D_2bdgr")
 [node name="towerWeapon" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -19)
 sprite_frames = SubResource("SpriteFrames_0app0")
-animation = &"idleL1"
-frame_progress = 0.60094
+animation = &"firingL1"
 
 [connection signal="input_event" from="towerBase/Area2D" to="." method="_on_area_2d_input_event"]

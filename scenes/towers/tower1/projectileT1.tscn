@@ -1,9 +1,30 @@
-[gd_scene load_steps=15 format=3 uid="uid://dxjv1alqimg4y"]
+[gd_scene load_steps=21 format=3 uid="uid://dxjv1alqimg4y"]
 
 [ext_resource type="Script" uid="uid://b7jx873kaco5r" path="res://scenes/towers/projectile.gd" id="1_7xq3d"]
 [ext_resource type="Texture2D" uid="uid://cpfykl2ufisrf" path="res://assets/Towers/tower1/projectile/Tower 01 - Level 01 - Projectile.png" id="2_hbscr"]
+[ext_resource type="Texture2D" uid="uid://bnr44fge6g60q" path="res://assets/Towers/tower1/projectile/Tower 01 - Weapon - Impact.png" id="2_u0i7m"]
 [ext_resource type="Texture2D" uid="uid://r436bff6bcy5" path="res://assets/Towers/tower1/projectile/Tower 01 - Level 02 - Projectile.png" id="3_3nxia"]
 [ext_resource type="Texture2D" uid="uid://crr242wb80ray" path="res://assets/Towers/tower1/projectile/Tower 01 - Level 03 - Projectile.png" id="4_u0i7m"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_foos4"]
+atlas = ExtResource("2_u0i7m")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hnrkf"]
+atlas = ExtResource("2_u0i7m")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jqebr"]
+atlas = ExtResource("2_u0i7m")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0ejup"]
+atlas = ExtResource("2_u0i7m")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fm2uv"]
+atlas = ExtResource("2_u0i7m")
+region = Rect2(256, 0, 64, 64)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_tdn6u"]
 atlas = ExtResource("2_hbscr")
@@ -43,6 +64,26 @@ region = Rect2(44, 0, 22, 40)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_de0xi"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_foos4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hnrkf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jqebr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0ejup")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fm2uv")
+}],
+"loop": false,
+"name": &"impact1",
+"speed": 15.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_tdn6u")
@@ -91,4 +132,4 @@ script = ExtResource("1_7xq3d")
 
 [node name="projectileAnim" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_de0xi")
-animation = &"level1"
+animation = &"impact1"

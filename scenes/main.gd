@@ -1,6 +1,6 @@
 extends Node2D
 
-var gold : int = 1000
+var gold : int = 10000
 var health : int = 20
 var path_points = []
 # For tower placement
@@ -24,6 +24,27 @@ func _ready():
 	hide_all_grid_overlays()
 	$TowerMenu.connect("gui_input", Callable(self, "_on_TowerMenu_gui_input"))
 	$CanvasLayer/ui.connect("gui_input", Callable(self, "_on_ui_gui_input"))
+	update_tower_button_costs()
+# Dynamically set the cost label for each tower button in the build menu
+
+
+func update_tower_button_costs():
+	var tower_paths = [
+		"res://assets/towers/tower1/tower1.tres",
+		"res://assets/towers/tower2/tower2.tres",
+		"res://assets/towers/tower3/tower3.tres",
+		"res://assets/towers/tower4/tower4.tres",
+		"res://assets/towers/tower5/tower5.tres",
+		"res://assets/towers/tower6/tower6.tres",
+		"res://assets/towers/tower7/tower7.tres",
+		"res://assets/towers/tower8/tower8.tres",
+	]
+	for i in range(tower_paths.size()):
+		var tower_data = load(tower_paths[i])
+		var button = $CanvasLayer.get_node("ui/MarginContainer/buildMenu/towerButton%d" % (i+1))
+		if button.has_node("towerCost"):
+			var cost_label = button.get_node("towerCost")
+			cost_label.text = str(tower_data.cost[0])
 
 
 func hide_tower_menu_with_bg():
@@ -31,6 +52,11 @@ func hide_tower_menu_with_bg():
 	if tower_menu_bg and is_instance_valid(tower_menu_bg):
 		tower_menu_bg.queue_free()
 		tower_menu_bg = null
+	# Hide attack range for the previously selected tower
+	if selected_tower and is_instance_valid(selected_tower) and selected_tower.has_method("hide_attack_range"):
+		selected_tower.hide_attack_range()
+	# Clear selected_tower
+	selected_tower = null
 	tower_menu_open_for = null
 
 
@@ -207,18 +233,47 @@ func game_over():
 # Call this to place a tower of the selected type and cost
 func add_tower(tower_scene: PackedScene, tower_position: Vector2, cost: int):
 	if can_afford(cost):
-		var tower = tower_scene.instantiate()
-		tower.position = tower_position
-		tower.z_index = int(tower_position.y)
-		tower.tower_data = selected_tower_data
-		$TowerContainer.add_child(tower)
+		var build_scene = preload("res://scenes/towers/towerConstruction/towerBuild.tscn")
+		var build_instance = build_scene.instantiate()
+		build_instance.tower_scene = tower_scene
+		build_instance.tower_position = tower_position
+		build_instance.build_time = selected_tower_data.build_time[0] # or use correct level if needed
+		build_instance.tower_parent = $TowerContainer
+		build_instance.position = tower_position
+		build_instance.set_meta("initial_tower_data", selected_tower_data)
+		$TowerContainer.add_child(build_instance)
 		spend_gold(cost)
 
 func can_place_tower_at(pos: Vector2) -> bool:
 	var tilemap = $LevelContainer/map/tileLayer1
 	var cell = tilemap.local_to_map(pos)
-	var data = tilemap.get_cell_tile_data(cell)
-	return data and data.get_custom_data("can_build") == true and not is_tower_at_position(tilemap.map_to_local(cell))
+	
+	# Check if there's already a tower at this position
+	if is_tower_at_position(tilemap.map_to_local(cell)):
+		return false
+	
+	# Get all tile layers to check
+	var tile_layers = []
+	tile_layers.append(tilemap) # tileLayer1
+	if tilemap.has_node("tileLayer2"):
+		tile_layers.append(tilemap.get_node("tileLayer2"))
+		if tilemap.get_node("tileLayer2").has_node("tileLayer3"):
+			tile_layers.append(tilemap.get_node("tileLayer2").get_node("tileLayer3"))
+	
+	var can_build = false
+	
+	# Check each layer - if ANY layer says cannot build, return false
+	for layer in tile_layers:
+		var layer_data = layer.get_cell_tile_data(cell)
+		if layer_data:
+			var layer_can_build = layer_data.get_custom_data("can_build")
+			if layer_can_build == true:
+				can_build = true
+			elif layer_can_build == false:
+				# If any layer explicitly says cannot build, override everything
+				return false
+	
+	return can_build
 
 
 func is_mouse_over_ui(node, mouse_pos):
@@ -340,6 +395,8 @@ func _on_tower_button_3_pressed() -> void:
 
 
 func _on_tower_button_4_pressed() -> void:
+	var tower_data = preload("res://assets/towers/tower4/tower4.tres")
+	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
 		if not is_mouse_over_menu($TowerMenu, mouse_pos):
@@ -347,6 +404,8 @@ func _on_tower_button_4_pressed() -> void:
 
 
 func _on_tower_button_5_pressed() -> void:
+	var tower_data = preload("res://assets/towers/tower5/tower5.tres")
+	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
 		if not is_mouse_over_menu($TowerMenu, mouse_pos):
@@ -354,6 +413,8 @@ func _on_tower_button_5_pressed() -> void:
 
 
 func _on_tower_button_6_pressed() -> void:
+	var tower_data = preload("res://assets/towers/tower6/tower6.tres")
+	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
 		if not is_mouse_over_menu($TowerMenu, mouse_pos):
@@ -361,6 +422,8 @@ func _on_tower_button_6_pressed() -> void:
 
 
 func _on_tower_button_7_pressed() -> void:
+	var tower_data = preload("res://assets/towers/tower7/tower7.tres")
+	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
 		if not is_mouse_over_menu($TowerMenu, mouse_pos):
@@ -368,6 +431,8 @@ func _on_tower_button_7_pressed() -> void:
 
 
 func _on_tower_button_8_pressed() -> void:
+	var tower_data = preload("res://assets/towers/tower8/tower8.tres")
+	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
 		if not is_mouse_over_menu($TowerMenu, mouse_pos):
@@ -466,8 +531,19 @@ func show_tower_menu(tower):
 	tower_menu_cooldown_for = tower
 	var menu = $TowerMenu
 	var tower_pos = tower.global_position
-	menu.position = tower_pos + Vector2(40, -40) # Offset as needed
 	menu.custom_minimum_size = Vector2(200, 120) # Adjust as needed
+	
+	# Check if menu would go off the right edge of the screen
+	var screen_size = get_viewport().get_visible_rect().size
+	var menu_width = menu.custom_minimum_size.x
+	var offset_right = Vector2(40, -40) # Default offset to the right
+	var offset_left = Vector2(-menu_width - 40, -40) # Offset to the left
+	
+	# If the menu would go off-screen on the right, position it on the left
+	if tower_pos.x + offset_right.x + menu_width > screen_size.x:
+		menu.position = tower_pos + offset_left
+	else:
+		menu.position = tower_pos + offset_right
 	var parent = menu.get_parent()
 	# Remove previous background if it exists
 	if tower_menu_bg and is_instance_valid(tower_menu_bg):
@@ -487,8 +563,12 @@ func show_tower_menu(tower):
 	var attack_speed = tower.tower_data.attack_speed[tower.level - 1]
 	menu.get_node("TowerStats/attackLabel").text = "Attack: " + str(attack_value)
 	menu.get_node("TowerStats/attackSpeedLabel").text = "Attack Speed: " + str(attack_speed)
-	tower_to_delete = tower
+	selected_tower = tower
 	tower_menu_open_for = tower
+	
+	# Show attack range for the selected tower
+	if tower.has_method("show_attack_range"):
+		tower.show_attack_range()
 
 	# Hide upgrade button and show 'Max level' label if tower is max level
 	var upgrade_button = menu.get_node("upgradeButton")
@@ -510,6 +590,23 @@ func show_tower_menu(tower):
 		if upgrade_index != -1:
 			menu.move_child(max_level_label, upgrade_index)
 
+	# Add or update upgrade cost label
+	var upgrade_cost_label = null
+	if upgrade_button.has_node("upgradeCost"):
+		upgrade_cost_label = upgrade_button.get_node("upgradeCost")
+	else:
+		upgrade_cost_label = Label.new()
+		upgrade_cost_label.name = "upgradeCost"
+		upgrade_cost_label.anchors_preset = Control.PRESET_TOP_RIGHT
+		upgrade_cost_label.anchor_left = 1.0
+		upgrade_cost_label.anchor_right = 1.0
+		upgrade_cost_label.offset_left = -40.0
+		upgrade_cost_label.offset_bottom = 23.0
+		upgrade_cost_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+		upgrade_cost_label.add_theme_font_size_override("font_size", 12)
+		upgrade_cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		upgrade_button.add_child(upgrade_cost_label)
+
 	if tower.level >= 3:
 		upgrade_button.visible = false
 		max_level_label.visible = true
@@ -518,6 +615,10 @@ func show_tower_menu(tower):
 	else:
 		upgrade_button.visible = true
 		max_level_label.visible = false
+		# Update upgrade cost text
+		var next_level = tower.level + 1
+		var upgrade_cost = tower.tower_data.cost[next_level - 1] if tower.tower_data.cost.size() >= next_level else 0
+		upgrade_cost_label.text = str(upgrade_cost)
 
 	await get_tree().process_frame
 	# Only update if both menu and bg are still valid
@@ -539,7 +640,7 @@ func _on_delete_button_pressed() -> void:
 
 
 # --- Confirmation Popup Logic ---
-var tower_to_delete = null
+var selected_tower = null
 
 
 func show_delete_confirmation():
@@ -558,9 +659,9 @@ func show_delete_confirmation():
 
 
 func _on_delete_confirmed():
-	if tower_to_delete:
-		tower_to_delete.queue_free()
-		tower_to_delete = null
+	if selected_tower:
+		selected_tower.destroy()
+		selected_tower = null
 	hide_tower_menu_with_bg()
 
 
@@ -571,13 +672,19 @@ func _on_delete_no_pressed(action):
 
 
 func _on_upgrade_button_pressed() -> void:
-	# Upgrade the selected tower if possible and affordable
-	if tower_to_delete and tower_to_delete.level < 3:
-		var next_level = tower_to_delete.level + 1
-		var upgrade_cost = tower_to_delete.tower_data.cost[next_level - 1] if tower_to_delete.tower_data.cost.size() >= next_level else null
+	print("Upgrade button pressed!")
+	print("selected_tower:", selected_tower)
+	if not selected_tower or not is_instance_valid(selected_tower):
+		print("selected_tower is invalid or null!")
+		return
+	print("selected_tower.level:", selected_tower.level)
+	if selected_tower.level < 3:
+		var next_level = selected_tower.level + 1
+		var upgrade_cost = selected_tower.tower_data.cost[next_level - 1] if selected_tower.tower_data.cost.size() >= next_level else null
+		print("next_level:", next_level, "upgrade_cost:", upgrade_cost)
 		if upgrade_cost != null and can_afford(upgrade_cost):
+			print("Upgrading tower!")
 			spend_gold(upgrade_cost)
-			tower_to_delete.upgrade()
+			selected_tower.upgrade()
 			hide_tower_menu_with_bg()
 			await get_tree().process_frame
-			show_tower_menu(tower_to_delete)

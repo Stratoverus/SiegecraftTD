@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3 uid="uid://dgsogqoyqvwol"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m8cfd"]
+bg_color = Color(0.470076, 0.470076, 0.470076, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_73s2k"]
+bg_color = Color(0, 0.472788, 0.99778, 1)
+
+[node name="BuildProgressBar" type="Node2D"]
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+custom_minimum_size = Vector2(64, 10)
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -32.0
+offset_right = 32.0
+offset_bottom = 10.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_m8cfd")
+theme_override_styles/fill = SubResource("StyleBoxFlat_73s2k")
+step = 0.0
+rounded = true

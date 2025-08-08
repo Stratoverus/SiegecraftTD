@@ -226,7 +226,5 @@ shape = SubResource("RectangleShape2D_2bdgr")
 position = Vector2(0, -19)
 sprite_frames = SubResource("SpriteFrames_0app0")
 animation = &"firingL1"
-frame = 8
-frame_progress = 1.0
 
 [connection signal="input_event" from="towerBase/Area2D" to="." method="_on_area_2d_input_event"]

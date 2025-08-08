@@ -4,10 +4,10 @@ extends Node2D
 # Path and movement
 var path: Array = []
 var path_index: int = 0
-@export var speed: float = 100.0
+@export var speed: float = 100
 
 # Health system
-@export var max_health: int = 10
+@export var max_health: int = 100
 var health: int = max_health
 
 # Health bar settings
@@ -51,6 +51,26 @@ func _process(delta):
 			path_index += 1
 		play_walk_animation(direction)
 		queue_redraw() # Redraw health bar
+
+
+# Helper methods for projectile trajectory prediction
+func get_velocity() -> Vector2:
+	if is_dead or path_index >= path.size():
+		return Vector2.ZERO
+	var target = path[path_index]
+	var direction = (target - position).normalized()
+	return direction * speed
+
+
+func get_direction() -> Vector2:
+	if is_dead or path_index >= path.size():
+		return Vector2.ZERO
+	var target = path[path_index]
+	return (target - position).normalized()
+
+
+func get_speed() -> float:
+	return speed if not is_dead else 0.0
 
 
 # Call this to deal damage to the enemy

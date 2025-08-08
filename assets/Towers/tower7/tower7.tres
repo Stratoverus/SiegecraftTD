@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="TowerData" load_steps=3 format=3 uid="uid://oos4s6iak0po"]
+
+[ext_resource type="Texture2D" uid="uid://wrwfeei5ork1" path="res://assets/Towers/tower7/base/tower7L1Icon.tres" id="1_lhi60"]
+[ext_resource type="Script" uid="uid://c15bjue8jm284" path="res://assets/Towers/towerData.gd" id="4_818hi"]
+
+[resource]
+script = ExtResource("4_818hi")
+scene_path = "res://scenes/towers/tower7/tower7.tscn"
+type = "rapid"
+weapon_rotates = true
+weapon_offset_from_top = 0
+projectile_scene = "res://scenes/towers/tower7/projectileT7.tscn"
+projectile_release_frame = 4
+cost = Array[int]([600, 700, 1000])
+damage = Array[int]([150, 150, 150])
+attack_range = Array[float]([200.0, 200.0, 200.0])
+attack_speed = Array[float]([0.5, 0.7, 1.0])
+projectile_speed = Array[float]([600.0, 600.0, 600.0])
+icon = Array[Texture]([ExtResource("1_lhi60"), ExtResource("1_lhi60"), ExtResource("1_lhi60")])
+build_time = Array[float]([2.0, 2.0, 2.0])
+splash_radius = Array[float]([])
+metadata/_custom_type_script = "uid://c15bjue8jm284"
