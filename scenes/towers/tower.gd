@@ -17,6 +17,7 @@ var last_target_position = null
 # Variables for frame-based projectile spawning
 var pending_projectile_target = null
 var projectile_spawned = false
+var last_frame_fired = -1  # Track which frame we last fired on to prevent duplicates
 
 # Variables for rapid-fire towers
 var rapid_fire_count = 0
@@ -83,24 +84,98 @@ func is_valid_target(enemy):
 # Optionally pass a position to find the closest enemy to that point (default: tower's position)
 func find_target(reference_position = null):
 	var enemies = get_tree().get_nodes_in_group("enemies")
+	var houses = get_tree().get_nodes_in_group("houses")
 	var best = null
 	var best_dist = INF
 	var ref_pos = reference_position if reference_position != null else position
+	
 	for enemy in enemies:
 		if enemy.health > 0:
 			var dist_to_ref = ref_pos.distance_to(enemy.position)
 			var dist_to_tower = position.distance_to(enemy.position)
+			
 			# Only consider enemies within the tower's own range
 			if dist_to_tower <= attack_range and dist_to_ref < best_dist:
-				best = enemy
-				best_dist = dist_to_ref
+				# For all tower types, check if predicted impact location is within range
+				var target_valid = true
+				var predicted_position = predict_enemy_impact_position(enemy)
+				var predicted_dist = position.distance_to(predicted_position)
+				print("[tower] Enemy at ", enemy.position, " current distance: ", dist_to_tower)
+				print("[tower] Predicted position: ", predicted_position, " predicted distance: ", predicted_dist)
+				print("[tower] Attack range: ", attack_range)
+				
+				# Check if predicted position is within range
+				if predicted_dist > attack_range:
+					target_valid = false
+					print("[tower] ❌ REJECTING enemy - predicted impact position outside range: ", predicted_dist, " > ", attack_range)
+				else:
+					print("[tower] ✅ Range check passed - predicted impact within range: ", predicted_dist, " <= ", attack_range)
+				
+				# Check if predicted position is on a road tile
+				if target_valid:
+					var main_scene = get_tree().current_scene
+					if main_scene.has_method("is_position_on_road_tile"):
+						var is_on_road = main_scene.is_position_on_road_tile(predicted_position)
+						if not is_on_road:
+							target_valid = false
+							print("[tower] ❌ REJECTING enemy - predicted impact position not on road tile: ", predicted_position)
+						else:
+							print("[tower] ✅ Road check passed - predicted impact on road tile")
+					else:
+						print("[tower] Warning: Cannot validate road tile - main scene missing is_position_on_road_tile method")
+				
+				if target_valid:
+					# Check if enemy is on a house tile (and therefore untargetable)
+					var is_on_house_tile = false
+					for house in houses:
+						if house.has_method("is_enemy_on_house_tile") and house.is_enemy_on_house_tile(enemy.position):
+							is_on_house_tile = true
+							break
+					
+					# Only target if not on house tile
+					if not is_on_house_tile:
+						best = enemy
+						best_dist = dist_to_ref
 	return best
 
 
+func predict_enemy_impact_position(enemy) -> Vector2:
+	# Calculate time for projectile to reach enemy
+	var distance_to_enemy = position.distance_to(enemy.position)
+	var projectile_speed = tower_data.projectile_speed[level - 1]
+	
+	print("[tower] Predicting impact: enemy at ", enemy.position, ", distance: ", distance_to_enemy, ", projectile speed: ", projectile_speed)
+	
+	if projectile_speed == 0:
+		print("[tower] Instant impact - using current enemy position")
+		return enemy.position  # Instant impact
+	
+	var time_to_impact = distance_to_enemy / projectile_speed
+	print("[tower] Time to impact: ", time_to_impact)
+	
+	# Predict enemy position along path
+	if enemy.has_method("predict_position_on_path"):
+		var predicted_pos = enemy.predict_position_on_path(time_to_impact)
+		print("[tower] Enemy predicted position (path): ", predicted_pos)
+		return predicted_pos
+	else:
+		# Fallback: simple linear prediction
+		if enemy.has_method("get_velocity"):
+			var velocity = enemy.get_velocity()
+			var predicted_pos = enemy.position + velocity * time_to_impact
+			print("[tower] Enemy predicted position (velocity): ", predicted_pos)
+			return predicted_pos
+		else:
+			print("[tower] No prediction method - using current position")
+			return enemy.position
+
+
 func attack_target(enemy):
+	print("[tower] Tower type ", tower_data.type, " attacking enemy at ", enemy.global_position if is_instance_valid(enemy) else "invalid enemy")
 	# Store the target for projectile spawning
 	pending_projectile_target = enemy
 	projectile_spawned = false
+	last_frame_fired = -1  # Reset frame tracking for new attack
 	
 	# Handle rapid-fire towers (but treat Level 1 rapid towers as normal towers)
 	if tower_data.type == "rapid" and level > 1:
@@ -119,7 +194,9 @@ func attack_target(enemy):
 		var animation_speed = max(1.0, attack_speed)
 		
 		$towerWeapon.speed_scale = animation_speed
-		$towerWeapon.play("firingL" + str(level))
+		var firing_anim = "firingL" + str(level)
+		print("[tower] Playing animation ", firing_anim, " at speed ", animation_speed, ", release frame: ", tower_data.projectile_release_frame)
+		$towerWeapon.play(firing_anim)
 
 
 func setup_rapid_fire():
@@ -195,6 +272,7 @@ func point_weapon_at_for_rapid_fire(target_position: Vector2) -> void:
 func _on_weapon_frame_changed():
 	if has_node("towerWeapon") and $towerWeapon is AnimatedSprite2D:
 		var current_frame = $towerWeapon.frame
+		print("[tower] Frame changed to ", current_frame, " for tower type ", tower_data.type, ", release frame: ", tower_data.projectile_release_frame)
 		
 		# Handle rapid-fire towers with multiple release frames (but treat Level 1 as normal)
 		if tower_data.type == "rapid" and level > 1:
@@ -203,8 +281,14 @@ func _on_weapon_frame_changed():
 			# Standard single projectile spawning (including Level 1 rapid towers)
 			var release_frame = tower_data.projectile_release_frame
 			if current_frame == release_frame and pending_projectile_target and not projectile_spawned:
-				spawn_projectile(pending_projectile_target)
-				projectile_spawned = true
+				# Additional protection: ensure we haven't fired on this frame already
+				if last_frame_fired != current_frame and is_instance_valid(pending_projectile_target):
+					print("[tower] Firing projectile at frame ", current_frame)
+					spawn_projectile(pending_projectile_target)
+					projectile_spawned = true
+					last_frame_fired = current_frame
+				else:
+					print("[tower] Skipping projectile spawn - already fired on frame ", current_frame, " or invalid target")
 
 
 func handle_rapid_fire_frame(current_frame: int):
@@ -381,6 +465,12 @@ func _on_weapon_animation_finished():
 
 
 func spawn_projectile(enemy):
+	print("[tower] Spawning projectile for enemy at ", enemy.global_position if is_instance_valid(enemy) else "invalid enemy")
+	
+	# Calculate validated target position using same prediction as range check
+	var validated_target_position = predict_enemy_impact_position(enemy)
+	print("[tower] Using validated target position: ", validated_target_position)
+	
 	# Instance and launch projectile
 	var projectile_scene = load(tower_data.projectile_scene)
 	var projectile = projectile_scene.instantiate()
@@ -393,9 +483,9 @@ func spawn_projectile(enemy):
 	# Check if this is an instant impact projectile (speed = 0)
 	var projectile_speed = tower_data.projectile_speed[level - 1]
 	if projectile_speed == 0:
-		# Instant impact - spawn directly at target location
-		if is_instance_valid(enemy):
-			spawn_position = enemy.global_position
+		# Instant impact - spawn directly at validated target location
+		spawn_position = validated_target_position
+	
 	projectile.global_position = spawn_position
 	projectile.damage = damage
 	projectile.speed = projectile_speed
@@ -403,11 +493,25 @@ func spawn_projectile(enemy):
 	projectile.level = level # Ensure projectile anim matches tower level
 	projectile.z_index = 1000
 	
+	# For projectiles that move, set the validated target position
+	if projectile.has_method("set_target_position"):
+		projectile.set_target_position(validated_target_position)
+	
+	print("[tower] Projectile setup: damage=", damage, ", speed=", projectile_speed, ", position=", spawn_position)
+	
 	# Set up splash damage if this tower has splash type
 	if tower_data.type == "splash" or tower_data.type == "special":
 		projectile.is_splash_projectile = true
-		projectile.splash_radius = tower_data.splash_radius[level - 1]
-	
+		# Check if splash_radius array has enough elements for current level
+		if tower_data.splash_radius.size() >= level:
+			projectile.splash_radius = tower_data.splash_radius[level - 1]
+			print("[tower] Set up splash projectile with radius ", projectile.splash_radius, " for level ", level, " tower type ", tower_data.type)
+		else:
+			# Fallback to a default splash radius if array is too small
+			projectile.splash_radius = 50.0
+			print("[tower] Warning: splash_radius array too small for level ", level, ", using default value")
+	else:
+		print("[tower] Non-splash projectile for tower type ", tower_data.type)
 	get_tree().current_scene.add_child(projectile)
 	
 	# Handle launching based on projectile speed
@@ -600,6 +704,8 @@ func _draw():
 		# Draw attack range circle
 		var circle_color = Color(1.0, 1.0, 1.0, 0.3)  # Semi-transparent white
 		var border_color = Color(1.0, 1.0, 1.0, 0.8)  # More opaque white border
+		
+		print("[tower] Drawing attack range circle with radius: ", attack_range, " for tower at ", position)
 		
 		# Draw filled circle
 		draw_circle(Vector2.ZERO, attack_range, circle_color)

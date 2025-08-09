@@ -370,4 +370,4 @@ script = ExtResource("1_7p31n")
 [node name="towerAnimations" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -32)
 sprite_frames = SubResource("SpriteFrames_8e5n0")
-animation = &"build1"
+animation = &"build1transition"

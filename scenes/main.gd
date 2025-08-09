@@ -2,8 +2,15 @@ extends Node2D
 
 # Game state
 var gold : int = 10000
-var health : int = 20
+var health : int = 100
 var path_points = []
+
+# Debug counter for health loss tracking
+var health_loss_call_count = 0
+
+# Gold feedback system to prevent overlapping
+var gold_feedback_positions = []  # Track active gold feedback positions
+var gold_feedback_spacing = 25    # Minimum distance between gold feedback texts
 
 # Enemy testing system
 var testing_mode = true  # Set to false to disable enemy cycling
@@ -40,6 +47,7 @@ var tower_menu_cooldown_for: Node2D = null
 
 
 func _ready():
+	add_to_group("main_game")
 	load_map("res://scenes/map.tscn")
 	update_ui()
 	hide_all_grid_overlays()
@@ -110,7 +118,7 @@ func print_testing_instructions():
 	print("🎯 Current: Will spawn enemy #", current_enemy_test_index + 1)
 	print("")
 
-# Dynamically set the cost label for each tower button in the build menu
+# Dynamically set the cost label for each tower button in the build menu and update button states
 func update_tower_button_costs():
 	var tower_paths = [
 		"res://assets/towers/tower1/tower1.tres",
@@ -125,9 +133,27 @@ func update_tower_button_costs():
 	for i in range(tower_paths.size()):
 		var tower_data = load(tower_paths[i])
 		var button = $CanvasLayer.get_node("ui/MarginContainer/buildMenu/towerButton%d" % (i+1))
+		var tower_cost = tower_data.cost[0]
+		var can_afford_tower = can_afford(tower_cost)
+		
+		# Update cost label
 		if button.has_node("towerCost"):
 			var cost_label = button.get_node("towerCost")
-			cost_label.text = str(tower_data.cost[0])
+			cost_label.text = str(tower_cost)
+			# Change color based on affordability
+			if can_afford_tower:
+				cost_label.add_theme_color_override("font_color", Color.WHITE)
+			else:
+				cost_label.add_theme_color_override("font_color", Color.RED)
+		
+		# Update button state - disable if can't afford
+		button.disabled = not can_afford_tower
+		
+		# Update button visual appearance
+		if can_afford_tower:
+			button.modulate = Color.WHITE
+		else:
+			button.modulate = Color(0.5, 0.5, 0.5, 1.0)  # Grey out the button
 
 
 func hide_tower_menu_with_bg():
@@ -282,6 +308,31 @@ func order_path_points(tilemap_ground, tilemap_bridge, start_cell):
 	return ordered
 
 
+func is_position_on_road_tile(world_position: Vector2) -> bool:
+	"""Check if a world position is on a road tile"""
+	var tilemap_ground = $LevelContainer/map/tileLayer1
+	var tilemap_bridge = null
+	if $LevelContainer/map.has_node("tileLayer2"):
+		tilemap_bridge = $LevelContainer/map/tileLayer2
+	
+	# Convert world position to tile coordinates
+	var cell_ground = tilemap_ground.local_to_map(world_position)
+	var data_ground = tilemap_ground.get_cell_tile_data(cell_ground)
+	
+	# Check ground layer first
+	if data_ground and data_ground.get_custom_data("is_path") == true:
+		return true
+	
+	# Check bridge layer if it exists
+	if tilemap_bridge:
+		var cell_bridge = tilemap_bridge.local_to_map(world_position)
+		var data_bridge = tilemap_bridge.get_cell_tile_data(cell_bridge)
+		if data_bridge and data_bridge.get_custom_data("is_path") == true:
+			return true
+	
+	return false
+
+
 func can_afford(cost: int) -> bool:
 	return gold >= cost
 
@@ -297,15 +348,186 @@ func earn_gold(amount: int):
 
 
 func take_damage(amount: int):
+	print("=== TAKE_DAMAGE CALLED ===")
+	print("take_damage called with amount: ", amount)
+	print("Call stack: ", get_stack())
+	var old_health = health
 	health -= amount
+	print("Health changed from ", old_health, " to ", health)
 	update_ui()
 	if health <= 0:
 		game_over()
+	print("=== END TAKE_DAMAGE ===")
+
+func lose_health(amount: int):
+	"""Called when enemies reach the house"""
+	health_loss_call_count += 1
+	print("=== LOSE_HEALTH CALLED #", health_loss_call_count, " ===")
+	print("Enemy reached the house! Health lost: ", amount, " (Health before: ", health, ")")
+	
+	# Show damage feedback with actual amount
+	show_damage_feedback(amount)
+	
+	take_damage(amount)
+	
+	print("Health after damage: ", health)
+	print("=== END LOSE_HEALTH #", health_loss_call_count, " ===")
+
+func show_damage_feedback(damage: int):
+	"""Show visual feedback when player takes damage"""
+	# Find the house position to display damage text above it
+	var house_position = Vector2(get_viewport().size.x / 2, 100)  # Default position
+	var houses = get_tree().get_nodes_in_group("houses")
+	if houses.size() > 0:
+		var house = houses[0]
+		house_position = house.global_position
+		house_position.y -= 50  # Position above the house
+	
+	# Create a damage indicator label
+	var damage_label = Label.new()
+	damage_label.text = "-" + str(damage) + " HP"
+	damage_label.add_theme_font_size_override("font_size", 24)
+	damage_label.add_theme_color_override("font_color", Color.RED)
+	damage_label.position = house_position
+	damage_label.z_index = 99
+	
+	# Center the text horizontally
+	damage_label.pivot_offset = damage_label.get_theme_font("font").get_string_size(damage_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, damage_label.get_theme_font_size("font_size")) / 2
+	
+	add_child(damage_label)  # Add to main scene instead of CanvasLayer for world positioning
+	
+	# Animate the damage text
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(damage_label, "position:y", damage_label.position.y - 50, 1.0)
+	tween.tween_property(damage_label, "modulate:a", 0.0, 1.0)
+	tween.connect("finished", func(): damage_label.queue_free())
+
+func show_gold_feedback(gold_earned: int):
+	"""Show visual feedback when player gains gold"""
+	# Get the gold container position from the UI
+	var gold_container = $CanvasLayer/ui/goldContainer
+	if not gold_container:
+		return
+	
+	# Get the base position for gold feedback
+	var base_position = gold_container.global_position
+	base_position.x += gold_container.size.x / 2  # Center horizontally over the container
+	base_position.y -= 10  # Position slightly above the container
+	
+	# Find a position that doesn't overlap with existing gold feedback
+	var final_position = find_available_gold_position(base_position)
+	
+	# Create a gold gain indicator label
+	var gold_label = Label.new()
+	gold_label.text = "+" + str(gold_earned)
+	gold_label.add_theme_font_size_override("font_size", 22)
+	gold_label.add_theme_color_override("font_color", Color.GOLD)
+	gold_label.add_theme_color_override("font_shadow_color", Color.BLACK)
+	gold_label.add_theme_constant_override("shadow_offset_x", 1)
+	gold_label.add_theme_constant_override("shadow_offset_y", 1)
+	gold_label.position = final_position
+	gold_label.z_index = 100
+	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	
+	# Add to the CanvasLayer to ensure it appears on top of the UI
+	$CanvasLayer.add_child(gold_label)
+	
+	# Register this position as occupied
+	gold_feedback_positions.append(final_position)
+	
+	# Animate the gold text (float up and fade out)
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(gold_label, "position:y", gold_label.position.y - 50, 1.5)
+	tween.tween_property(gold_label, "modulate:a", 0.0, 1.5)
+	
+	# Scale animation for emphasis
+	var scale_tween = create_tween()
+	scale_tween.tween_property(gold_label, "scale", Vector2(1.2, 1.2), 0.3)
+	scale_tween.tween_property(gold_label, "scale", Vector2(1.0, 1.0), 0.3)
+	
+	# Clean up when finished
+	tween.connect("finished", func(): 
+		gold_label.queue_free()
+		# Remove this position from the occupied list
+		gold_feedback_positions.erase(final_position)
+	)
+
+func find_available_gold_position(base_position: Vector2) -> Vector2:
+	"""Find a position for gold feedback that doesn't overlap with existing ones"""
+	var attempt_position = base_position
+	var max_attempts = 10
+	var attempts = 0
+	
+	while attempts < max_attempts:
+		var position_available = true
+		
+		# Check if this position is too close to any existing gold feedback
+		for existing_pos in gold_feedback_positions:
+			if attempt_position.distance_to(existing_pos) < gold_feedback_spacing:
+				position_available = false
+				break
+		
+		if position_available:
+			return attempt_position
+		
+		# Try a new position - spread out horizontally and vertically
+		var offset_x = randf_range(-40, 40)  # Random horizontal offset
+		var offset_y = randf_range(-20, 20)  # Random vertical offset
+		attempt_position = base_position + Vector2(offset_x, offset_y)
+		attempts += 1
+	
+	# If we can't find a good position after max attempts, just use the base position
+	return base_position
 
 
 func update_ui():
 	# Update your UI elements here (e.g., money/health labels)
 	$CanvasLayer/ui/goldContainer/goldLabel.text = str(gold)
+	
+	# Update tower button states based on current gold
+	update_tower_button_costs()
+	
+	# Update health bar
+	var health_bar = $CanvasLayer/ui/HealthBar
+	var health_label = $CanvasLayer/ui/HealthBar/Label
+	if health_bar:
+		# Store previous values for debugging
+		var prev_value = health_bar.value
+		
+		health_bar.max_value = 100  # Assuming max health is 100
+		health_bar.step = 1.0  # Ensure step is 1
+		
+		# Use call_deferred to ensure the UI updates properly
+		health_bar.call_deferred("set_value", health)
+		
+		print("Health bar update - Health: ", health, ", Prev bar value: ", prev_value, ", New bar value: ", health, ", Step: ", health_bar.step, ", Max: ", health_bar.max_value)
+		
+		# Update health label to show current/max health
+		if health_label:
+			health_label.text = str(health) + "/100"
+		
+		# Change health bar color based on health level by modifying the fill style
+		var health_percentage = float(health) / 100.0
+		var fill_style = health_bar.get_theme_stylebox("fill")
+		if fill_style:
+			var new_style = fill_style.duplicate()
+			if health_percentage > 0.6:
+				new_style.bg_color = Color.GREEN
+			elif health_percentage > 0.3:
+				new_style.bg_color = Color.YELLOW
+			else:
+				new_style.bg_color = Color.RED
+			health_bar.add_theme_stylebox_override("fill", new_style)
+		else:
+			# Fallback to self_modulate if no style found
+			if health_percentage > 0.6:
+				health_bar.self_modulate = Color.GREEN
+			elif health_percentage > 0.3:
+				health_bar.self_modulate = Color.YELLOW
+			else:
+				health_bar.self_modulate = Color.RED
 	
 	# Show testing mode status
 	if testing_mode:
@@ -316,8 +538,100 @@ func update_ui():
 
 
 func game_over():
-	# Handle game over logic here
-	pass
+	"""Handle game over logic"""
+	print("GAME OVER - Player health reached 0!")
+	
+	# Pause the game
+	get_tree().paused = true
+	
+	# Create and show game over screen
+	show_game_over_screen()
+
+func show_game_over_screen():
+	"""Display the game over screen with options"""
+	# Create a semi-transparent overlay
+	var overlay = ColorRect.new()
+	overlay.color = Color(0, 0, 0, 0.7)  # Semi-transparent black
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP  # Block input to underlying UI
+	
+	# Create game over panel
+	var panel = Panel.new()
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	panel.custom_minimum_size = Vector2(400, 300)
+	panel.position = Vector2(-200, -150)  # Center the panel
+	
+	# Create vertical box container for layout
+	var vbox = VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vbox.add_theme_constant_override("separation", 20)
+	
+	# Game Over title
+	var title = Label.new()
+	title.text = "GAME OVER"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color.RED)
+	
+	# Stats label
+	var stats = Label.new()
+	stats.text = "Your defenses have fallen!\nGold Earned: " + str(gold)
+	stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats.add_theme_font_size_override("font_size", 16)
+	
+	# Restart button
+	var restart_btn = Button.new()
+	restart_btn.text = "Restart Game"
+	restart_btn.custom_minimum_size = Vector2(200, 50)
+	restart_btn.connect("pressed", Callable(self, "_on_restart_pressed"))
+	
+	# Main menu button
+	var menu_btn = Button.new()
+	menu_btn.text = "Main Menu"
+	menu_btn.custom_minimum_size = Vector2(200, 50)
+	menu_btn.connect("pressed", Callable(self, "_on_main_menu_pressed"))
+	
+	# Quit button
+	var quit_btn = Button.new()
+	quit_btn.text = "Quit Game"
+	quit_btn.custom_minimum_size = Vector2(200, 50)
+	quit_btn.connect("pressed", Callable(self, "_on_quit_pressed"))
+	
+	# Add spacers for centering buttons
+	var spacer1 = Control.new()
+	spacer1.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var spacer2 = Control.new()
+	spacer2.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	
+	# Add elements to layout
+	vbox.add_child(spacer1)
+	vbox.add_child(title)
+	vbox.add_child(stats)
+	vbox.add_child(restart_btn)
+	vbox.add_child(menu_btn)
+	vbox.add_child(quit_btn)
+	vbox.add_child(spacer2)
+	
+	panel.add_child(vbox)
+	overlay.add_child(panel)
+	
+	# Add to scene with high z-index
+	$CanvasLayer.add_child(overlay)
+	overlay.z_index = 100
+
+func _on_restart_pressed():
+	"""Restart the current level"""
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
+func _on_main_menu_pressed():
+	"""Return to main menu"""
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+
+func _on_quit_pressed():
+	"""Quit the game"""
+	get_tree().quit()
 
 
 # Call this to place a tower of the selected type and cost
@@ -447,13 +761,78 @@ func load_map(map_path):
 	var tilemap_ground = $LevelContainer/map/tileLayer1
 	var tilemap_bridge = $LevelContainer/map/tileLayer1/tileLayer2
 	build_path(tilemap_ground, tilemap_bridge, start_cell)
+	
+	# Spawn the house at the end of the path
+	spawn_house()
+	
 	if testing_mode:
 		spawn_next_test_enemy(path_points)
 	else:
 		spawn_enemy(path_points)
 
+func spawn_house():
+	"""Spawn the house at the end of the path"""
+	if path_points.size() == 0:
+		print("Warning: No path points available for house placement")
+		return
+	
+	# Remove any existing houses
+	var existing_houses = get_tree().get_nodes_in_group("houses")
+	for house in existing_houses:
+		house.queue_free()
+	
+	# Load and instantiate the house
+	var house_scene = preload("res://scenes/house/house.tscn")
+	var house = house_scene.instantiate()
+	
+	# Try to find the HouseBoundary to position the house properly
+	var end_position = path_points[-1]
+	var house_position = end_position  # Default fallback
+	
+	# Look for HouseBoundary in the current level container
+	if $LevelContainer.get_child_count() > 0:
+		var map_scene = $LevelContainer.get_child(0)
+		var house_boundary = map_scene.get_node_or_null("HouseBoundary")
+		if house_boundary and house_boundary is ReferenceRect:
+			# Position house at the center of the boundary
+			house_position = house_boundary.position + house_boundary.size / 2.0
+			print("Positioning house at boundary center: ", house_position)
+			print("  Boundary details: pos=", house_boundary.position, " size=", house_boundary.size)
+			print("  Path endpoint: ", end_position)
+			print("  Difference from path: ", house_position - end_position)
+		else:
+			print("HouseBoundary not found, using path endpoint: ", end_position)
+	
+	# Position the house
+	house.position = house_position
+	
+	# Set a random house skin for testing (you can change this later)
+	var available_skins = []
+	for i in range(1, 21):  # All 20 skins
+		available_skins.append("skin" + str(i))
+	var random_skin = available_skins[randi() % available_skins.size()]
+	house.house_skin = random_skin
+	
+	# Set the house tile position for targeting exclusions
+	var tile_size = 64  # Assuming 64x64 tiles
+	var house_tile = Vector2i(int(house_position.x / tile_size), int(house_position.y / tile_size))
+	if house.has_method("set_house_tile_position"):
+		house.set_house_tile_position(house_tile)
+	else:
+		print("Warning: House scene missing set_house_tile_position method")
+	
+	# Add the house to the level container
+	$LevelContainer.add_child(house)
+	
+	print("House spawned at position: ", end_position, " with skin: ", random_skin)
+
 
 func on_tower_button_pressed(tower_data: TowerData):
+	# Check if player can afford the tower before entering placement mode
+	if not can_afford(tower_data.cost[0]):
+		print("Cannot afford tower! Cost: ", tower_data.cost[0], " Gold: ", gold)
+		return
+	
 	selected_tower_data = tower_data
 	placing_tower = true
 	show_tower_preview()
@@ -690,6 +1069,7 @@ func spawn_next_test_enemy(enemy_path_points):
 
 func _on_enemy_died(gold_earned):
 	earn_gold(gold_earned)
+	show_gold_feedback(gold_earned)
 
 
 func hide_all_grid_overlays():
@@ -810,6 +1190,18 @@ func show_tower_menu(tower):
 		var next_level = tower.level + 1
 		var upgrade_cost = tower.tower_data.cost[next_level - 1] if tower.tower_data.cost.size() >= next_level else 0
 		upgrade_cost_label.text = str(upgrade_cost)
+		
+		# Check if player can afford the upgrade
+		var can_afford_upgrade = can_afford(upgrade_cost)
+		upgrade_button.disabled = not can_afford_upgrade
+		
+		# Update upgrade button visual appearance based on affordability
+		if can_afford_upgrade:
+			upgrade_button.modulate = Color.WHITE
+			upgrade_cost_label.add_theme_color_override("font_color", Color.WHITE)
+		else:
+			upgrade_button.modulate = Color(0.5, 0.5, 0.5, 1.0)  # Grey out the button
+			upgrade_cost_label.add_theme_color_override("font_color", Color.RED)
 
 	await get_tree().process_frame
 	# Only update if both menu and bg are still valid

@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://c3kpjtu13d4kk"]
+[gd_scene load_steps=22 format=3 uid="uid://c3kpjtu13d4kk"]
 
 [ext_resource type="Script" uid="uid://ds1mdpvgt2qu3" path="res://scenes/main.gd" id="1_o5qli"]
 [ext_resource type="Texture2D" uid="uid://lynys0otyc4c" path="res://assets/goldCoin.tres" id="2_dp3eg"]
@@ -18,6 +18,12 @@
 [ext_resource type="Texture2D" uid="uid://rx2tk76xupkm" path="res://assets/Towers/tower8/base/tower8L1Icon.tres" id="15_jbj1t"]
 [ext_resource type="Texture2D" uid="uid://dkrsrave3h1ee" path="res://assets/Towers/tower7/weapon/weaponT7L1Icon.tres" id="16_jbj1t"]
 [ext_resource type="Texture2D" uid="uid://dhnjlh60r41ax" path="res://assets/Towers/tower8/weapon/weaponT8L1Icon.tres" id="17_muem4"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dp3eg"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0ld40"]
+bg_color = Color(0.649056, 0, 0.104449, 1)
 
 [sub_resource type="Theme" id="Theme_sugp2"]
 
@@ -357,6 +363,47 @@ offset_top = 152.0
 offset_right = 201.0
 offset_bottom = 175.0
 text = "Time Left: "
+
+[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/ui"]
+layout_mode = 0
+offset_left = 188.0
+offset_top = 103.0
+offset_right = 419.0
+offset_bottom = 130.0
+theme_override_styles/background = SubResource("StyleBoxFlat_dp3eg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_0ld40")
+step = 1.0
+value = 100.0
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="CanvasLayer/ui/HealthBar"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -26.0
+offset_top = -20.0
+offset_right = 26.0
+offset_bottom = 3.0
+grow_horizontal = 2
+text = "Health"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Label" type="Label" parent="CanvasLayer/ui/HealthBar"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -13.5
+offset_top = -10.5
+offset_right = 15.5
+offset_bottom = 12.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "100"
 
 [node name="pauseFade" type="CenterContainer" parent="."]
 process_mode = 3

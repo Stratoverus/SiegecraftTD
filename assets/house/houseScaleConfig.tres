@@ -1,0 +1,30 @@
+[gd_resource type="HouseScaleConfig" script_class="HouseScaleConfig" load_steps=2 format=3 uid="uid://wfh5qeo2xucs"]
+
+[ext_resource type="Script" uid="uid://t0j4n1kltlnj" path="res://assets/house/houseScaleConfig.gd" id="1_0"]
+
+[resource]
+resource_local_to_scene = false
+resource_name = ""
+script = ExtResource("1_0")
+skin_scales = {
+"skin1": 1.0,
+"skin10": 1.0,
+"skin11": 1.0,
+"skin12": 1.0,
+"skin13": 1.0,
+"skin14": 1.0,
+"skin15": 1.0,
+"skin16": 1.0,
+"skin17": 1.0,
+"skin18": 1.0,
+"skin19": 1.0,
+"skin2": 1.0,
+"skin20": 1.0,
+"skin3": 1.0,
+"skin4": 1.0,
+"skin5": 1.0,
+"skin6": 1.0,
+"skin7": 1.0,
+"skin8": 1.0,
+"skin9": 1.0
+}

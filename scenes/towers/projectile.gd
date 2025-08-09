@@ -5,30 +5,53 @@ extends Node2D
 @export var level: int = 1
 var target = null
 var target_position = Vector2.ZERO
+var validated_target_position = Vector2.ZERO  # Pre-calculated validated position from tower
 var is_splash_projectile = false
 var splash_radius = 0.0
+var has_hit_target = false  # Prevent multiple damage applications
+
+
+func set_target_position(target_pos: Vector2):
+	"""Set the pre-validated target position from the tower's range checking"""
+	validated_target_position = target_pos
+	print("[projectile] Received validated target position from tower: ", validated_target_position)
 
 
 func launch(enemy):
 	target = enemy
+	print("[projectile] Launching projectile with speed ", speed, ", is_splash: ", is_splash_projectile, ", splash_radius: ", splash_radius)
 	if has_node("projectileAnim"):
 		$projectileAnim.play("level" + str(level))
 	
-	# For splash projectiles, predict where the enemy will be
-	if is_splash_projectile and is_instance_valid(target):
+	# Use validated position if available, otherwise predict
+	if validated_target_position != Vector2.ZERO:
+		target_position = validated_target_position
+		print("[projectile] Using validated target position: ", target_position)
+	elif is_splash_projectile and is_instance_valid(target):
 		predict_target_position()
+		print("[projectile] Splash projectile targeting predicted position: ", target_position)
 	else:
 		target_position = target.global_position if is_instance_valid(target) else global_position
+		print("[projectile] Direct projectile targeting current position: ", target_position)
 
 
 func instant_impact():
 	# For instant impact projectiles (speed = 0), trigger impact immediately
-	print("[projectile] Instant impact at target location: ", global_position)
+	print("[projectile] Instant impact triggered at target location: ", global_position)
+	
+	# Prevent multiple impacts
+	if has_hit_target:
+		print("[projectile] Already hit target, skipping instant impact")
+		return
 	
 	if is_splash_projectile:
+		print("[projectile] Instant splash impact")
 		create_splash_damage()
+		has_hit_target = true
 	else:
+		print("[projectile] Instant direct impact")
 		# Direct hit damage
+		has_hit_target = true
 		create_impact_animation()
 		if is_instance_valid(target):
 			target.take_damage(damage)
@@ -99,12 +122,17 @@ func _process(delta):
 	if speed == 0:
 		return
 	
+	# Skip if we already hit the target
+	if has_hit_target:
+		return
+	
 	# For splash projectiles, move toward predicted position instead of tracking target
 	if is_splash_projectile:
 		var to_target = target_position - global_position
 		var distance = to_target.length()
 		if distance < speed * delta:
 			# Reached target position, explode
+			print("[projectile] Splash projectile reached target position, creating splash damage")
 			create_splash_damage()
 			# Small delay to ensure impact animation starts before projectile is freed
 			await get_tree().create_timer(0.05).timeout
@@ -116,13 +144,16 @@ func _process(delta):
 	else:
 		# Original homing behavior for non-splash projectiles
 		if not is_instance_valid(target):
+			print("[projectile] Direct projectile target invalid, removing projectile")
 			queue_free()
 			return
 		var to_target = target.global_position - global_position
 		var distance = to_target.length()
 		if distance < speed * delta:
 			# Create impact animation for direct hit
+			print("[projectile] Direct projectile hit target, dealing damage")
 			create_impact_animation()
+			has_hit_target = true
 			target.take_damage(damage)
 			# Small delay to ensure impact animation starts before projectile is freed
 			await get_tree().create_timer(0.05).timeout
@@ -134,11 +165,34 @@ func _process(delta):
 
 
 func create_splash_damage():
+	print("[projectile] create_splash_damage() called, has_hit_target: ", has_hit_target)
+	# Prevent multiple splash damage applications
+	if has_hit_target:
+		print("[projectile] Skipping splash damage - already hit target")
+		return
+	
+	# Validate that impact location is on road tile
+	var main_scene = get_tree().current_scene
+	if main_scene.has_method("is_position_on_road_tile"):
+		var is_on_road = main_scene.is_position_on_road_tile(global_position)
+		if not is_on_road:
+			print("[projectile] ❌ ABORTING splash damage - impact position not on road tile: ", global_position)
+			has_hit_target = true
+			return
+		else:
+			print("[projectile] ✅ Impact position validated - on road tile: ", global_position)
+	
+	has_hit_target = true
+	
+	print("[projectile] Creating splash damage at ", global_position, " with radius ", splash_radius, " and damage ", damage)
+	
 	# Create impact animation first
 	create_impact_animation()
 	
 	# Find all enemies within splash radius
 	var enemies = get_tree().get_nodes_in_group("enemies")
+	var enemies_hit = 0
+	print("[projectile] Found ", enemies.size(), " enemies to check for splash damage")
 	for enemy in enemies:
 		if is_instance_valid(enemy) and enemy.has_method("take_damage"):
 			var distance_to_enemy = global_position.distance_to(enemy.global_position)
@@ -146,7 +200,13 @@ func create_splash_damage():
 				# Calculate damage falloff: 100% at center, 50% at edge
 				var damage_multiplier = 1.0 - (distance_to_enemy / splash_radius) * 0.5
 				var splash_damage = int(damage * damage_multiplier)
+				print("[projectile] Hitting enemy at distance ", distance_to_enemy, " with ", splash_damage, " damage (", damage_multiplier * 100, "% of ", damage, ")")
 				enemy.take_damage(splash_damage)
+				enemies_hit += 1
+			else:
+				print("[projectile] Enemy at distance ", distance_to_enemy, " is outside splash radius ", splash_radius)
+	
+	print("[projectile] Splash explosion hit ", enemies_hit, " enemies out of ", enemies.size(), " total enemies")
 
 
 func create_impact_animation():

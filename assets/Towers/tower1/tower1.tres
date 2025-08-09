@@ -20,4 +20,5 @@ attack_speed = Array[float]([1.0, 2.0, 3.0])
 projectile_speed = Array[float]([800.0, 800.0, 800.0])
 icon = Array[Texture]([ExtResource("1_upuqh"), ExtResource("2_uli2f"), ExtResource("3_f6iaf")])
 build_time = Array[float]([1.0, 2.0, 3.0])
+splash_radius = Array[float]([])
 metadata/_custom_type_script = "uid://c15bjue8jm284"

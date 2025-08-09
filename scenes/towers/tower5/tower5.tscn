@@ -546,7 +546,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"firingL1",
-"speed": 20.0
+"speed": 30.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -638,7 +638,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"firingL2",
-"speed": 20.0
+"speed": 30.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -730,7 +730,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"firingL3",
-"speed": 20.0
+"speed": 30.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -840,8 +840,7 @@ shape = SubResource("RectangleShape2D_2bdgr")
 [node name="towerWeapon" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -19)
 sprite_frames = SubResource("SpriteFrames_0app0")
-animation = &"firingL1"
-frame = 28
-frame_progress = 1.0
+animation = &"idleL1"
+frame_progress = 0.841502
 
 [connection signal="input_event" from="towerBase/Area2D" to="." method="_on_area_2d_input_event"]

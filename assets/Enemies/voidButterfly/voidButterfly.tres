@@ -4,12 +4,12 @@
 
 [resource]
 script = ExtResource("1_1uk4g")
-scene_path = "res://scenes/enemies/firebug.tscn"
-enemy_name = "Firebug"
-enemy_type = "ground"
-max_health = 100
-speed = 100.0
-gold_worth = 5
+scene_path = "res://scenes/enemies/voidButterfly.tscn"
+enemy_name = "Void Butterfly"
+enemy_type = "flying"
+max_health = 10000
+speed = 80.0
+gold_worth = 200
 health_bar_width = 32
 health_bar_height = 4
 health_bar_offset = Vector2(0, -32)
