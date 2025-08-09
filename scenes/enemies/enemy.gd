@@ -1,13 +1,15 @@
 extends Node2D
 
+# Enemy data resource
+@export var enemy_data: Resource = null
 
 # Path and movement
 var path: Array = []
 var path_index: int = 0
-@export var speed: float = 100
+var speed: float = 100.0
 
 # Health system
-@export var max_health: int = 100
+var max_health: int = 100
 var health: int = max_health
 
 # Health bar settings
@@ -18,12 +20,36 @@ var health_bar_offset := Vector2(0, -32)
 var is_dead = false
 
 signal enemy_died(gold)
-@export var gold_worth: int = 5
+var gold_worth: int = 5
 
 func _ready():
 	add_to_group("enemies")
+	
+	# Initialize from enemy data if provided
+	if enemy_data:
+		apply_enemy_data()
+	
 	play_walk_animation()
 	set_process(true)
+
+func apply_enemy_data():
+	"""Apply stats from the EnemyData resource"""
+	if not enemy_data:
+		return
+		
+	max_health = enemy_data.max_health
+	health = max_health
+	speed = enemy_data.speed
+	gold_worth = enemy_data.gold_worth
+	health_bar_width = enemy_data.health_bar_width
+	health_bar_height = enemy_data.health_bar_height
+	health_bar_offset = enemy_data.health_bar_offset
+
+# Set enemy data (for dynamic spawning)
+func set_enemy_data(data: Resource):
+	enemy_data = data
+	if is_inside_tree():
+		apply_enemy_data()
 
 func is_facing_down(direction: Vector2) -> bool:
 	return direction.y > 0.5
@@ -31,10 +57,19 @@ func is_facing_down(direction: Vector2) -> bool:
 func play_walk_animation(direction := Vector2.ZERO):
 	if direction == Vector2.ZERO and path_index < path.size():
 		direction = (path[path_index] - position).normalized()
+	
+	# Use enemy data animation names if available, otherwise use defaults
+	var walk_anim = "walk"
+	var walk_down_anim = "walkDown"
+	
+	if enemy_data and enemy_data.has_directional_animations:
+		walk_anim = enemy_data.walk_animation_name
+		walk_down_anim = enemy_data.walk_down_animation_name
+	
 	if is_facing_down(direction):
-		$AnimatedSprite2D.play("walkDown")
+		$AnimatedSprite2D.play(walk_down_anim)
 	else:
-		$AnimatedSprite2D.play("walk")
+		$AnimatedSprite2D.play(walk_anim)
 
 func _process(delta):
 	if is_dead:
@@ -90,20 +125,37 @@ func die():
 	var last_direction = Vector2.ZERO
 	if path_index < path.size():
 		last_direction = (path[path_index] - position).normalized()
+	
+	# Use enemy data animation names if available, otherwise use defaults
+	var die_anim = "die"
+	var die_down_anim = "dieDown"
+	
+	if enemy_data and enemy_data.has_directional_animations:
+		die_anim = enemy_data.die_animation_name
+		die_down_anim = enemy_data.die_down_animation_name
+	
 	if is_facing_down(last_direction):
-		$AnimatedSprite2D.play("dieDown")
+		$AnimatedSprite2D.play(die_down_anim)
 		$AnimatedSprite2D.rotation = 0
 	else:
-		$AnimatedSprite2D.play("die")
+		$AnimatedSprite2D.play(die_anim)
 		$AnimatedSprite2D.rotation = last_direction.angle() + PI / 2
+	
 	# Disconnect first to avoid duplicate connections
 	if $AnimatedSprite2D.is_connected("animation_finished", Callable(self, "_on_death_animation_finished")):
 		$AnimatedSprite2D.disconnect("animation_finished", Callable(self, "_on_death_animation_finished"))
 	$AnimatedSprite2D.connect("animation_finished", Callable(self, "_on_death_animation_finished"))
 
 func _on_death_animation_finished():
-	# Only fade out if the finished animation is 'die' or 'dieDown'
-	if $AnimatedSprite2D.animation == "die" or $AnimatedSprite2D.animation == "dieDown":
+	# Only fade out if the finished animation is 'die' or 'dieDown' (or their custom equivalents)
+	var die_anim = "die"
+	var die_down_anim = "dieDown"
+	
+	if enemy_data and enemy_data.has_directional_animations:
+		die_anim = enemy_data.die_animation_name
+		die_down_anim = enemy_data.die_down_animation_name
+	
+	if $AnimatedSprite2D.animation == die_anim or $AnimatedSprite2D.animation == die_down_anim:
 		if $AnimatedSprite2D.is_connected("animation_finished", Callable(self, "_on_death_animation_finished")):
 			$AnimatedSprite2D.disconnect("animation_finished", Callable(self, "_on_death_animation_finished"))
 		var tween = create_tween()
@@ -118,7 +170,7 @@ func _draw():
 	if is_dead or health == 0:
 		return
 	if health < max_health:
-		var bar_pos = health_bar_offset - Vector2(health_bar_width / 2, 0)
+		var bar_pos = health_bar_offset - Vector2(health_bar_width / 2.0, 0)
 		var green_width = int(health_bar_width * (float(health) / float(max_health)))
 		var red_width = health_bar_width - green_width
 		# Draw green part

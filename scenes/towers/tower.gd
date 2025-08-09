@@ -38,7 +38,6 @@ var is_range_visible: bool = false
 var target_rotation_tween: Tween = null
 
 func _ready():
-	print("[tower] _ready called, level:", level, " tower_data:", tower_data)
 	apply_level_stats()
 	update_base_sprite()
 	update_weapon_animation()
@@ -121,8 +120,6 @@ func attack_target(enemy):
 		
 		$towerWeapon.speed_scale = animation_speed
 		$towerWeapon.play("firingL" + str(level))
-		print("[tower] Playing firing animation at speed: ", animation_speed, " (attack_speed: ", attack_speed, ")")
-		print("[tower] Animation will ", "speed up" if animation_speed > 1.0 else "play at normal speed")
 
 
 func setup_rapid_fire():
@@ -206,7 +203,6 @@ func _on_weapon_frame_changed():
 			# Standard single projectile spawning (including Level 1 rapid towers)
 			var release_frame = tower_data.projectile_release_frame
 			if current_frame == release_frame and pending_projectile_target and not projectile_spawned:
-				print("[tower] Spawning projectile at frame ", current_frame, " (release frame: ", release_frame, ")")
 				spawn_projectile(pending_projectile_target)
 				projectile_spawned = true
 
@@ -236,7 +232,6 @@ func handle_rapid_fire_frame(current_frame: int):
 	# Handle current shot firing
 	if should_fire and rapid_fire_count < rapid_fire_max:
 		var current_target = rapid_fire_targets[rapid_fire_count]
-		print("[tower] Rapid fire: spawning projectile ", rapid_fire_count + 1, " of ", rapid_fire_max, " at frame ", current_frame, " targeting: ", current_target)
 		
 		# For Level 1 and 2, rotate at firing time
 		if level == 1 or level == 2:
@@ -254,7 +249,6 @@ func handle_rapid_fire_frame(current_frame: int):
 		var next_target_index = rapid_fire_count
 		if next_target_index < rapid_fire_targets.size():
 			var next_target = rapid_fire_targets[next_target_index]
-			print("[tower] Level 3: Pre-rotating for upcoming shot ", next_target_index + 1, " at frame ", current_frame)
 			# Calculate what the next barrel position will be
 			var temp_count = rapid_fire_count
 			calculate_barrel_position_for_shot()
@@ -272,8 +266,6 @@ func rotate_to_current_target(target_enemy):
 		# Calculate rotation needed to point current barrel at target
 		var barrel_offset = deg_to_rad(current_barrel_angle)
 		weapon_sprite.rotation = angle_to_target + PI / 2 - barrel_offset
-		
-		print("[tower] Rotating to barrel ", rapid_fire_count + 1, " (angle: ", current_barrel_angle, "°) to target enemy at ", target_enemy.global_position)
 
 
 func animate_barrel_rotation_to_target(target_enemy):
@@ -286,9 +278,6 @@ func animate_barrel_rotation_to_target(target_enemy):
 		# Calculate rotation needed to point current barrel at target
 		var barrel_offset = deg_to_rad(current_barrel_angle)
 		var target_rotation = angle_to_target + PI / 2 - barrel_offset
-		
-		print("[tower] Animating barrel ", rapid_fire_count + 1, " (angle: ", current_barrel_angle, "°) to target enemy at ", target_enemy.global_position)
-		print("[tower] Current rotation: ", rad_to_deg(weapon_sprite.rotation), "° -> Target rotation: ", rad_to_deg(target_rotation), "°")
 		
 		# Create a tween for smooth rotation
 		var tween = create_tween()
@@ -310,24 +299,12 @@ func animate_barrel_rotation_to_target_immediate(target_enemy):
 		var barrel_offset = deg_to_rad(current_barrel_angle)
 		var target_rotation = angle_to_target + PI / 2 - barrel_offset
 		
-		print("[tower] =================")
-		print("[tower] BARREL ROTATION: Barrel ", rapid_fire_count + 1, " of ", rapid_fire_max, " (angle: ", current_barrel_angle, "°)")
-		print("[tower] Previous rotation: ", rad_to_deg(previous_rotation), "°")
-		print("[tower] Target rotation: ", rad_to_deg(target_rotation), "°")
-		print("[tower] Rotation change: ", rad_to_deg(target_rotation - previous_rotation), "°")
-		print("[tower] Barrel offset: ", rad_to_deg(barrel_offset), "°")
-		print("[tower] is_in_rapid_fire_sequence: ", is_in_rapid_fire_sequence)
 		
 		# For Level 2, ensure we always see a dramatic rotation between barrels
 		if level == 2 and rapid_fire_count == 1:
 			# Force a 180° rotation for the second barrel regardless of target position
 			var forced_rotation = previous_rotation + PI  # Add 180 degrees
-			print("[tower] Level 2: Forcing 180° rotation for barrel 2")
-			print("[tower] Forced rotation: ", rad_to_deg(forced_rotation), "°")
 			target_rotation = forced_rotation
-		
-		print("[tower] Final target rotation: ", rad_to_deg(target_rotation), "°")
-		print("[tower] =================")
 		
 		# For Level 2, animate the rotation smoothly instead of instant
 		if level == 2 and rapid_fire_count == 1:
@@ -350,7 +327,6 @@ func animate_barrel_rotation_to_target_immediate(target_enemy):
 		
 		# Double-check that rotation is applied
 		await get_tree().process_frame
-		print("[tower] Final weapon rotation after frame: ", rad_to_deg(weapon_sprite.rotation), "°")
 
 
 func calculate_barrel_position_for_shot():
@@ -420,11 +396,6 @@ func spawn_projectile(enemy):
 		# Instant impact - spawn directly at target location
 		if is_instance_valid(enemy):
 			spawn_position = enemy.global_position
-		print("[tower] Spawning instant impact projectile at target location: ", spawn_position)
-	else:
-		# Normal projectile - spawn from weapon
-		print("[tower] Spawning normal projectile from weapon at: ", spawn_position)
-	
 	projectile.global_position = spawn_position
 	projectile.damage = damage
 	projectile.speed = projectile_speed
@@ -436,7 +407,6 @@ func spawn_projectile(enemy):
 	if tower_data.type == "splash" or tower_data.type == "special":
 		projectile.is_splash_projectile = true
 		projectile.splash_radius = tower_data.splash_radius[level - 1]
-		print("[tower] Setting up splash projectile with radius: ", projectile.splash_radius)
 	
 	get_tree().current_scene.add_child(projectile)
 	
@@ -476,9 +446,7 @@ func upgrade():
 		build_instance.mode = "build"
 		build_instance.position = global_position
 		build_instance.z_index = int(build_instance.position.y)
-		print("[tower.gd] upgrade: tower_data =", tower_data, "scene_path =", tower_data.scene_path)
 		build_instance.tower_scene = load(tower_data.scene_path) # Use the same scene path for upgraded tower
-		print("[tower.gd] Setting tower_scene to:", tower_data.scene_path)
 		build_instance.tower_position = global_position
 		# Find the persistent TowerContainer node
 		var tower_container = null
@@ -553,7 +521,6 @@ func point_weapon_at(target_position: Vector2) -> void:
 		if abs(rotation_difference) > 0.05:  # About 3 degrees
 			target_rotation_tween = create_tween()
 			target_rotation_tween.tween_property(weapon_sprite, "rotation", final_rotation, 0.2)  # 200ms rotation
-			print("[tower] Smoothly rotating weapon from ", rad_to_deg(current_rotation), "° to ", rad_to_deg(final_rotation), "°")
 		else:
 			# Small rotation, just snap to it
 			weapon_sprite.rotation = final_rotation
@@ -565,7 +532,6 @@ func update_weapon_animation():
 		
 		if weapon_node is AnimatedSprite2D and weapon_node.sprite_frames:
 			var available_animations = weapon_node.sprite_frames.get_animation_names()
-			print("[tower] Available weapon animations: ", available_animations)
 			
 			# First, try to find the idle animation for current level
 			var idle_anim_name = "idleL" + str(level)
@@ -573,7 +539,6 @@ func update_weapon_animation():
 			if weapon_node.sprite_frames.has_animation(idle_anim_name):
 				# Play idle animation if it exists
 				weapon_node.play(idle_anim_name)
-				print("[tower] Playing idle animation: ", idle_anim_name, " for level ", level)
 			else:
 				# No idle animation - use first frame of firing animation
 				var firing_anim_name = "firingL" + str(level)
@@ -581,10 +546,6 @@ func update_weapon_animation():
 					weapon_node.play(firing_anim_name)
 					weapon_node.pause()  # Pause on first frame
 					weapon_node.frame = 0  # Ensure we're on frame 0
-					print("[tower] No idle animation found, using first frame of firing animation: ", firing_anim_name, " for level ", level)
-				else:
-					print("[tower] ERROR: Neither idle nor firing animation found for level ", level)
-		
 		# Ensure both animation signals are connected after weapon updates
 		if weapon_node is AnimatedSprite2D:
 			if not weapon_node.frame_changed.is_connected(_on_weapon_frame_changed):
@@ -604,7 +565,6 @@ func return_to_idle_animation():
 			if weapon_node.sprite_frames.has_animation(idle_anim_name):
 				# Play idle animation if it exists
 				weapon_node.play(idle_anim_name)
-				print("[tower] Returning to idle animation: ", idle_anim_name, " for level ", level)
 			else:
 				# No idle animation - use first frame of firing animation
 				var firing_anim_name = "firingL" + str(level)
@@ -612,7 +572,6 @@ func return_to_idle_animation():
 					weapon_node.play(firing_anim_name)
 					weapon_node.pause()  # Pause on first frame
 					weapon_node.frame = 0  # Ensure we're on frame 0
-					print("[tower] No idle animation, returning to first frame of firing animation: ", firing_anim_name, " for level ", level)
 
 
 # Attack range visualization methods

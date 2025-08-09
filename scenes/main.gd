@@ -1,8 +1,29 @@
 extends Node2D
 
+# Game state
 var gold : int = 10000
 var health : int = 20
 var path_points = []
+
+# Enemy testing system
+var testing_mode = true  # Set to false to disable enemy cycling
+var enemy_test_list = [
+	"res://assets/Enemies/firebug/firebug.tres",
+	"res://assets/Enemies/fireWasp/fireWasp.tres", 
+	"res://assets/Enemies/flyingLocust/flyingLocust.tres",
+	"res://assets/Enemies/clampBeetle/clampBeetle.tres",
+	"res://assets/Enemies/leafbug/leafbug.tres",
+	"res://assets/Enemies/voidButterfly/voidButterfly.tres",
+	"res://assets/Enemies/scorpion/scorpion.tres",
+	"res://assets/Enemies/magmaCrab/magmaCrab.tres"
+]
+var current_enemy_test_index = 0
+
+# Enemy spawning examples:
+# spawn_enemy(path_points)  # Spawns default firebug
+# spawn_enemy(path_points, "res://assets/Enemies/orc/orc.tres")  # Spawns orc
+# You can easily add new enemy types by creating new .tres files and scenes
+
 # For tower placement
 var selected_tower_data : TowerData = null
 var placing_tower : bool = false
@@ -25,9 +46,71 @@ func _ready():
 	$TowerMenu.connect("gui_input", Callable(self, "_on_TowerMenu_gui_input"))
 	$CanvasLayer/ui.connect("gui_input", Callable(self, "_on_ui_gui_input"))
 	update_tower_button_costs()
+	
+	# Validate enemy setup in testing mode
+	if testing_mode:
+		validate_enemy_setup()
+		print_testing_instructions()
+
+# Validate that all enemy data and scene files exist
+func validate_enemy_setup():
+	print("=== ENEMY SETUP VALIDATION ===")
+	var valid_enemies = []
+	
+	for i in range(enemy_test_list.size()):
+		var enemy_data_path = enemy_test_list[i]
+		print("Checking enemy ", i + 1, ": ", enemy_data_path)
+		
+		# Check if enemy data file exists
+		if not ResourceLoader.exists(enemy_data_path):
+			print("  ❌ Enemy data file not found!")
+			continue
+			
+		# Try to load enemy data
+		var enemy_data = load(enemy_data_path) as Resource
+		if not enemy_data:
+			print("  ❌ Failed to load enemy data!")
+			continue
+			
+		# Check if scene file exists
+		if not enemy_data.has_method("get") or not enemy_data.scene_path:
+			print("  ❌ Enemy data missing scene_path!")
+			continue
+			
+		var scene_path = enemy_data.scene_path
+		if not ResourceLoader.exists(scene_path):
+			print("  ❌ Enemy scene file not found: ", scene_path)
+			continue
+			
+		print("  ✅ Enemy setup valid - ", enemy_data.enemy_name if enemy_data.enemy_name else "Unknown")
+		valid_enemies.append(enemy_data_path)
+	
+	print("=== VALIDATION COMPLETE ===")
+	print("Valid enemies: ", valid_enemies.size(), "/", enemy_test_list.size())
+	
+	# Update test list to only include valid enemies
+	enemy_test_list = valid_enemies
+	
+	if enemy_test_list.size() == 0:
+		print("⚠️  No valid enemies found! Disabling testing mode.")
+		testing_mode = false
+
+func print_testing_instructions():
+	print("\n🧪 ENEMY TESTING MODE ACTIVE 🧪")
+	print("┌─ Controls ────────────────────┐")
+	print("│ N - Spawn next enemy manually │")
+	print("│ T - Toggle testing mode       │")
+	print("│ ESC - Pause game              │")
+	print("└───────────────────────────────┘")
+	print("📋 Enemies in test queue: ", enemy_test_list.size())
+	for i in range(enemy_test_list.size()):
+		var enemy_data = load(enemy_test_list[i]) as Resource
+		var enemy_name = enemy_data.enemy_name if enemy_data and enemy_data.enemy_name else "Unknown"
+		print("  ", i + 1, ". ", enemy_name)
+	print("🎯 Current: Will spawn enemy #", current_enemy_test_index + 1)
+	print("")
+
 # Dynamically set the cost label for each tower button in the build menu
-
-
 func update_tower_button_costs():
 	var tower_paths = [
 		"res://assets/towers/tower1/tower1.tres",
@@ -223,6 +306,13 @@ func take_damage(amount: int):
 func update_ui():
 	# Update your UI elements here (e.g., money/health labels)
 	$CanvasLayer/ui/goldContainer/goldLabel.text = str(gold)
+	
+	# Show testing mode status
+	if testing_mode:
+		var test_info = "TESTING MODE - Press N: Next Enemy, T: Toggle | Enemy " + str(current_enemy_test_index + 1) + "/" + str(enemy_test_list.size())
+		# You can add a label to show this info, for now just print it occasionally
+		if gold % 100 == 0:  # Print every 100 gold changes to avoid spam
+			print("🧪 ", test_info)
 
 
 func game_over():
@@ -333,6 +423,15 @@ func _unhandled_input(event):
 		else:
 			$pauseFade.visible = true
 			get_tree().paused = true
+	
+	# Testing controls (only in testing mode)
+	if testing_mode and event is InputEventKey and event.pressed:
+		if event.keycode == KEY_N:  # 'N' for next enemy
+			print("Manual spawn: Next enemy")
+			spawn_next_test_enemy(path_points)
+		elif event.keycode == KEY_T:  # 'T' to toggle testing mode
+			testing_mode = !testing_mode
+			print("Testing mode: ", "ON" if testing_mode else "OFF")
 
 
 func load_map(map_path):
@@ -348,7 +447,10 @@ func load_map(map_path):
 	var tilemap_ground = $LevelContainer/map/tileLayer1
 	var tilemap_bridge = $LevelContainer/map/tileLayer1/tileLayer2
 	build_path(tilemap_ground, tilemap_bridge, start_cell)
-	spawn_enemy(path_points)
+	if testing_mode:
+		spawn_next_test_enemy(path_points)
+	else:
+		spawn_enemy(path_points)
 
 
 func on_tower_button_pressed(tower_data: TowerData):
@@ -468,37 +570,126 @@ func get_snapped_position(mouse_pos: Vector2) -> Vector2:
 	return tilemap.map_to_local(cell)
 
 
-#testing enymy spawns
-func spawn_enemy(path_points):
-	var enemy_scene = preload("res://scenes/enemies/enemy.tscn")
+#testing enemy spawns
+func spawn_enemy(enemy_path_points, enemy_data_path: String = "res://assets/Enemies/firebug/firebug.tres"):
+	# Load the enemy data
+	var enemy_data = load(enemy_data_path) as Resource
+	if not enemy_data:
+		print("❌ Failed to load enemy data: ", enemy_data_path)
+		return
+	
+	# Get scene path from enemy data
+	var scene_path = ""
+	if enemy_data.has_method("get"):
+		scene_path = enemy_data.scene_path
+	
+	if scene_path == "":
+		print("❌ Enemy data missing scene_path: ", enemy_data_path)
+		return
+	
+	# Load the enemy scene from the data
+	var enemy_scene = load(scene_path)
+	if not enemy_scene:
+		print("❌ Failed to load enemy scene: ", scene_path)
+		return
+		
 	var enemy = enemy_scene.instantiate()
+	if not enemy:
+		print("❌ Failed to instantiate enemy scene: ", scene_path)
+		return
+	
+	# Set the enemy data
+	if enemy.has_method("set_enemy_data"):
+		enemy.set_enemy_data(enemy_data)
+	else:
+		print("⚠️  Enemy scene missing set_enemy_data method: ", scene_path)
+	
 	var spawn_offset = Vector2.ZERO
-	if path_points.size() > 1:
-		var direction = (path_points[1] - path_points[0]).normalized()
+	if enemy_path_points.size() > 1:
+		var direction = (enemy_path_points[1] - enemy_path_points[0]).normalized()
 		spawn_offset = -direction * 100 # 100 pixels off-screen (adjust as needed)
 	# Create a randomized path
 	var random_path = []
 	var tile_random_range = 12 # pixels, adjust for how much randomness you want
-	for i in range(path_points.size()):
-		var pt = path_points[i]
+	for i in range(enemy_path_points.size()):
+		var pt = enemy_path_points[i]
 		# Don't randomize first or last point (optional)
-		if i != 0 and i != path_points.size() - 1:
+		if i != 0 and i != enemy_path_points.size() - 1:
 			var offset = Vector2(randf_range(-tile_random_range, tile_random_range), randf_range(-tile_random_range, tile_random_range))
 			pt += offset
 		random_path.append(pt)
 	enemy.position = random_path[0] + spawn_offset
 	enemy.path = random_path
 	$EnemyContainer.add_child(enemy)
-	enemy.play_walk_animation()
-	enemy.connect("enemy_died", Callable(self, "_on_enemy_died"))
+	
+	if enemy.has_method("play_walk_animation"):
+		enemy.play_walk_animation()
+	
+	if enemy.has_signal("enemy_died"):
+		enemy.connect("enemy_died", Callable(self, "_on_enemy_died"))
+	
+	print("✅ Successfully spawned enemy: ", enemy_data.enemy_name if enemy_data.enemy_name else "Unknown")
+
+# Example: Spawn different enemy types randomly
+func spawn_random_enemy(enemy_path_points):
+	var enemy_types = [
+		"res://assets/Enemies/firebug/firebug.tres",
+		# Add more enemy types here as you create them:
+		# "res://assets/Enemies/orc/orc.tres",
+		# "res://assets/Enemies/dragon/dragon.tres",
+	]
+	var random_type = enemy_types[randi() % enemy_types.size()]
+	spawn_enemy(enemy_path_points, random_type)
+
+# Example: Spawn enemies based on wave number
+func spawn_enemy_for_wave(enemy_path_points, wave_number: int):
+	var enemy_type = "res://assets/Enemies/firebug/firebug.tres"  # default
+	
+	# Define different enemies for different waves
+	if wave_number <= 3:
+		enemy_type = "res://assets/Enemies/firebug/firebug.tres"
+	elif wave_number <= 6:
+		# Mix of firebugs and stronger enemies
+		var types = ["res://assets/Enemies/firebug/firebug.tres"]
+		# Add: "res://assets/Enemies/orc/orc.tres" when you create it
+		enemy_type = types[randi() % types.size()]
+	# Add more wave logic here
+	
+	spawn_enemy(enemy_path_points, enemy_type)
 
 
 func _on_enemy_spawn_timer_timeout():
-	spawn_enemy(path_points)
+	if testing_mode:
+		spawn_next_test_enemy(path_points)
+	else:
+		spawn_enemy(path_points)
+
+# Testing function that cycles through all enemy types
+func spawn_next_test_enemy(enemy_path_points):
+	if enemy_test_list.size() == 0:
+		print("No valid enemies in test list!")
+		return
+		
+	if current_enemy_test_index >= enemy_test_list.size():
+		current_enemy_test_index = 0  # Reset to beginning
+		print("🔄 Cycling back to first enemy")
+	
+	var enemy_data_path = enemy_test_list[current_enemy_test_index]
+	
+	# Load enemy data for debugging info
+	var enemy_data = load(enemy_data_path) as Resource
+	var enemy_name = "Unknown"
+	if enemy_data and enemy_data.has_method("get"):
+		enemy_name = enemy_data.enemy_name if enemy_data.enemy_name else "Unknown"
+	
+	print("🐛 Testing enemy ", current_enemy_test_index + 1, "/", enemy_test_list.size(), ": ", enemy_name, " (", enemy_data_path, ")")
+	
+	spawn_enemy(enemy_path_points, enemy_data_path)
+	current_enemy_test_index += 1
 
 
-func _on_enemy_died(gold):
-	earn_gold(gold)
+func _on_enemy_died(gold_earned):
+	earn_gold(gold_earned)
 
 
 func hide_all_grid_overlays():

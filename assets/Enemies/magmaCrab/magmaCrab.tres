@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3 uid="uid://5pa48wgi4sgw"]
+
+[ext_resource type="Script" uid="uid://cvpkl6euf13h8" path="res://assets/Enemies/enemyData.gd" id="1_wwvlb"]
+
+[resource]
+script = ExtResource("1_wwvlb")
+scene_path = "res://scenes/enemies/magmaCrab.tscn"
+enemy_name = "Magma Crab"
+enemy_type = "ground"
+max_health = 1000
+speed = 75.0
+gold_worth = 30
+health_bar_width = 32
+health_bar_height = 4
+health_bar_offset = Vector2(0, -32)
+has_directional_animations = true
+walk_animation_name = "walk"
+walk_down_animation_name = "walkDown"
+idle_animation_name = "idle"
+idle_down_animation_name = "idleDown"
+die_animation_name = "die"
+die_down_animation_name = "dieDown"
+special_abilities = Array[String]([])
+resistances = Array[String]([])
