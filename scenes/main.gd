@@ -1,7 +1,7 @@
 extends Node2D
 
 # Game state
-var gold : int = 1000
+var gold : int = 300
 var health : int = 100
 var path_points = []
 
@@ -45,7 +45,6 @@ var endless_next_difficulty_time: float = 60.0  # Scale every 60 seconds
 var current_spawn_group_index: int = 0
 var enemies_spawned_in_group: int = 0
 var spawn_timer: float = 0.0
-var group_delay_timer: float = 0.0
 
 # Tooltip system
 var tower_tooltip = null
@@ -71,7 +70,29 @@ func _ready():
 	# Initialize achievement system
 	setup_achievement_system()
 	
-	# Initialize game mode system
+	# Check if we should load a saved game
+	var game_mode_manager = get_node("/root/GameModeManager")
+	var should_load_save = false
+	var save_slot = -1
+	
+	if game_mode_manager and game_mode_manager.has_meta("load_save_slot"):
+		save_slot = game_mode_manager.get_meta("load_save_slot")
+		game_mode_manager.remove_meta("load_save_slot")
+		should_load_save = true
+	
+	if should_load_save:
+		# Load the saved game
+		var save_manager = get_node("/root/SaveManager")
+		if save_manager:
+			var success = save_manager.load_game(save_slot, self)
+			if success:
+				# The game state has been loaded, return early
+				return
+			else:
+				# Load failed, continue with normal initialization
+				show_notification("Failed to load save!")
+	
+	# Initialize game mode system (only if not loaded from save)
 	initialize_game_mode()
 	
 	# Initial UI update for game mode
@@ -200,7 +221,6 @@ func start_wave():
 	current_spawn_group_index = 0
 	enemies_spawned_in_group = 0
 	spawn_timer = 0.0
-	group_delay_timer = 0.0
 	
 	# Calculate total enemies in wave
 	enemies_remaining_in_wave = 0
@@ -208,9 +228,8 @@ func start_wave():
 		enemies_remaining_in_wave += spawn_group.count
 	
 	
-	# Start spawning
+	# Start spawning immediately (no group delay)
 	if current_wave_data.enemy_groups.size() > 0:
-		group_delay_timer = current_wave_data.enemy_groups[0].spawn_delay
 		spawn_timer = current_wave_data.spawn_interval
 
 func handle_game_mode_timing(delta):
@@ -236,6 +255,12 @@ func handle_game_mode_timing(delta):
 			
 			# Handle continuous enemy spawning
 			handle_endless_continuous_spawning(delta)
+			
+			# Auto-save in endless mode every 2 minutes
+			if int(endless_survival_time) % 120 == 0 and endless_survival_time > 0:
+				var save_manager = get_node("/root/SaveManager")
+				if save_manager:
+					save_manager.create_checkpoint_save(self)
 	else:
 		# Wave-based mode timing
 		if is_preparation_phase and wave_timer <= 0:
@@ -267,11 +292,6 @@ func handle_wave_spawning(delta):
 		
 	var current_group = current_wave_data.enemy_groups[current_spawn_group_index]
 	
-	# Handle group delay
-	if group_delay_timer > 0:
-		group_delay_timer -= delta
-		return
-	
 	# Handle spawning within group
 	spawn_timer -= delta
 	if spawn_timer <= 0 and enemies_spawned_in_group < current_group.count:
@@ -284,10 +304,7 @@ func handle_wave_spawning(delta):
 		if enemies_spawned_in_group >= current_group.count:
 			current_spawn_group_index += 1
 			enemies_spawned_in_group = 0
-			
-			# Set up next group delay if there is one
-			if current_spawn_group_index < current_wave_data.enemy_groups.size():
-				group_delay_timer = current_wave_data.enemy_groups[current_spawn_group_index].spawn_delay
+			# No delay - immediately start next group
 
 func spawn_enemy_with_scaling(enemy_path_points, enemy_data_path: String):
 	# Load enemy data
@@ -338,7 +355,14 @@ func wave_complete():
 			var mode_name = ""
 			if current_game_mode:
 				mode_name = current_game_mode.mode_name
-			achievement_mgr.track_level_completed(perfect_run, mode_name)			# TODO: Add victory screen
+			achievement_mgr.track_level_completed(perfect_run, mode_name)
+	
+	# Create checkpoint save AFTER wave progression is set up
+	var save_manager = get_node("/root/SaveManager")
+	if save_manager:
+		save_manager.create_checkpoint_save(self)
+		print("Checkpoint saved after wave ", current_wave_number - 1, " completed, ready for wave ", current_wave_number)
+			# TODO: Add victory screen
 
 func update_game_mode_ui():
 	# Update round/timer display
@@ -1058,18 +1082,50 @@ func _unhandled_input(event):
 
 
 func load_map(map_path):
+	print("Loading map from: ", map_path)
 	# Remove any existing map
 	for child in $LevelContainer.get_children():
+		print("Removing existing child: ", child.name, " (", child.get_class(), ")")
 		child.queue_free()
+	
 	# Load and add the map
-	var map = load(map_path).instantiate()
+	var map_scene = load(map_path)
+	if not map_scene:
+		print("Error: Could not load map scene from ", map_path)
+		return
+		
+	var map = map_scene.instantiate()
+	if not map:
+		print("Error: Could not instantiate map from ", map_path)
+		return
+	
+	# Ensure the map has the correct name so it can be found as LevelContainer/map
+	map.name = "map"
+	print("Adding map to LevelContainer with name: ", map.name)
 	$LevelContainer.add_child(map)
+	
+	print("Map loaded, checking structure...")
+	print("  - Map node: ", map.name, " (", map.get_class(), ")")
+	print("  - Map children: ", map.get_children().size())
+	for child in map.get_children():
+		print("    - ", child.name, " (", child.get_class(), ")")
+	
 	# Always hide grid overlay after loading map
 	hide_all_grid_overlays()
-	var start_cell = map.start_cell
-	var tilemap_ground = $LevelContainer/map/tileLayer1
-	var tilemap_bridge = $LevelContainer/map/tileLayer1/tileLayer2
-	build_path(tilemap_ground, tilemap_bridge, start_cell)
+	
+	# Get start cell and build path
+	var start_cell = map.start_cell if "start_cell" in map else Vector2i(0, 0)
+	print("Start cell: ", start_cell)
+	
+	# Check if we can find the tilemap layers
+	if map.has_node("tileLayer1"):
+		var tilemap_ground = map.get_node("tileLayer1")
+		var tilemap_bridge = tilemap_ground.get_node("tileLayer2") if tilemap_ground.has_node("tileLayer2") else null
+		print("Building path with tilemap_ground: ", tilemap_ground.name)
+		build_path(tilemap_ground, tilemap_bridge, start_cell)
+		print("Path built, path_points size: ", path_points.size())
+	else:
+		print("Error: tileLayer1 not found in map")
 	
 	# Spawn the house at the end of the path
 	spawn_house()
@@ -1116,6 +1172,50 @@ func spawn_house():
 
 	# Add the house to the level container
 	$LevelContainer.add_child(house)
+
+func _ensure_path_after_load():
+	"""Ensure path is properly built after loading a save game"""
+	print("=== _ensure_path_after_load called ===")
+	print("Current path_points size: ", path_points.size())
+	
+	# Debug: Check what nodes exist
+	print("Checking node structure:")
+	print("  - Has LevelContainer: ", has_node("LevelContainer"))
+	if has_node("LevelContainer"):
+		var level_container = get_node("LevelContainer")
+		print("  - LevelContainer children count: ", level_container.get_child_count())
+		for i in range(level_container.get_child_count()):
+			var child = level_container.get_child(i)
+			print("    - Child ", i, ": ", child.name, " (", child.get_class(), ")")
+		
+		print("  - Has LevelContainer/map: ", has_node("LevelContainer/map"))
+		if has_node("LevelContainer/map"):
+			var map_node = get_node("LevelContainer/map")
+			print("  - Map node: ", map_node.name, " (", map_node.get_class(), ")")
+			print("  - Map has tileLayer1: ", map_node.has_node("tileLayer1"))
+			if map_node.has_node("tileLayer1"):
+				print("  - Map has start_cell: ", "start_cell" in map_node)
+	
+	# If path_points is still empty after loading, try to rebuild it
+	if path_points.size() == 0:
+		print("Path points empty after load, attempting to rebuild...")
+		if has_node("LevelContainer/map"):
+			var map_node = get_node("LevelContainer/map")
+			if map_node.has_node("tileLayer1"):
+				var tilemap_ground = map_node.get_node("tileLayer1")
+				var tilemap_bridge = tilemap_ground.get_node("tileLayer2") if tilemap_ground.has_node("tileLayer2") else null
+				var start_cell = map_node.start_cell if "start_cell" in map_node else Vector2i(0, 0)
+				print("Calling build_path with start_cell: ", start_cell)
+				build_path(tilemap_ground, tilemap_bridge, start_cell)
+				print("After build_path, path_points size: ", path_points.size())
+			else:
+				print("Error: tileLayer1 not found in loaded map")
+		else:
+			print("Error: map node not found after load")
+	else:
+		print("Path points already available, size: ", path_points.size())
+	
+	print("=== _ensure_path_after_load complete ===")
 
 
 func on_tower_button_pressed(tower_data: TowerData):
@@ -1231,6 +1331,10 @@ func _on_resume_pressed() -> void:
 
 
 func _on_quit_desktop_pressed() -> void:
+	# Show auto-save notification before quitting
+	show_notification("Game Auto-Saved!")
+	# Small delay to show the notification
+	await get_tree().create_timer(1.0).timeout
 	get_tree().quit()
 
 
@@ -1243,6 +1347,39 @@ func get_snapped_position(mouse_pos: Vector2) -> Vector2:
 
 #testing enemy spawns
 func spawn_enemy(enemy_path_points, enemy_data_path: String = "res://assets/Enemies/firebug/firebug.tres", override_health: int = -1):
+	# Safety check: ensure we have valid path points
+	if enemy_path_points.size() == 0:
+		print("Error: Cannot spawn enemy - path_points is empty")
+		print("Current path_points size: ", path_points.size())
+		# Try to rebuild path if main path_points is also empty
+		if path_points.size() == 0:
+			print("Main path_points is also empty, attempting to rebuild...")
+			if $LevelContainer.has_node("map"):
+				var map_node = $LevelContainer/map
+				if map_node.has_node("tileLayer1"):
+					var tilemap_ground = $LevelContainer/map/tileLayer1
+					var tilemap_bridge = $LevelContainer/map/tileLayer1/tileLayer2 if tilemap_ground.has_node("tileLayer2") else null
+					var start_cell = map_node.start_cell if "start_cell" in map_node else Vector2i(0, 0)
+					build_path(tilemap_ground, tilemap_bridge, start_cell)
+					print("Rebuilt path_points, new size: ", path_points.size())
+					# Use the rebuilt path_points
+					enemy_path_points = path_points
+				else:
+					print("Error: Could not rebuild path - tileLayer1 missing")
+					return
+			else:
+				print("Error: Could not rebuild path - map node missing")
+				return
+		else:
+			# Use the main path_points as fallback
+			enemy_path_points = path_points
+			print("Using main path_points as fallback, size: ", enemy_path_points.size())
+		
+		# Final check after attempting to fix
+		if enemy_path_points.size() == 0:
+			print("Error: Still no valid path_points available, cannot spawn enemy")
+			return
+	
 	# Load the enemy data
 	var enemy_data = load(enemy_data_path) as Resource
 	if not enemy_data:
@@ -1289,6 +1426,12 @@ func spawn_enemy(enemy_path_points, enemy_data_path: String = "res://assets/Enem
 			var offset = Vector2(randf_range(-tile_random_range, tile_random_range), randf_range(-tile_random_range, tile_random_range))
 			pt += offset
 		random_path.append(pt)
+	
+	# Final safety check before accessing random_path[0]
+	if random_path.size() == 0:
+		print("Error: random_path is empty after generation, cannot spawn enemy")
+		return
+		
 	enemy.position = random_path[0] + spawn_offset
 	enemy.path = random_path
 	$EnemyContainer.add_child(enemy)
@@ -1339,17 +1482,18 @@ func spawn_endless_enemy():
 	# Define enemy types by difficulty tiers
 	var easy_enemies = [
 		"res://assets/Enemies/firebug/firebug.tres",
-		"res://assets/Enemies/leafbug/leafbug.tres"
+		"res://assets/Enemies/clampBeetle/clampBeetle.tres"
+		
 	]
 	var medium_enemies = [
 		"res://assets/Enemies/fireWasp/fireWasp.tres",
-		"res://assets/Enemies/flyingLocust/flyingLocust.tres",
-		"res://assets/Enemies/clampBeetle/clampBeetle.tres"
+		"res://assets/Enemies/scorpion/scorpion.tres",
+		"res://assets/Enemies/magmaCrab/magmaCrab.tres"
 	]
 	var hard_enemies = [
 		"res://assets/Enemies/voidButterfly/voidButterfly.tres",
-		"res://assets/Enemies/scorpion/scorpion.tres",
-		"res://assets/Enemies/magmaCrab/magmaCrab.tres"
+		"res://assets/Enemies/flyingLocust/flyingLocust.tres",
+		"res://assets/Enemies/leafbug/leafbug.tres"
 	]
 	
 	# Choose enemy pool based on difficulty level

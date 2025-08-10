@@ -36,7 +36,99 @@ func _on_new_game_pressed() -> void:
 func _on_load_game_pressed() -> void:
 	$CenterContainer/MainButtons.visible = false
 	$CenterContainer/LoadMenu.visible = true
+	_populate_save_slots()
 	$CenterContainer/LoadMenu/back.grab_focus()
+
+
+func _populate_save_slots():
+	"""Populate the load menu with available save slots"""
+	var save_manager = get_node("/root/SaveManager")
+	if not save_manager:
+		return
+	
+	# Get references to the buttons
+	var checkpoint_button = $CenterContainer/LoadMenu/loadCheckpoint
+	var slot1_button = $CenterContainer/LoadMenu/loadSlot1
+	var slot2_button = $CenterContainer/LoadMenu/loadSlot2
+	var slot3_button = $CenterContainer/LoadMenu/loadSlot3
+	
+	# Update checkpoint button
+	if save_manager.has_checkpoint_save():
+		var checkpoint_info = save_manager.get_save_file_info(0)
+		var game_mode = checkpoint_info.get("game_mode", "Unknown")
+		var wave_number = checkpoint_info.get("wave_number", 1)
+		
+		checkpoint_button.text = "CONTINUE (%s - Wave %d)" % [game_mode, wave_number]
+		checkpoint_button.disabled = false
+		checkpoint_button.modulate = Color.WHITE
+		print("Checkpoint save available: Wave ", wave_number, " - ", game_mode)
+	else:
+		checkpoint_button.text = "CONTINUE (NO CHECKPOINT)"
+		checkpoint_button.disabled = true
+		checkpoint_button.modulate = Color(0.5, 0.5, 0.5, 1.0)
+	
+	# Update save slot buttons
+	var slot_buttons = [slot1_button, slot2_button, slot3_button]
+	for i in range(3):
+		var slot_num = i + 1
+		var button = slot_buttons[i]
+		
+		if save_manager.save_file_exists(slot_num):
+			var save_info = save_manager.get_save_file_info(slot_num)
+			var game_mode = save_info.get("game_mode", "Unknown")
+			var wave_number = save_info.get("wave_number", 1)
+			var gold = save_info.get("gold", 0)
+			
+			button.text = "SLOT %d: %s - Wave %d (%d Gold)" % [slot_num, game_mode, wave_number, gold]
+			button.disabled = false
+			button.modulate = Color.WHITE
+			print("Save slot ", slot_num, ": Wave ", wave_number, " - ", game_mode)
+		else:
+			button.text = "SLOT %d: EMPTY" % slot_num
+			button.disabled = true
+			button.modulate = Color(0.5, 0.5, 0.5, 1.0)
+
+
+func load_saved_game(slot: int = -1):
+	"""Load a saved game and transition to main scene"""
+	var save_manager = get_node("/root/SaveManager")
+	if not save_manager:
+		return
+	
+	# Store which save slot to load in a singleton for the main scene to pick up
+	if slot == -1:
+		# Load checkpoint if available, otherwise slot 1
+		if save_manager.has_checkpoint_save():
+			slot = 0
+		else:
+			slot = 1
+	
+	# Store the load flag for the main scene
+	var game_mode_manager = get_node("/root/GameModeManager")
+	if game_mode_manager:
+		game_mode_manager.set_meta("load_save_slot", slot)
+	
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
+
+
+func _on_load_checkpoint_pressed() -> void:
+	"""Load the checkpoint save"""
+	load_saved_game(0)
+
+
+func _on_load_slot_1_pressed() -> void:
+	"""Load save slot 1"""
+	load_saved_game(1)
+
+
+func _on_load_slot_2_pressed() -> void:
+	"""Load save slot 2"""
+	load_saved_game(2)
+
+
+func _on_load_slot_3_pressed() -> void:
+	"""Load save slot 3"""
+	load_saved_game(3)
 
 
 func _on_settings_pressed() -> void:

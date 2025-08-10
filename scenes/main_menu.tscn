@@ -142,6 +142,40 @@ visible = false
 layout_mode = 2
 theme_override_constants/separation = 16
 
+[node name="title" type="Label" parent="CenterContainer/LoadMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 80
+text = "LOAD GAME"
+horizontal_alignment = 1
+
+[node name="loadCheckpoint" type="Button" parent="CenterContainer/LoadMenu"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 48
+text = "CONTINUE (CHECKPOINT)"
+
+[node name="loadSlot1" type="Button" parent="CenterContainer/LoadMenu"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 48
+text = "SAVE SLOT 1"
+
+[node name="loadSlot2" type="Button" parent="CenterContainer/LoadMenu"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 48
+text = "SAVE SLOT 2"
+
+[node name="loadSlot3" type="Button" parent="CenterContainer/LoadMenu"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 48
+text = "SAVE SLOT 3"
+
 [node name="back" type="Button" parent="CenterContainer/LoadMenu"]
 custom_minimum_size = Vector2(353, 0)
 layout_mode = 2
@@ -223,6 +257,10 @@ text = "BACK"
 [connection signal="value_changed" from="CenterContainer/SettingsMenu/musicVolSlider" to="." method="_on_music_vol_slider_value_changed"]
 [connection signal="value_changed" from="CenterContainer/SettingsMenu/sfxVolSlider" to="." method="_on_sfx_vol_slider_value_changed"]
 [connection signal="pressed" from="CenterContainer/CreditsMenu/back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CenterContainer/LoadMenu/loadCheckpoint" to="." method="_on_load_checkpoint_pressed"]
+[connection signal="pressed" from="CenterContainer/LoadMenu/loadSlot1" to="." method="_on_load_slot_1_pressed"]
+[connection signal="pressed" from="CenterContainer/LoadMenu/loadSlot2" to="." method="_on_load_slot_2_pressed"]
+[connection signal="pressed" from="CenterContainer/LoadMenu/loadSlot3" to="." method="_on_load_slot_3_pressed"]
 [connection signal="pressed" from="CenterContainer/LoadMenu/back" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="CenterContainer/HouseSkinsMenu/back" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="CenterContainer/GameModeMenu/normal" to="." method="_on_normal_pressed"]
