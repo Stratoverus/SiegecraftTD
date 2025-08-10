@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GameModeData" load_steps=20 format=3 uid="uid://bl4168gwuhpqo"]
+[gd_resource type="Resource" script_class="GameModeData" load_steps=20 format=3 uid="uid://tgjhy4frrguh"]
 
 [ext_resource type="Script" uid="uid://dp4wkxlu5vn2s" path="res://assets/gameMode/gameModeData.gd" id="1_0"]
 [ext_resource type="Script" uid="uid://fhldp7d61iwx" path="res://assets/gameMode/waveDefinition.gd" id="2_0"]

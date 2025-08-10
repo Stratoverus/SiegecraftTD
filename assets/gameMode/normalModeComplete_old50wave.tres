@@ -1,0 +1,1080 @@
+[gd_resource type="Resource" script_class="GameModeData" load_steps=162 format=3 uid="uid://db367gm6nc65s"]
+
+[ext_resource type="Script" uid="uid://dp4wkxlu5vn2s" path="res://assets/gameMode/gameModeData.gd" id="1_0"]
+[ext_resource type="Script" uid="uid://fhldp7d61iwx" path="res://assets/gameMode/waveDefinition.gd" id="2_0"]
+[ext_resource type="Script" uid="uid://c8nqxvu4gfqks" path="res://assets/gameMode/enemyGroup.gd" id="3_0"]
+
+# Wave 1 - Easy start with firebugs
+[sub_resource type="Resource" id="EnemyGroup_1_1"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 25
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_1"]
+script = ExtResource("2_0")
+wave_number = 1
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.8
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_1_1")])
+
+# Wave 2 - More firebugs
+[sub_resource type="Resource" id="EnemyGroup_2_1"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 35
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_2"]
+script = ExtResource("2_0")
+wave_number = 2
+is_boss_wave = false
+preparation_time = 12.0
+spawn_interval = 0.7
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_2_1")])
+
+# Wave 3 - Introduce clampBeetles
+[sub_resource type="Resource" id="EnemyGroup_3_1"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 30
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_3_2"]
+script = ExtResource("3_0")
+enemy_type = "clampBeetle"
+count = 15
+spawn_delay = 5.0
+
+[sub_resource type="Resource" id="Wave_3"]
+script = ExtResource("2_0")
+wave_number = 3
+is_boss_wave = false
+preparation_time = 12.0
+spawn_interval = 0.6
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_3_1"), SubResource("EnemyGroup_3_2")])
+
+# Wave 4 - Mixed easy enemies
+[sub_resource type="Resource" id="EnemyGroup_4_1"]
+script = ExtResource("3_0")
+enemy_type = "clampBeetle"
+count = 25
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_4_2"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 35
+spawn_delay = 8.0
+
+[sub_resource type="Resource" id="Wave_4"]
+script = ExtResource("2_0")
+wave_number = 4
+is_boss_wave = false
+preparation_time = 12.0
+spawn_interval = 0.5
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_4_1"), SubResource("EnemyGroup_4_2")])
+
+# Wave 5 - First boss wave
+[sub_resource type="Resource" id="EnemyGroup_5_1"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 40
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_5_2"]
+script = ExtResource("3_0")
+enemy_type = "clampBeetle"
+count = 30
+spawn_delay = 10.0
+
+[sub_resource type="Resource" id="Wave_5"]
+script = ExtResource("2_0")
+wave_number = 5
+is_boss_wave = true
+preparation_time = 20.0
+spawn_interval = 0.4
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_5_1"), SubResource("EnemyGroup_5_2")])
+
+# Wave 6-10 - Scaling easy enemies
+[sub_resource type="Resource" id="EnemyGroup_6_1"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 50
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_6_2"]
+script = ExtResource("3_0")
+enemy_type = "clampBeetle"
+count = 35
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_6"]
+script = ExtResource("2_0")
+wave_number = 6
+is_boss_wave = false
+preparation_time = 12.0
+spawn_interval = 0.4
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_6_1"), SubResource("EnemyGroup_6_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_7_1"]
+script = ExtResource("3_0")
+enemy_type = "clampBeetle"
+count = 45
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_7_2"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 55
+spawn_delay = 5.0
+
+[sub_resource type="Resource" id="Wave_7"]
+script = ExtResource("2_0")
+wave_number = 7
+is_boss_wave = false
+preparation_time = 12.0
+spawn_interval = 0.35
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_7_1"), SubResource("EnemyGroup_7_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_8_1"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 60
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_8_2"]
+script = ExtResource("3_0")
+enemy_type = "clampBeetle"
+count = 50
+spawn_delay = 8.0
+
+[sub_resource type="Resource" id="Wave_8"]
+script = ExtResource("2_0")
+wave_number = 8
+is_boss_wave = false
+preparation_time = 12.0
+spawn_interval = 0.35
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_8_1"), SubResource("EnemyGroup_8_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_9_1"]
+script = ExtResource("3_0")
+enemy_type = "clampBeetle"
+count = 65
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_9_2"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 65
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_9"]
+script = ExtResource("2_0")
+wave_number = 9
+is_boss_wave = false
+preparation_time = 12.0
+spawn_interval = 0.3
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_9_1"), SubResource("EnemyGroup_9_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_10_1"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 70
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_10_2"]
+script = ExtResource("3_0")
+enemy_type = "clampBeetle"
+count = 70
+spawn_delay = 10.0
+
+[sub_resource type="Resource" id="Wave_10"]
+script = ExtResource("2_0")
+wave_number = 10
+is_boss_wave = true
+preparation_time = 20.0
+spawn_interval = 0.25
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_10_1"), SubResource("EnemyGroup_10_2")])
+
+# Wave 11-15 - Late easy phase with higher counts
+[sub_resource type="Resource" id="EnemyGroup_11_1"]
+script = ExtResource("3_0")
+enemy_type = "clampBeetle"
+count = 80
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_11_2"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 80
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_11"]
+script = ExtResource("2_0")
+wave_number = 11
+is_boss_wave = false
+preparation_time = 12.0
+spawn_interval = 0.25
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_11_1"), SubResource("EnemyGroup_11_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_12_1"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 90
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_12_2"]
+script = ExtResource("3_0")
+enemy_type = "clampBeetle"
+count = 85
+spawn_delay = 8.0
+
+[sub_resource type="Resource" id="Wave_12"]
+script = ExtResource("2_0")
+wave_number = 12
+is_boss_wave = false
+preparation_time = 12.0
+spawn_interval = 0.2
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_12_1"), SubResource("EnemyGroup_12_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_13_1"]
+script = ExtResource("3_0")
+enemy_type = "clampBeetle"
+count = 95
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_13_2"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 95
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_13"]
+script = ExtResource("2_0")
+wave_number = 13
+is_boss_wave = false
+preparation_time = 12.0
+spawn_interval = 0.2
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_13_1"), SubResource("EnemyGroup_13_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_14_1"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 100
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_14_2"]
+script = ExtResource("3_0")
+enemy_type = "clampBeetle"
+count = 100
+spawn_delay = 10.0
+
+[sub_resource type="Resource" id="Wave_14"]
+script = ExtResource("2_0")
+wave_number = 14
+is_boss_wave = false
+preparation_time = 12.0
+spawn_interval = 0.15
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_14_1"), SubResource("EnemyGroup_14_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_15_1"]
+script = ExtResource("3_0")
+enemy_type = "clampBeetle"
+count = 120
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_15_2"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 120
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_15"]
+script = ExtResource("2_0")
+wave_number = 15
+is_boss_wave = true
+preparation_time = 25.0
+spawn_interval = 0.15
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_15_1"), SubResource("EnemyGroup_15_2")])
+
+# Wave 16 - Introduce medium enemies
+[sub_resource type="Resource" id="EnemyGroup_16_1"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 40
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_16_2"]
+script = ExtResource("3_0")
+enemy_type = "firebug"
+count = 60
+spawn_delay = 5.0
+
+[sub_resource type="Resource" id="Wave_16"]
+script = ExtResource("2_0")
+wave_number = 16
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.4
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_16_1"), SubResource("EnemyGroup_16_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_17_1"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 25
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_17_2"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 45
+spawn_delay = 8.0
+
+[sub_resource type="Resource" id="Wave_17"]
+script = ExtResource("2_0")
+wave_number = 17
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.35
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_17_1"), SubResource("EnemyGroup_17_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_18_1"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 30
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_18_2"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 35
+spawn_delay = 6.0
+
+[sub_resource type="Resource" id="Wave_18"]
+script = ExtResource("2_0")
+wave_number = 18
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.3
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_18_1"), SubResource("EnemyGroup_18_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_19_1"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 55
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_19_2"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 40
+spawn_delay = 10.0
+
+[sub_resource type="Resource" id="Wave_19"]
+script = ExtResource("2_0")
+wave_number = 19
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.25
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_19_1"), SubResource("EnemyGroup_19_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_20_1"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 50
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_20_2"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 70
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_20_3"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 45
+spawn_delay = 15.0
+
+[sub_resource type="Resource" id="Wave_20"]
+script = ExtResource("2_0")
+wave_number = 20
+is_boss_wave = true
+preparation_time = 25.0
+spawn_interval = 0.2
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_20_1"), SubResource("EnemyGroup_20_2"), SubResource("EnemyGroup_20_3")])
+
+# Waves 21-25 - Scaling medium enemies
+[sub_resource type="Resource" id="EnemyGroup_21_1"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 60
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_21_2"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 80
+spawn_delay = 8.0
+
+[sub_resource type="Resource" id="Wave_21"]
+script = ExtResource("2_0")
+wave_number = 21
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.2
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_21_1"), SubResource("EnemyGroup_21_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_22_1"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 70
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_22_2"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 65
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_22"]
+script = ExtResource("2_0")
+wave_number = 22
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.18
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_22_1"), SubResource("EnemyGroup_22_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_23_1"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 90
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_23_2"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 75
+spawn_delay = 10.0
+
+[sub_resource type="Resource" id="Wave_23"]
+script = ExtResource("2_0")
+wave_number = 23
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.15
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_23_1"), SubResource("EnemyGroup_23_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_24_1"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 85
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_24_2"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 100
+spawn_delay = 5.0
+
+[sub_resource type="Resource" id="Wave_24"]
+script = ExtResource("2_0")
+wave_number = 24
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.15
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_24_1"), SubResource("EnemyGroup_24_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_25_1"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 90
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_25_2"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 95
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_25_3"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 110
+spawn_delay = 12.0
+
+[sub_resource type="Resource" id="Wave_25"]
+script = ExtResource("2_0")
+wave_number = 25
+is_boss_wave = true
+preparation_time = 30.0
+spawn_interval = 0.12
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_25_1"), SubResource("EnemyGroup_25_2"), SubResource("EnemyGroup_25_3")])
+
+# Waves 26-35 - Continuation of medium enemies with higher numbers
+[sub_resource type="Resource" id="EnemyGroup_26_1"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 120
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_26_2"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 100
+spawn_delay = 8.0
+
+[sub_resource type="Resource" id="Wave_26"]
+script = ExtResource("2_0")
+wave_number = 26
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.12
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_26_1"), SubResource("EnemyGroup_26_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_27_1"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 110
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_27_2"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 130
+spawn_delay = 10.0
+
+[sub_resource type="Resource" id="Wave_27"]
+script = ExtResource("2_0")
+wave_number = 27
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.1
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_27_1"), SubResource("EnemyGroup_27_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_28_1"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 120
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_28_2"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 125
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_28"]
+script = ExtResource("2_0")
+wave_number = 28
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.1
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_28_1"), SubResource("EnemyGroup_28_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_29_1"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 150
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_29_2"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 130
+spawn_delay = 8.0
+
+[sub_resource type="Resource" id="Wave_29"]
+script = ExtResource("2_0")
+wave_number = 29
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.08
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_29_1"), SubResource("EnemyGroup_29_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_30_1"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 140
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_30_2"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 160
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_30_3"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 140
+spawn_delay = 15.0
+
+[sub_resource type="Resource" id="Wave_30"]
+script = ExtResource("2_0")
+wave_number = 30
+is_boss_wave = true
+preparation_time = 30.0
+spawn_interval = 0.08
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_30_1"), SubResource("EnemyGroup_30_2"), SubResource("EnemyGroup_30_3")])
+
+# Continue with waves 31-35
+[sub_resource type="Resource" id="EnemyGroup_31_1"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 160
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_31_2"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 150
+spawn_delay = 10.0
+
+[sub_resource type="Resource" id="Wave_31"]
+script = ExtResource("2_0")
+wave_number = 31
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.08
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_31_1"), SubResource("EnemyGroup_31_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_32_1"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 180
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_32_2"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 170
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_32"]
+script = ExtResource("2_0")
+wave_number = 32
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.06
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_32_1"), SubResource("EnemyGroup_32_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_33_1"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 180
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_33_2"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 200
+spawn_delay = 8.0
+
+[sub_resource type="Resource" id="Wave_33"]
+script = ExtResource("2_0")
+wave_number = 33
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.06
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_33_1"), SubResource("EnemyGroup_33_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_34_1"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 190
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_34_2"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 190
+spawn_delay = 10.0
+
+[sub_resource type="Resource" id="Wave_34"]
+script = ExtResource("2_0")
+wave_number = 34
+is_boss_wave = false
+preparation_time = 15.0
+spawn_interval = 0.05
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_34_1"), SubResource("EnemyGroup_34_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_35_1"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 220
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_35_2"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 200
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_35_3"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 200
+spawn_delay = 12.0
+
+[sub_resource type="Resource" id="Wave_35"]
+script = ExtResource("2_0")
+wave_number = 35
+is_boss_wave = true
+preparation_time = 35.0
+spawn_interval = 0.05
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_35_1"), SubResource("EnemyGroup_35_2"), SubResource("EnemyGroup_35_3")])
+
+# Wave 36 - Introduce hard enemies
+[sub_resource type="Resource" id="EnemyGroup_36_1"]
+script = ExtResource("3_0")
+enemy_type = "voidButterfly"
+count = 50
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_36_2"]
+script = ExtResource("3_0")
+enemy_type = "fireWasp"
+count = 120
+spawn_delay = 8.0
+
+[sub_resource type="Resource" id="Wave_36"]
+script = ExtResource("2_0")
+wave_number = 36
+is_boss_wave = false
+preparation_time = 20.0
+spawn_interval = 0.3
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_36_1"), SubResource("EnemyGroup_36_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_37_1"]
+script = ExtResource("3_0")
+enemy_type = "flyingLocust"
+count = 60
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_37_2"]
+script = ExtResource("3_0")
+enemy_type = "voidButterfly"
+count = 55
+spawn_delay = 10.0
+
+[sub_resource type="Resource" id="Wave_37"]
+script = ExtResource("2_0")
+wave_number = 37
+is_boss_wave = false
+preparation_time = 20.0
+spawn_interval = 0.25
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_37_1"), SubResource("EnemyGroup_37_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_38_1"]
+script = ExtResource("3_0")
+enemy_type = "leafbug"
+count = 70
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_38_2"]
+script = ExtResource("3_0")
+enemy_type = "flyingLocust"
+count = 65
+spawn_delay = 8.0
+
+[sub_resource type="Resource" id="Wave_38"]
+script = ExtResource("2_0")
+wave_number = 38
+is_boss_wave = false
+preparation_time = 20.0
+spawn_interval = 0.2
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_38_1"), SubResource("EnemyGroup_38_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_39_1"]
+script = ExtResource("3_0")
+enemy_type = "voidButterfly"
+count = 80
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_39_2"]
+script = ExtResource("3_0")
+enemy_type = "leafbug"
+count = 75
+spawn_delay = 10.0
+
+[sub_resource type="Resource" id="Wave_39"]
+script = ExtResource("2_0")
+wave_number = 39
+is_boss_wave = false
+preparation_time = 20.0
+spawn_interval = 0.15
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_39_1"), SubResource("EnemyGroup_39_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_40_1"]
+script = ExtResource("3_0")
+enemy_type = "flyingLocust"
+count = 90
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_40_2"]
+script = ExtResource("3_0")
+enemy_type = "voidButterfly"
+count = 85
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_40_3"]
+script = ExtResource("3_0")
+enemy_type = "leafbug"
+count = 80
+spawn_delay = 15.0
+
+[sub_resource type="Resource" id="Wave_40"]
+script = ExtResource("2_0")
+wave_number = 40
+is_boss_wave = true
+preparation_time = 35.0
+spawn_interval = 0.12
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_40_1"), SubResource("EnemyGroup_40_2"), SubResource("EnemyGroup_40_3")])
+
+# Waves 41-45 - Scaling hard enemies
+[sub_resource type="Resource" id="EnemyGroup_41_1"]
+script = ExtResource("3_0")
+enemy_type = "leafbug"
+count = 100
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_41_2"]
+script = ExtResource("3_0")
+enemy_type = "flyingLocust"
+count = 95
+spawn_delay = 8.0
+
+[sub_resource type="Resource" id="Wave_41"]
+script = ExtResource("2_0")
+wave_number = 41
+is_boss_wave = false
+preparation_time = 20.0
+spawn_interval = 0.1
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_41_1"), SubResource("EnemyGroup_41_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_42_1"]
+script = ExtResource("3_0")
+enemy_type = "voidButterfly"
+count = 110
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_42_2"]
+script = ExtResource("3_0")
+enemy_type = "leafbug"
+count = 105
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_42"]
+script = ExtResource("2_0")
+wave_number = 42
+is_boss_wave = false
+preparation_time = 20.0
+spawn_interval = 0.08
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_42_1"), SubResource("EnemyGroup_42_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_43_1"]
+script = ExtResource("3_0")
+enemy_type = "flyingLocust"
+count = 120
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_43_2"]
+script = ExtResource("3_0")
+enemy_type = "voidButterfly"
+count = 115
+spawn_delay = 10.0
+
+[sub_resource type="Resource" id="Wave_43"]
+script = ExtResource("2_0")
+wave_number = 43
+is_boss_wave = false
+preparation_time = 20.0
+spawn_interval = 0.06
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_43_1"), SubResource("EnemyGroup_43_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_44_1"]
+script = ExtResource("3_0")
+enemy_type = "leafbug"
+count = 130
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_44_2"]
+script = ExtResource("3_0")
+enemy_type = "flyingLocust"
+count = 125
+spawn_delay = 8.0
+
+[sub_resource type="Resource" id="Wave_44"]
+script = ExtResource("2_0")
+wave_number = 44
+is_boss_wave = false
+preparation_time = 20.0
+spawn_interval = 0.05
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_44_1"), SubResource("EnemyGroup_44_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_45_1"]
+script = ExtResource("3_0")
+enemy_type = "voidButterfly"
+count = 140
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_45_2"]
+script = ExtResource("3_0")
+enemy_type = "leafbug"
+count = 135
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_45_3"]
+script = ExtResource("3_0")
+enemy_type = "flyingLocust"
+count = 130
+spawn_delay = 12.0
+
+[sub_resource type="Resource" id="Wave_45"]
+script = ExtResource("2_0")
+wave_number = 45
+is_boss_wave = true
+preparation_time = 40.0
+spawn_interval = 0.05
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_45_1"), SubResource("EnemyGroup_45_2"), SubResource("EnemyGroup_45_3")])
+
+# Final waves 46-50 - Ultimate challenge
+[sub_resource type="Resource" id="EnemyGroup_46_1"]
+script = ExtResource("3_0")
+enemy_type = "flyingLocust"
+count = 150
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_46_2"]
+script = ExtResource("3_0")
+enemy_type = "voidButterfly"
+count = 145
+spawn_delay = 10.0
+
+[sub_resource type="Resource" id="Wave_46"]
+script = ExtResource("2_0")
+wave_number = 46
+is_boss_wave = false
+preparation_time = 20.0
+spawn_interval = 0.04
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_46_1"), SubResource("EnemyGroup_46_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_47_1"]
+script = ExtResource("3_0")
+enemy_type = "leafbug"
+count = 160
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_47_2"]
+script = ExtResource("3_0")
+enemy_type = "flyingLocust"
+count = 155
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_47"]
+script = ExtResource("2_0")
+wave_number = 47
+is_boss_wave = false
+preparation_time = 20.0
+spawn_interval = 0.03
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_47_1"), SubResource("EnemyGroup_47_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_48_1"]
+script = ExtResource("3_0")
+enemy_type = "voidButterfly"
+count = 170
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_48_2"]
+script = ExtResource("3_0")
+enemy_type = "leafbug"
+count = 165
+spawn_delay = 8.0
+
+[sub_resource type="Resource" id="Wave_48"]
+script = ExtResource("2_0")
+wave_number = 48
+is_boss_wave = false
+preparation_time = 20.0
+spawn_interval = 0.03
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_48_1"), SubResource("EnemyGroup_48_2")])
+
+[sub_resource type="Resource" id="EnemyGroup_49_1"]
+script = ExtResource("3_0")
+enemy_type = "flyingLocust"
+count = 180
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_49_2"]
+script = ExtResource("3_0")
+enemy_type = "voidButterfly"
+count = 175
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_49_3"]
+script = ExtResource("3_0")
+enemy_type = "leafbug"
+count = 170
+spawn_delay = 10.0
+
+[sub_resource type="Resource" id="Wave_49"]
+script = ExtResource("2_0")
+wave_number = 49
+is_boss_wave = false
+preparation_time = 25.0
+spawn_interval = 0.025
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_49_1"), SubResource("EnemyGroup_49_2"), SubResource("EnemyGroup_49_3")])
+
+# Wave 50 - Final boss wave
+[sub_resource type="Resource" id="EnemyGroup_50_1"]
+script = ExtResource("3_0")
+enemy_type = "voidButterfly"
+count = 200
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_50_2"]
+script = ExtResource("3_0")
+enemy_type = "leafbug"
+count = 200
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_50_3"]
+script = ExtResource("3_0")
+enemy_type = "flyingLocust"
+count = 200
+spawn_delay = 0.0
+
+[sub_resource type="Resource" id="EnemyGroup_50_4"]
+script = ExtResource("3_0")
+enemy_type = "magmaCrab"
+count = 100
+spawn_delay = 20.0
+
+[sub_resource type="Resource" id="EnemyGroup_50_5"]
+script = ExtResource("3_0")
+enemy_type = "scorpion"
+count = 100
+spawn_delay = 30.0
+
+[sub_resource type="Resource" id="Wave_50"]
+script = ExtResource("2_0")
+wave_number = 50
+is_boss_wave = true
+preparation_time = 60.0
+spawn_interval = 0.02
+enemy_groups = Array[ExtResource("3_0")]([SubResource("EnemyGroup_50_1"), SubResource("EnemyGroup_50_2"), SubResource("EnemyGroup_50_3"), SubResource("EnemyGroup_50_4"), SubResource("EnemyGroup_50_5")])
+
+[resource]
+script = ExtResource("1_0")
+mode_name = "Normal"
+mode_type = "normal"
+health_multiplier = 1.0
+damage_multiplier = 1.0
+gold_multiplier = 1.0
+endless_scaling_factor = 1.1
+endless_wave_interval = 30.0
+wave_definitions = Array[ExtResource("2_0")]([SubResource("Wave_1"), SubResource("Wave_2"), SubResource("Wave_3"), SubResource("Wave_4"), SubResource("Wave_5"), SubResource("Wave_6"), SubResource("Wave_7"), SubResource("Wave_8"), SubResource("Wave_9"), SubResource("Wave_10"), SubResource("Wave_11"), SubResource("Wave_12"), SubResource("Wave_13"), SubResource("Wave_14"), SubResource("Wave_15"), SubResource("Wave_16"), SubResource("Wave_17"), SubResource("Wave_18"), SubResource("Wave_19"), SubResource("Wave_20"), SubResource("Wave_21"), SubResource("Wave_22"), SubResource("Wave_23"), SubResource("Wave_24"), SubResource("Wave_25"), SubResource("Wave_26"), SubResource("Wave_27"), SubResource("Wave_28"), SubResource("Wave_29"), SubResource("Wave_30"), SubResource("Wave_31"), SubResource("Wave_32"), SubResource("Wave_33"), SubResource("Wave_34"), SubResource("Wave_35"), SubResource("Wave_36"), SubResource("Wave_37"), SubResource("Wave_38"), SubResource("Wave_39"), SubResource("Wave_40"), SubResource("Wave_41"), SubResource("Wave_42"), SubResource("Wave_43"), SubResource("Wave_44"), SubResource("Wave_45"), SubResource("Wave_46"), SubResource("Wave_47"), SubResource("Wave_48"), SubResource("Wave_49"), SubResource("Wave_50")])
+break_between_waves = 15.0

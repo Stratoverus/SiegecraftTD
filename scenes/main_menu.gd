@@ -177,7 +177,7 @@ func _on_back_pressed() -> void:
 
 # Preload game mode resources to avoid loading issues
 const ENDLESS_MODE = preload("res://assets/gameMode/endlessMode.tres")
-const NORMAL_MODE = preload("res://assets/gameMode/normalModeComplete.tres")
+const NORMAL_MODE = preload("res://assets/gameMode/normalModeImproved.tres")
 const EXTRA_HARD_MODE = preload("res://assets/gameMode/extraHardModeComplete.tres")
 
 # Game mode selection functions
