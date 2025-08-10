@@ -5,6 +5,8 @@
 
 [resource]
 script = ExtResource("4_03n5j")
+name = "Arcane Boulder Tower"
+description = "Harnesses arcane force to hurl enchanted boulders, damaging all caught in the blast."
 scene_path = "res://scenes/towers/tower4/tower4.tscn"
 type = "splash"
 weapon_rotates = true

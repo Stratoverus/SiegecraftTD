@@ -5,6 +5,8 @@
 
 [resource]
 script = ExtResource("2_p317g")
+name = "Siege Sling Tower"
+description = "Launches heavy projectiles that deal splash damage to enemies in range."
 scene_path = "res://scenes/towers/tower3/tower3.tscn"
 type = "splash"
 weapon_rotates = true

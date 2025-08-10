@@ -5,6 +5,8 @@
 
 [resource]
 script = ExtResource("4_818hi")
+name = "Arcspinner Tower"
+description = "Fires fast projectiles from rotating barrels, increasing attack speed with each upgrade."
 scene_path = "res://scenes/towers/tower7/tower7.tscn"
 type = "rapid"
 weapon_rotates = true

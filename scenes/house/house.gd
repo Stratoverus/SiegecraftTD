@@ -30,9 +30,16 @@ var animation_timer: Timer
 func _ready():
 	add_to_group("houses")
 	
-	# Initialize skin index from current skin
-	if house_skin.begins_with("skin"):
-		current_skin_index = house_skin.substr(4).to_int()
+	# Set house skin from HouseSkinManager
+	var house_skin_manager = get_node("/root/HouseSkinManager")
+	if house_skin_manager:
+		var selected_skin_id = house_skin_manager.get_selected_skin()
+		house_skin = "skin" + str(selected_skin_id)
+		current_skin_index = selected_skin_id
+	else:
+		# Fallback if HouseSkinManager isn't available
+		house_skin = "skin1"
+		current_skin_index = 1
 	
 	# Connect to main game for health reduction
 	connect_to_main_game()
@@ -58,16 +65,6 @@ func _ready():
 		$AnimatedSprite2D.pause()
 		$AnimatedSprite2D.frame = 0
 		door_state = "closed"
-	
-	# Print testing instructions
-	if enable_skin_testing:
-		print("=== HOUSE SKIN TESTING ENABLED ===")
-		print("Controls:")
-		print("- RIGHT ARROW / ENTER: Next skin")
-		print("- LEFT ARROW: Previous skin")
-		print("- Auto-cycle: ", "ON" if auto_cycle_skins else "OFF")
-		print("Current skin: ", house_skin, " (", current_skin_index, "/20)")
-		print("=====================================")
 
 func _process(delta):
 	# Check for nearby enemies
@@ -126,10 +123,7 @@ func update_house_skin():
 		
 		# Re-apply scaling and positioning for new skin
 		scale_house_to_fit()
-		
-		print("Switched to house skin: ", house_skin, " (", current_skin_index, "/20)")
-	else:
-		print("Warning: Animation '", house_skin, "' not found!")
+
 
 func determine_house_direction():
 	"""Determine which direction the house should face based on the path"""
@@ -137,7 +131,6 @@ func determine_house_direction():
 	var main_game = get_tree().get_first_node_in_group("main_game")
 	if not main_game or not main_game.path_points or main_game.path_points.size() < 2:
 		house_direction = Vector2.DOWN  # Default direction
-		print("Using default house direction: DOWN")
 		return
 	
 	# Get the last two points of the path to determine approach direction
@@ -150,12 +143,6 @@ func determine_house_direction():
 	
 	# House should face the approach direction
 	house_direction = enemy_approach_direction
-	
-	print("Path analysis:")
-	print("  Last point: ", last_point)
-	print("  Second last: ", second_last_point) 
-	print("  Enemy approach direction: ", enemy_approach_direction)
-	print("  House direction: ", house_direction)
 	
 	# Apply rotation to the house based on direction
 	apply_house_rotation()
@@ -181,11 +168,6 @@ func apply_house_rotation():
 			rotation = 0  # Face down (enemies from bottom) - default sprite orientation
 		else:
 			rotation = PI  # Face up (enemies from top)
-	
-	print("House rotation applied:")
-	print("  House direction (enemies from): ", house_direction)
-	print("  Rotation set to: ", rotation, " radians (", rad_to_deg(rotation), " degrees)")
-
 func get_skin_dimensions(skin_name: String) -> Vector2:
 	"""Get the visual content dimensions for a specific house skin"""
 	# Use the content dimensions from the door measurement system for consistency
@@ -493,18 +475,11 @@ func is_enemy_on_house_tile(enemy_position: Vector2) -> bool:
 func enemy_enters_house(enemy: Node2D):
 	"""Called when an enemy reaches the house"""
 	if enemy in enemies_inside:
-		print("Enemy already inside house, skipping health reduction")
 		return  # Enemy already inside
-	
-	# Check if enemy has a unique ID for debugging
-	var enemy_id = enemy.enemy_id if enemy.has_method("get") and "enemy_id" in enemy else "unknown"
-	print("Enemy ", enemy_id, " entering house - signaling enemy reached house")
-	
 	enemies_inside.append(enemy)
 	
 	# Signal that an enemy has reached the house (this will trigger health reduction via connected signal)
 	enemy_reached_house.emit(enemy)
-	print("Enemy ", enemy_id, " entered house! Signal emitted.")
 	
 	# Remove enemy from the game after a short delay
 	var timer = Timer.new()
@@ -538,10 +513,7 @@ func set_house_skin(skin_name: String):
 		$AnimatedSprite2D.play(skin_name)
 		$AnimatedSprite2D.pause()
 		$AnimatedSprite2D.frame = current_frame  # Maintain current door state
-		print("House: Changed to skin ", skin_name)
-	else:
-		print("House: Skin ", skin_name, " not found, keeping current skin")
-	
+
 func get_house_skin() -> String:
 	"""Get the current house skin"""
 	return house_skin

@@ -11,6 +11,7 @@ var speed: float = 100.0
 # Health system
 var max_health: int = 100
 var health: int = max_health
+var has_scaled_health: bool = false  # Track if health has been scaled
 
 # Health bar settings
 var health_bar_width := 32
@@ -34,7 +35,6 @@ func _ready():
 	# Assign unique ID for debugging
 	enemy_counter += 1
 	enemy_id = enemy_counter
-	print("Enemy ", enemy_id, " created")
 	
 	# Initialize from enemy data if provided
 	if enemy_data:
@@ -48,8 +48,11 @@ func apply_enemy_data():
 	if not enemy_data:
 		return
 		
-	max_health = enemy_data.max_health
-	health = max_health
+	# Only reset health if it hasn't been scaled
+	if not has_scaled_health:
+		max_health = enemy_data.max_health
+		health = max_health
+	
 	speed = enemy_data.speed
 	gold_worth = enemy_data.gold_worth
 	health_bar_width = enemy_data.health_bar_width
@@ -61,6 +64,12 @@ func set_enemy_data(data: Resource):
 	enemy_data = data
 	if is_inside_tree():
 		apply_enemy_data()
+
+func set_health(new_health: int):
+	"""Set both max_health and current health (for scaling)"""
+	max_health = new_health
+	health = new_health
+	has_scaled_health = true  # Mark that this enemy has scaled health
 
 func is_facing_down(direction: Vector2) -> bool:
 	return direction.y > 0.5
@@ -110,21 +119,17 @@ func _process(delta):
 			
 			# Check if we just entered the last tile (final destination)
 			if path_index >= path.size() - 1:
-				print("Enemy ", enemy_id, " entered last tile, checking distance to house")
 				# Continue moving closer to the house before shrinking
 				var houses = get_tree().get_nodes_in_group("houses")
 				if houses.size() > 0:
 					var house = houses[0]
 					var distance_to_house = position.distance_to(house.global_position)
-					print("Enemy ", enemy_id, " distance to house: ", distance_to_house)
 					# Start shrinking when we're close to the actual house position
 					if distance_to_house < 30.0:
-						print("Enemy ", enemy_id, " close enough to house, calling handle_reached_destination")
 						handle_reached_destination()
 						return
 				else:
 					# No house found, start shrinking immediately
-					print("Enemy ", enemy_id, " no house found, calling handle_reached_destination immediately")
 					handle_reached_destination()
 					return
 			
@@ -137,7 +142,6 @@ func _process(delta):
 		queue_redraw() # Redraw health bar
 	else:
 		# Enemy has reached the end of the path (backup case)
-		print("Enemy ", enemy_id, " reached end of path (backup case)")
 		handle_reached_destination()
 
 
@@ -269,11 +273,9 @@ func _on_fade_out_finished():
 func handle_reached_destination():
 	"""Called when enemy reaches the end of the path (the house)"""
 	if is_dead or has_entered_house:
-		print("Enemy ", enemy_id, " already processed destination (is_dead: ", is_dead, ", has_entered_house: ", has_entered_house, ")")
 		return
 		
 	has_entered_house = true
-	print("Enemy ", enemy_id, " handling reached destination - setting flags")
 	
 	# Start shrinking animation to simulate going through the door
 	start_shrinking_animation()
@@ -281,11 +283,9 @@ func handle_reached_destination():
 func start_shrinking_animation():
 	"""Animate the enemy shrinking as they enter the house"""
 	if is_dead:
-		print("Enemy ", enemy_id, " start_shrinking_animation called but already dead!")
 		return
 		
 	is_dead = true  # Prevent further movement and damage
-	print("Enemy ", enemy_id, " starting shrinking animation")
 	
 	# Reset any glow effect from approaching
 	modulate = Color.WHITE
@@ -307,11 +307,9 @@ func start_shrinking_animation():
 func _on_shrinking_finished():
 	"""Called when the shrinking animation completes"""
 	if has_finished_shrinking:
-		print("Enemy ", enemy_id, " _on_shrinking_finished already called, ignoring duplicate")
 		return
 		
 	has_finished_shrinking = true
-	print("Enemy ", enemy_id, " shrinking finished, calling house entry")
 	
 	# Find the house and let it handle the enemy entering
 	var houses = get_tree().get_nodes_in_group("houses")
@@ -322,7 +320,6 @@ func _on_shrinking_finished():
 		# Fallback if no house found - damage player directly
 		var main_game = get_tree().get_first_node_in_group("main_game")
 		if main_game and main_game.has_method("lose_health"):
-			print("Enemy ", enemy_id, " directly calling lose_health")
 			main_game.lose_health(1)
 		queue_free()
 

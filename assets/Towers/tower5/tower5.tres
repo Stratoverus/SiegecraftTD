@@ -5,6 +5,8 @@
 
 [resource]
 script = ExtResource("4_2rlx6")
+name = "Starfire Tower"
+description = "Builds magical power, then fires a dazzling projectile that devastates groups."
 scene_path = "res://scenes/towers/tower5/tower5.tscn"
 type = "splash"
 weapon_rotates = false

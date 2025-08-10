@@ -14,42 +14,33 @@ var has_hit_target = false  # Prevent multiple damage applications
 func set_target_position(target_pos: Vector2):
 	"""Set the pre-validated target position from the tower's range checking"""
 	validated_target_position = target_pos
-	print("[projectile] Received validated target position from tower: ", validated_target_position)
 
 
 func launch(enemy):
 	target = enemy
-	print("[projectile] Launching projectile with speed ", speed, ", is_splash: ", is_splash_projectile, ", splash_radius: ", splash_radius)
 	if has_node("projectileAnim"):
 		$projectileAnim.play("level" + str(level))
 	
 	# Use validated position if available, otherwise predict
 	if validated_target_position != Vector2.ZERO:
 		target_position = validated_target_position
-		print("[projectile] Using validated target position: ", target_position)
 	elif is_splash_projectile and is_instance_valid(target):
 		predict_target_position()
-		print("[projectile] Splash projectile targeting predicted position: ", target_position)
 	else:
 		target_position = target.global_position if is_instance_valid(target) else global_position
-		print("[projectile] Direct projectile targeting current position: ", target_position)
 
 
 func instant_impact():
 	# For instant impact projectiles (speed = 0), trigger impact immediately
-	print("[projectile] Instant impact triggered at target location: ", global_position)
 	
 	# Prevent multiple impacts
 	if has_hit_target:
-		print("[projectile] Already hit target, skipping instant impact")
 		return
 	
 	if is_splash_projectile:
-		print("[projectile] Instant splash impact")
 		create_splash_damage()
 		has_hit_target = true
 	else:
-		print("[projectile] Instant direct impact")
 		# Direct hit damage
 		has_hit_target = true
 		create_impact_animation()
@@ -76,8 +67,6 @@ func predict_target_position():
 	
 	# Predict where the enemy will be along their path
 	target_position = predict_enemy_position_on_path(target, predicted_time)
-	
-	print("[projectile] Predicting target position: ", target_position, " from current: ", target.global_position)
 
 
 func predict_enemy_position_on_path(enemy, time_ahead: float) -> Vector2:
@@ -132,7 +121,6 @@ func _process(delta):
 		var distance = to_target.length()
 		if distance < speed * delta:
 			# Reached target position, explode
-			print("[projectile] Splash projectile reached target position, creating splash damage")
 			create_splash_damage()
 			# Small delay to ensure impact animation starts before projectile is freed
 			await get_tree().create_timer(0.05).timeout
@@ -144,14 +132,12 @@ func _process(delta):
 	else:
 		# Original homing behavior for non-splash projectiles
 		if not is_instance_valid(target):
-			print("[projectile] Direct projectile target invalid, removing projectile")
 			queue_free()
 			return
 		var to_target = target.global_position - global_position
 		var distance = to_target.length()
 		if distance < speed * delta:
 			# Create impact animation for direct hit
-			print("[projectile] Direct projectile hit target, dealing damage")
 			create_impact_animation()
 			has_hit_target = true
 			target.take_damage(damage)
@@ -165,10 +151,8 @@ func _process(delta):
 
 
 func create_splash_damage():
-	print("[projectile] create_splash_damage() called, has_hit_target: ", has_hit_target)
 	# Prevent multiple splash damage applications
 	if has_hit_target:
-		print("[projectile] Skipping splash damage - already hit target")
 		return
 	
 	# Validate that impact location is on road tile
@@ -176,23 +160,16 @@ func create_splash_damage():
 	if main_scene.has_method("is_position_on_road_tile"):
 		var is_on_road = main_scene.is_position_on_road_tile(global_position)
 		if not is_on_road:
-			print("[projectile] ❌ ABORTING splash damage - impact position not on road tile: ", global_position)
 			has_hit_target = true
 			return
-		else:
-			print("[projectile] ✅ Impact position validated - on road tile: ", global_position)
 	
 	has_hit_target = true
-	
-	print("[projectile] Creating splash damage at ", global_position, " with radius ", splash_radius, " and damage ", damage)
 	
 	# Create impact animation first
 	create_impact_animation()
 	
 	# Find all enemies within splash radius
 	var enemies = get_tree().get_nodes_in_group("enemies")
-	var enemies_hit = 0
-	print("[projectile] Found ", enemies.size(), " enemies to check for splash damage")
 	for enemy in enemies:
 		if is_instance_valid(enemy) and enemy.has_method("take_damage"):
 			var distance_to_enemy = global_position.distance_to(enemy.global_position)
@@ -200,27 +177,16 @@ func create_splash_damage():
 				# Calculate damage falloff: 100% at center, 50% at edge
 				var damage_multiplier = 1.0 - (distance_to_enemy / splash_radius) * 0.5
 				var splash_damage = int(damage * damage_multiplier)
-				print("[projectile] Hitting enemy at distance ", distance_to_enemy, " with ", splash_damage, " damage (", damage_multiplier * 100, "% of ", damage, ")")
 				enemy.take_damage(splash_damage)
-				enemies_hit += 1
-			else:
-				print("[projectile] Enemy at distance ", distance_to_enemy, " is outside splash radius ", splash_radius)
-	
-	print("[projectile] Splash explosion hit ", enemies_hit, " enemies out of ", enemies.size(), " total enemies")
+
 
 
 func create_impact_animation():
-	# Check if this projectile has an impact animation
-	if not has_node("projectileAnim"):
-		create_explosion_effect()
-		return
-	
 	var anim_node = $projectileAnim
 	var impact_anim_name = ""
 	
 	# First, get all available animation names to understand what we have
 	var all_animations = anim_node.sprite_frames.get_animation_names()
-	print("[projectile] Available animations: ", all_animations)
 	
 	# Count how many impact animations are available
 	var impact_animations = []
@@ -228,12 +194,10 @@ func create_impact_animation():
 		if anim_name.begins_with("impact") or anim_name.begins_with("explosion"):
 			impact_animations.append(anim_name)
 	
-	print("[projectile] Found impact animations: ", impact_animations)
 	
 	# If there's only one impact animation, use it for all levels
 	if impact_animations.size() == 1:
 		impact_anim_name = impact_animations[0]
-		print("[projectile] Using single impact animation for all levels: ", impact_anim_name)
 	else:
 		# Multiple impact animations available - try to find level-specific one
 		var possible_names = [
@@ -248,11 +212,7 @@ func create_impact_animation():
 		for anim_name in possible_names:
 			if anim_node.sprite_frames.has_animation(anim_name):
 				impact_anim_name = anim_name
-				print("[projectile] Found level-specific impact animation: ", anim_name)
 				break
-	
-	if impact_anim_name == "":
-		print("[projectile] No impact animation found. Available animations: ", all_animations)
 	
 	if impact_anim_name != "":
 		# Create a separate node for the impact animation so it persists after projectile is freed
@@ -286,29 +246,14 @@ func create_impact_animation():
 				# Apply reasonable bounds
 				scale_factor = clamp(scale_factor, 0.3, 8.0)
 				impact_instance.scale = Vector2(scale_factor, scale_factor)
-				print("[projectile] Scaling impact animation by ", scale_factor)
-				print("[projectile] Frame size: ", frame_size, " -> frame_radius: ", frame_radius)
-				print("[projectile] Splash radius: ", splash_radius, " -> target diameter: ", splash_radius * 2.0)
-				print("[projectile] Frame diameter: ", frame_radius * 2.0, " -> scaled diameter: ", (frame_radius * 2.0) * scale_factor)
 			else:
 				# Fallback to simple ratio method if we can't get frame size
 				var scale_factor = splash_radius / 32.0  # Assume 64px default frame size
 				scale_factor = clamp(scale_factor, 0.5, 4.0)
 				impact_instance.scale = Vector2(scale_factor, scale_factor)
-				print("[projectile] Fallback scaling by ", scale_factor, " for splash radius ", splash_radius)
 		
 		get_tree().current_scene.add_child(impact_instance)
 		impact_instance.play(impact_anim_name)
 		
 		# Remove the impact animation when it finishes
 		impact_instance.animation_finished.connect(func(): impact_instance.queue_free())
-	else:
-		# Fallback to simple explosion effect
-		create_explosion_effect()
-
-
-func create_explosion_effect():
-	# Create a simple visual explosion effect
-	print("[projectile] Explosion at ", global_position, " with radius ", splash_radius, " damage: ", damage)
-	
-	# For now, just print debug info - you can add visual effects later

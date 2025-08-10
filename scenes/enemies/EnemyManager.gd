@@ -26,7 +26,6 @@ func get_enemy_data_path(enemy_type: String) -> String:
 	if enemy_types.has(enemy_type):
 		return enemy_types[enemy_type]
 	else:
-		print("Warning: Unknown enemy type '", enemy_type, "'. Using firebug as default.")
 		return enemy_types["firebug"]
 
 func get_available_enemy_types() -> Array:

@@ -5,6 +5,8 @@
 
 [resource]
 script = ExtResource("4_c66cq")
+name = "Magic Tower"
+description = "Harnesses arcane lightning to damage one enemy at a time."
 scene_path = "res://scenes/towers/tower2/tower2.tscn"
 type = "magic"
 weapon_rotates = false

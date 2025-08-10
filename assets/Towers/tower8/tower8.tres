@@ -5,6 +5,8 @@
 
 [resource]
 script = ExtResource("4_ewv57")
+name = "Cataclysm Tower"
+description = "Charges immense power before unleashing a devastating area-of-effect blast."
 scene_path = "res://scenes/towers/tower8/tower8.tscn"
 type = "splash"
 weapon_rotates = false

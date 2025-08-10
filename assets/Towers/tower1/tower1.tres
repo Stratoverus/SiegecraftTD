@@ -7,6 +7,8 @@
 
 [resource]
 script = ExtResource("1_n24qa")
+name = "Archer Tower"
+description = "A basic archer tower that fires arrows at single targets. Low cost with steady damage."
 scene_path = "res://scenes/towers/tower1/tower1.tscn"
 type = "physical"
 weapon_rotates = true

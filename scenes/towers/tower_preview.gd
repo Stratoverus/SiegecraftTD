@@ -10,7 +10,7 @@ func set_tower_data(tower_data):
 	var sprite = $Sprite2D
 	var texture_height = sprite.texture.get_height()
 	var cell_height = 64
-	sprite.offset.y = -(texture_height / 2) + (cell_height / 2)
+	sprite.offset.y = -(texture_height / 2.0) + (cell_height / 2.0)
 
 func _draw():
 	var can_place = false

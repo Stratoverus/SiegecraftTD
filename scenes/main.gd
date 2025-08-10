@@ -1,7 +1,7 @@
 extends Node2D
 
 # Game state
-var gold : int = 10000
+var gold : int = 1000
 var health : int = 100
 var path_points = []
 
@@ -11,25 +11,6 @@ var health_loss_call_count = 0
 # Gold feedback system to prevent overlapping
 var gold_feedback_positions = []  # Track active gold feedback positions
 var gold_feedback_spacing = 25    # Minimum distance between gold feedback texts
-
-# Enemy testing system
-var testing_mode = true  # Set to false to disable enemy cycling
-var enemy_test_list = [
-	"res://assets/Enemies/firebug/firebug.tres",
-	"res://assets/Enemies/fireWasp/fireWasp.tres", 
-	"res://assets/Enemies/flyingLocust/flyingLocust.tres",
-	"res://assets/Enemies/clampBeetle/clampBeetle.tres",
-	"res://assets/Enemies/leafbug/leafbug.tres",
-	"res://assets/Enemies/voidButterfly/voidButterfly.tres",
-	"res://assets/Enemies/scorpion/scorpion.tres",
-	"res://assets/Enemies/magmaCrab/magmaCrab.tres"
-]
-var current_enemy_test_index = 0
-
-# Enemy spawning examples:
-# spawn_enemy(path_points)  # Spawns default firebug
-# spawn_enemy(path_points, "res://assets/Enemies/orc/orc.tres")  # Spawns orc
-# You can easily add new enemy types by creating new .tres files and scenes
 
 # For tower placement
 var selected_tower_data : TowerData = null
@@ -45,6 +26,35 @@ var just_opened_tower_menu: bool = false
 var tower_menu_click_cooldown: float = 0.0
 var tower_menu_cooldown_for: Node2D = null
 
+# Game mode system
+var current_game_mode = null
+var current_wave_number: int = 1
+var current_wave_data = null
+var wave_timer: float = 0.0
+var is_wave_active: bool = false
+var is_preparation_phase: bool = false
+var enemies_remaining_in_wave: int = 0
+
+# Endless mode specific variables
+var endless_survival_time: float = 0.0
+var endless_enemies_killed: int = 0
+var endless_difficulty_level: int = 1
+var endless_next_difficulty_time: float = 60.0  # Scale every 60 seconds
+
+# Wave spawning variables
+var current_spawn_group_index: int = 0
+var enemies_spawned_in_group: int = 0
+var spawn_timer: float = 0.0
+var group_delay_timer: float = 0.0
+
+# Tooltip system
+var tower_tooltip = null
+var tooltip_timer: Timer = null
+var tooltip_pending_button: Control = null
+var tooltip_pending_tower_data: TowerData = null
+var tooltip_pending_level: int = 1
+var tooltip_pending_is_upgrade: bool = false
+
 
 func _ready():
 	add_to_group("main_game")
@@ -55,68 +65,306 @@ func _ready():
 	$CanvasLayer/ui.connect("gui_input", Callable(self, "_on_ui_gui_input"))
 	update_tower_button_costs()
 	
-	# Validate enemy setup in testing mode
-	if testing_mode:
-		validate_enemy_setup()
-		print_testing_instructions()
-
-# Validate that all enemy data and scene files exist
-func validate_enemy_setup():
-	print("=== ENEMY SETUP VALIDATION ===")
-	var valid_enemies = []
+	# Initialize tooltip system
+	setup_tooltip_system()
 	
-	for i in range(enemy_test_list.size()):
-		var enemy_data_path = enemy_test_list[i]
-		print("Checking enemy ", i + 1, ": ", enemy_data_path)
+	# Initialize achievement system
+	setup_achievement_system()
+	
+	# Initialize game mode system
+	initialize_game_mode()
+	
+	# Initial UI update for game mode
+	if current_game_mode != null:
+		update_game_mode_ui()
+
+# Preload fallback game mode
+const DEFAULT_GAME_MODE = preload("res://assets/gameMode/normalModeComplete.tres")
+
+# Game mode system functions
+func initialize_game_mode():
+	# Get the current mode from the singleton
+	# Using get_node to access the autoload
+	var game_mode_manager = get_node("/root/GameModeManager")
+	if game_mode_manager:
+		current_game_mode = game_mode_manager.current_mode
+	
+	if current_game_mode == null:
+		current_game_mode = DEFAULT_GAME_MODE
+		if game_mode_manager:
+			game_mode_manager.current_mode = current_game_mode
+
+	
+	# Ensure enemy spawn timer is stopped initially
+	$EnemySpawnTimer.stop()
+	
+	# Start the appropriate game mode
+	match current_game_mode.mode_type:
+		"endless":
+			start_endless_mode()
+		"normal", "extra_hard":
+			start_wave_mode()
+	
+	update_ui()
+
+func start_endless_mode():
+	current_wave_number = 1
+	is_wave_active = false
+	is_preparation_phase = true
+	wave_timer = 15.0  # 15 second preparation time
+	
+	# Initialize endless mode stats
+	endless_survival_time = 0.0
+	endless_enemies_killed = 0
+	endless_difficulty_level = 1
+	
+	# Show preparation notification
+	show_notification("Prepare Your Defenses!\nEndless Mode Starting...")
+
+func start_wave_mode():
+	current_wave_number = 1
+	is_wave_active = false
+	is_preparation_phase = true
+	
+	# Show preparation notification
+	show_notification("Prepare Your Defenses!")
+	
+	# Load first wave
+	if current_game_mode.wave_definitions.size() > 0:
+		current_wave_data = current_game_mode.wave_definitions[current_wave_number - 1]
+		wave_timer = current_wave_data.preparation_time
+
+
+func start_endless_wave():
+	is_wave_active = true
+	is_preparation_phase = false
+	
+	# For endless mode, spawn a variety of enemies with scaling
+	spawn_endless_enemies()
+	
+	# Set timer for next wave
+	wave_timer = current_game_mode.endless_wave_interval
+
+func start_endless_continuous_mode():
+	"""Start the continuous endless mode after preparation"""
+	is_wave_active = true
+	is_preparation_phase = false
+	
+	# Start continuous spawning
+	$EnemySpawnTimer.wait_time = get_endless_spawn_interval()
+	$EnemySpawnTimer.start()
+
+func get_endless_spawn_interval() -> float:
+	"""Get spawn interval based on current difficulty level"""
+	# Start with 3 seconds, decrease as difficulty increases
+	var base_interval = 3.0
+	var reduction_per_level = 0.2
+	return max(0.8, base_interval - (endless_difficulty_level - 1) * reduction_per_level)
+
+func get_endless_scaled_health(base_health: int) -> int:
+	"""Get scaled health for endless mode based on time-based difficulty"""
+	# Start with reduced health in early levels, then scale up
+	var health_multiplier = 1.0
+	
+	if endless_difficulty_level == 1:
+		# First minute: 70% health
+		health_multiplier = 0.7
+	elif endless_difficulty_level == 2:
+		# Second minute: 85% health  
+		health_multiplier = 0.85
+	else:
+		# After 2 minutes: scale up by 20% per level
+		health_multiplier = 1.0 + (endless_difficulty_level - 3) * 0.2
+	
+	return int(base_health * health_multiplier)
+
+func spawn_endless_enemies():
+	# Simple endless mode implementation - spawn random enemies with scaling
+	var enemy_count = 5 + (current_wave_number * 2)  # Increasing enemy count
+	var spawn_interval = max(0.5, 2.0 - (current_wave_number * 0.1))  # Decreasing spawn interval
+	
+	enemies_remaining_in_wave = enemy_count
+	
+	# Use the enemy spawn timer for spacing
+	$EnemySpawnTimer.wait_time = spawn_interval
+	$EnemySpawnTimer.start()
+
+func start_wave():
+	if current_wave_data == null:
+		return
 		
-		# Check if enemy data file exists
-		if not ResourceLoader.exists(enemy_data_path):
-			print("  ❌ Enemy data file not found!")
-			continue
-			
-		# Try to load enemy data
-		var enemy_data = load(enemy_data_path) as Resource
-		if not enemy_data:
-			print("  ❌ Failed to load enemy data!")
-			continue
-			
-		# Check if scene file exists
-		if not enemy_data.has_method("get") or not enemy_data.scene_path:
-			print("  ❌ Enemy data missing scene_path!")
-			continue
-			
-		var scene_path = enemy_data.scene_path
-		if not ResourceLoader.exists(scene_path):
-			print("  ❌ Enemy scene file not found: ", scene_path)
-			continue
-			
-		print("  ✅ Enemy setup valid - ", enemy_data.enemy_name if enemy_data.enemy_name else "Unknown")
-		valid_enemies.append(enemy_data_path)
+	is_wave_active = true
+	is_preparation_phase = false
 	
-	print("=== VALIDATION COMPLETE ===")
-	print("Valid enemies: ", valid_enemies.size(), "/", enemy_test_list.size())
+	# Reset spawn tracking
+	current_spawn_group_index = 0
+	enemies_spawned_in_group = 0
+	spawn_timer = 0.0
+	group_delay_timer = 0.0
 	
-	# Update test list to only include valid enemies
-	enemy_test_list = valid_enemies
+	# Calculate total enemies in wave
+	enemies_remaining_in_wave = 0
+	for spawn_group in current_wave_data.enemy_groups:
+		enemies_remaining_in_wave += spawn_group.count
 	
-	if enemy_test_list.size() == 0:
-		print("⚠️  No valid enemies found! Disabling testing mode.")
-		testing_mode = false
+	
+	# Start spawning
+	if current_wave_data.enemy_groups.size() > 0:
+		group_delay_timer = current_wave_data.enemy_groups[0].spawn_delay
+		spawn_timer = current_wave_data.spawn_interval
 
-func print_testing_instructions():
-	print("\n🧪 ENEMY TESTING MODE ACTIVE 🧪")
-	print("┌─ Controls ────────────────────┐")
-	print("│ N - Spawn next enemy manually │")
-	print("│ T - Toggle testing mode       │")
-	print("│ ESC - Pause game              │")
-	print("└───────────────────────────────┘")
-	print("📋 Enemies in test queue: ", enemy_test_list.size())
-	for i in range(enemy_test_list.size()):
-		var enemy_data = load(enemy_test_list[i]) as Resource
-		var enemy_name = enemy_data.enemy_name if enemy_data and enemy_data.enemy_name else "Unknown"
-		print("  ", i + 1, ". ", enemy_name)
-	print("🎯 Current: Will spawn enemy #", current_enemy_test_index + 1)
-	print("")
+func handle_game_mode_timing(delta):
+	if current_game_mode == null:
+		return
+		
+	wave_timer -= delta
+	
+	if current_game_mode.mode_type == "endless":
+		# Endless mode timing
+		if is_preparation_phase and wave_timer <= 0:
+			# Start endless mode after preparation
+			start_endless_continuous_mode()
+		elif is_wave_active:
+			# Update survival time and difficulty scaling
+			endless_survival_time += delta
+			
+			# Check if it's time to increase difficulty
+			if endless_survival_time >= endless_next_difficulty_time:
+				endless_difficulty_level += 1
+				endless_next_difficulty_time += 60.0  # Next scaling in 60 seconds
+				show_notification("Difficulty Increased!\nLevel " + str(endless_difficulty_level))
+			
+			# Handle continuous enemy spawning
+			handle_endless_continuous_spawning(delta)
+	else:
+		# Wave-based mode timing
+		if is_preparation_phase and wave_timer <= 0:
+			start_wave()
+		elif is_wave_active:
+			# Handle wave spawning
+			handle_wave_spawning(delta)
+			
+			# Check if wave is complete
+			if enemies_remaining_in_wave <= 0:
+				wave_complete()
+	
+	# Update UI
+	update_game_mode_ui()
+
+func handle_endless_spawning(_delta):
+	# Simple spawning logic for endless mode
+	pass  # This will be handled by the existing EnemySpawnTimer
+
+func handle_endless_continuous_spawning(_delta):
+	"""Handle continuous spawning for endless mode - adjust spawn rate based on difficulty"""
+	# Update spawn interval based on current difficulty
+	if $EnemySpawnTimer.wait_time != get_endless_spawn_interval():
+		$EnemySpawnTimer.wait_time = get_endless_spawn_interval()
+
+func handle_wave_spawning(delta):
+	if current_spawn_group_index >= current_wave_data.enemy_groups.size():
+		return  # All groups spawned
+		
+	var current_group = current_wave_data.enemy_groups[current_spawn_group_index]
+	
+	# Handle group delay
+	if group_delay_timer > 0:
+		group_delay_timer -= delta
+		return
+	
+	# Handle spawning within group
+	spawn_timer -= delta
+	if spawn_timer <= 0 and enemies_spawned_in_group < current_group.count:
+		# Spawn enemy using the new system
+		spawn_enemy_with_scaling(path_points, current_group.get_enemy_path())
+		enemies_spawned_in_group += 1
+		spawn_timer = current_wave_data.spawn_interval
+		
+		# Check if group is complete
+		if enemies_spawned_in_group >= current_group.count:
+			current_spawn_group_index += 1
+			enemies_spawned_in_group = 0
+			
+			# Set up next group delay if there is one
+			if current_spawn_group_index < current_wave_data.enemy_groups.size():
+				group_delay_timer = current_wave_data.enemy_groups[current_spawn_group_index].spawn_delay
+
+func spawn_enemy_with_scaling(enemy_path_points, enemy_data_path: String):
+	# Load enemy data
+	var enemy_data = load(enemy_data_path) as Resource
+	if not enemy_data:
+		return
+	
+	# Apply scaling based on game mode
+	var scaled_health
+	if current_game_mode.mode_type == "endless":
+		# For endless mode, use time-based difficulty scaling
+		scaled_health = get_endless_scaled_health(enemy_data.max_health)
+	else:
+		# For wave modes, use wave-based scaling
+		scaled_health = current_game_mode.get_scaled_health(enemy_data.max_health, current_wave_number)
+	
+	# Spawn enemy with scaling
+	spawn_enemy(enemy_path_points, enemy_data_path, scaled_health)
+
+func wave_complete():
+	is_wave_active = false
+	
+	# Track achievement progress for wave completion
+	var achievement_manager = get_node("/root/AchievementManager")
+	if achievement_manager:
+		achievement_manager.track_wave_survived(current_wave_number)
+	
+	# Note: Endless mode no longer uses wave completion - it's continuous
+	if current_game_mode.mode_type != "endless":
+		# In wave mode, check if there are more waves
+		current_wave_number += 1
+		if current_wave_number <= current_game_mode.wave_definitions.size():
+			# Load next wave
+			current_wave_data = current_game_mode.wave_definitions[current_wave_number - 1]
+			is_preparation_phase = true
+			wave_timer = current_wave_data.preparation_time
+			
+			# Show preparation notification
+			show_notification("Prepare Your Defenses\nWave " + str(current_wave_number) + " incoming!")
+		else:
+			# All waves complete - victory!
+			print("All waves complete! Victory!")
+			
+		# Track achievement progress for level completion
+		var achievement_mgr = get_node("/root/AchievementManager")
+		if achievement_mgr:
+			var perfect_run = (health == 100)  # Perfect if no health lost (starts at 100)
+			var mode_name = ""
+			if current_game_mode:
+				mode_name = current_game_mode.mode_name
+			achievement_mgr.track_level_completed(perfect_run, mode_name)			# TODO: Add victory screen
+
+func update_game_mode_ui():
+	# Update round/timer display
+	if current_game_mode == null:
+		return
+		
+	var round_label = $CanvasLayer/ui/round
+	var timer_label = $CanvasLayer/ui/timer
+	
+	if current_game_mode.mode_type == "endless":
+		round_label.text = ""  # Hide the mode text for endless
+		if is_preparation_phase:
+			timer_label.text = "Prepare: " + str(int(wave_timer)) + "s"
+		else:
+			# Show survival time and enemies killed
+			var minutes = int(endless_survival_time / 60)
+			var seconds = int(endless_survival_time) % 60
+			timer_label.text = "Time: %02d:%02d | Kills: %d" % [minutes, seconds, endless_enemies_killed]
+	else:
+		round_label.text = "Round: " + str(current_wave_number) + "/" + str(current_game_mode.wave_definitions.size())
+		if is_preparation_phase:
+			timer_label.text = "Prepare: " + str(int(wave_timer)) + "s"
+		elif is_wave_active:
+			timer_label.text = "Enemies: " + str(enemies_remaining_in_wave)
+		else:
+			timer_label.text = "Complete!"
 
 # Dynamically set the cost label for each tower button in the build menu and update button states
 func update_tower_button_costs():
@@ -157,6 +405,9 @@ func update_tower_button_costs():
 
 
 func hide_tower_menu_with_bg():
+	# Hide tooltip when hiding tower menu
+	hide_tooltip()
+	
 	$TowerMenu.visible = false
 	if tower_menu_bg and is_instance_valid(tower_menu_bg):
 		tower_menu_bg.queue_free()
@@ -167,6 +418,78 @@ func hide_tower_menu_with_bg():
 	# Clear selected_tower
 	selected_tower = null
 	tower_menu_open_for = null
+
+
+# Notification system
+var notification_panel: Panel = null
+var notification_label: Label = null
+var notification_tween: Tween = null
+
+func show_notification(text: String, duration: float = 3.0):
+	"""Show a notification popup centered on the screen"""
+	# Remove existing notification if any
+	hide_notification()
+	
+	# Create a panel for the background box
+	notification_panel = Panel.new()
+	notification_panel.size = Vector2(600, 160)  # Taller for two-line text
+	
+	# Get screen size and center the panel manually
+	var screen_size = get_viewport().get_visible_rect().size
+	var panel_center_x = (screen_size.x - notification_panel.size.x) / 2
+	var panel_y = 50  # Distance from top
+	
+	# Position the panel at the calculated center position
+	notification_panel.position = Vector2(panel_center_x, panel_y)
+	notification_panel.z_index = 100
+	
+	# Style the panel with black background
+	var style_box = StyleBoxFlat.new()
+	style_box.bg_color = Color.BLACK
+	style_box.border_color = Color.WHITE
+	style_box.border_width_left = 2
+	style_box.border_width_right = 2
+	style_box.border_width_top = 2
+	style_box.border_width_bottom = 2
+	style_box.corner_radius_top_left = 8
+	style_box.corner_radius_top_right = 8
+	style_box.corner_radius_bottom_left = 8
+	style_box.corner_radius_bottom_right = 8
+	notification_panel.add_theme_stylebox_override("panel", style_box)
+	
+	# Create the notification label
+	notification_label = Label.new()
+	notification_label.text = text
+	notification_label.add_theme_font_size_override("font_size", 36)  # Larger font
+	notification_label.add_theme_color_override("font_color", Color.WHITE)  # White text
+	notification_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	notification_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	notification_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # Enable text wrapping
+	notification_label.size = notification_panel.size
+	notification_label.position = Vector2.ZERO
+	
+	# Add label to panel, panel to scene
+	notification_panel.add_child(notification_label)
+	$CanvasLayer.add_child(notification_panel)
+	
+	# Create fade in/out animation
+	notification_panel.modulate.a = 0.0
+	notification_tween = create_tween()
+	notification_tween.tween_property(notification_panel, "modulate:a", 1.0, 0.5)
+	notification_tween.tween_interval(duration - 1.0)  # Stay visible for most of the duration
+	notification_tween.tween_property(notification_panel, "modulate:a", 0.0, 0.5)
+	notification_tween.tween_callback(hide_notification)
+
+func hide_notification():
+	"""Hide the current notification"""
+	if notification_panel and is_instance_valid(notification_panel):
+		notification_panel.queue_free()
+		notification_panel = null
+	if notification_label and is_instance_valid(notification_label):
+		notification_label = null
+	if notification_tween:
+		notification_tween.kill()
+		notification_tween = null
 
 
 func _process(delta):
@@ -180,6 +503,10 @@ func _process(delta):
 		tower_menu_click_cooldown = max(0.0, tower_menu_click_cooldown - delta)
 		if tower_menu_click_cooldown == 0.0:
 			tower_menu_cooldown_for = null
+	
+	# Handle game mode timing
+	if current_game_mode != null:
+		handle_game_mode_timing(delta)
 
 
 # Returns true if mouse is over any tower
@@ -231,7 +558,8 @@ func load_level(level_path):
 
 func is_tower_at_position(pos: Vector2) -> bool:
 	for tower in $TowerContainer.get_children():
-		if tower.position == pos:
+		# Only check actual tower nodes, not construction/destruction animations
+		if tower.has_method("attack_target") and not tower.is_being_destroyed and tower.position == pos:
 			return true
 	return false
 
@@ -348,30 +676,28 @@ func earn_gold(amount: int):
 
 
 func take_damage(amount: int):
-	print("=== TAKE_DAMAGE CALLED ===")
-	print("take_damage called with amount: ", amount)
-	print("Call stack: ", get_stack())
-	var old_health = health
 	health -= amount
-	print("Health changed from ", old_health, " to ", health)
 	update_ui()
 	if health <= 0:
 		game_over()
-	print("=== END TAKE_DAMAGE ===")
 
 func lose_health(amount: int):
 	"""Called when enemies reach the house"""
 	health_loss_call_count += 1
-	print("=== LOSE_HEALTH CALLED #", health_loss_call_count, " ===")
-	print("Enemy reached the house! Health lost: ", amount, " (Health before: ", health, ")")
+	
+	# Apply damage scaling based on game mode
+	var scaled_damage = amount
+	if current_game_mode != null:
+		scaled_damage = current_game_mode.get_scaled_damage(amount)
 	
 	# Show damage feedback with actual amount
-	show_damage_feedback(amount)
+	show_damage_feedback(scaled_damage)
 	
-	take_damage(amount)
+	take_damage(scaled_damage)
 	
-	print("Health after damage: ", health)
-	print("=== END LOSE_HEALTH #", health_loss_call_count, " ===")
+	# Track enemy reaching house for wave completion
+	if current_game_mode != null and is_wave_active:
+		enemies_remaining_in_wave -= 1
 
 func show_damage_feedback(damage: int):
 	"""Show visual feedback when player takes damage"""
@@ -492,17 +818,12 @@ func update_ui():
 	# Update health bar
 	var health_bar = $CanvasLayer/ui/HealthBar
 	var health_label = $CanvasLayer/ui/HealthBar/Label
-	if health_bar:
-		# Store previous values for debugging
-		var prev_value = health_bar.value
-		
+	if health_bar:		
 		health_bar.max_value = 100  # Assuming max health is 100
 		health_bar.step = 1.0  # Ensure step is 1
 		
 		# Use call_deferred to ensure the UI updates properly
 		health_bar.call_deferred("set_value", health)
-		
-		print("Health bar update - Health: ", health, ", Prev bar value: ", prev_value, ", New bar value: ", health, ", Step: ", health_bar.step, ", Max: ", health_bar.max_value)
 		
 		# Update health label to show current/max health
 		if health_label:
@@ -528,18 +849,10 @@ func update_ui():
 				health_bar.self_modulate = Color.YELLOW
 			else:
 				health_bar.self_modulate = Color.RED
-	
-	# Show testing mode status
-	if testing_mode:
-		var test_info = "TESTING MODE - Press N: Next Enemy, T: Toggle | Enemy " + str(current_enemy_test_index + 1) + "/" + str(enemy_test_list.size())
-		# You can add a label to show this info, for now just print it occasionally
-		if gold % 100 == 0:  # Print every 100 gold changes to avoid spam
-			print("🧪 ", test_info)
 
 
 func game_over():
 	"""Handle game over logic"""
-	print("GAME OVER - Player health reached 0!")
 	
 	# Pause the game
 	get_tree().paused = true
@@ -646,7 +959,12 @@ func add_tower(tower_scene: PackedScene, tower_position: Vector2, cost: int):
 		build_instance.position = tower_position
 		build_instance.set_meta("initial_tower_data", selected_tower_data)
 		$TowerContainer.add_child(build_instance)
-		spend_gold(cost)
+	spend_gold(cost)
+	
+	# Track achievement progress
+	var achievement_manager = get_node("/root/AchievementManager")
+	if achievement_manager:
+		achievement_manager.track_tower_built()
 
 func can_place_tower_at(pos: Vector2) -> bool:
 	var tilemap = $LevelContainer/map/tileLayer1
@@ -737,15 +1055,6 @@ func _unhandled_input(event):
 		else:
 			$pauseFade.visible = true
 			get_tree().paused = true
-	
-	# Testing controls (only in testing mode)
-	if testing_mode and event is InputEventKey and event.pressed:
-		if event.keycode == KEY_N:  # 'N' for next enemy
-			print("Manual spawn: Next enemy")
-			spawn_next_test_enemy(path_points)
-		elif event.keycode == KEY_T:  # 'T' to toggle testing mode
-			testing_mode = !testing_mode
-			print("Testing mode: ", "ON" if testing_mode else "OFF")
 
 
 func load_map(map_path):
@@ -765,15 +1074,11 @@ func load_map(map_path):
 	# Spawn the house at the end of the path
 	spawn_house()
 	
-	if testing_mode:
-		spawn_next_test_enemy(path_points)
-	else:
-		spawn_enemy(path_points)
+	# Enemy spawning is now handled by the wave system
 
 func spawn_house():
 	"""Spawn the house at the end of the path"""
 	if path_points.size() == 0:
-		print("Warning: No path points available for house placement")
 		return
 	
 	# Remove any existing houses
@@ -789,48 +1094,36 @@ func spawn_house():
 	var end_position = path_points[-1]
 	var house_position = end_position  # Default fallback
 	
-	# Look for HouseBoundary in the current level container
-	if $LevelContainer.get_child_count() > 0:
-		var map_scene = $LevelContainer.get_child(0)
-		var house_boundary = map_scene.get_node_or_null("HouseBoundary")
-		if house_boundary and house_boundary is ReferenceRect:
-			# Position house at the center of the boundary
-			house_position = house_boundary.position + house_boundary.size / 2.0
-			print("Positioning house at boundary center: ", house_position)
-			print("  Boundary details: pos=", house_boundary.position, " size=", house_boundary.size)
-			print("  Path endpoint: ", end_position)
-			print("  Difference from path: ", house_position - end_position)
-		else:
-			print("HouseBoundary not found, using path endpoint: ", end_position)
+	# NOTE: HouseBoundary system is deprecated - only exists in map_old.tscn
+	# Modern maps should use tiles marked with "is_house" custom data
+	# For now, we'll use the path endpoint as the house position
 	
 	# Position the house
 	house.position = house_position
 	
-	# Set a random house skin for testing (you can change this later)
-	var available_skins = []
-	for i in range(1, 21):  # All 20 skins
-		available_skins.append("skin" + str(i))
-	var random_skin = available_skins[randi() % available_skins.size()]
-	house.house_skin = random_skin
+	# Set house skin from HouseSkinManager (or default to skin1)
+	var selected_skin_id = 1  # Default fallback
+	var house_skin_manager = get_node("/root/HouseSkinManager")
+	if house_skin_manager:
+		selected_skin_id = house_skin_manager.get_selected_skin()
+	house.house_skin = "skin" + str(selected_skin_id)
 	
 	# Set the house tile position for targeting exclusions
-	var tile_size = 64  # Assuming 64x64 tiles
-	var house_tile = Vector2i(int(house_position.x / tile_size), int(house_position.y / tile_size))
+	var tilemap = $LevelContainer/map/tileLayer1
+	var house_tile = tilemap.local_to_map(house_position)
 	if house.has_method("set_house_tile_position"):
 		house.set_house_tile_position(house_tile)
-	else:
-		print("Warning: House scene missing set_house_tile_position method")
-	
+
 	# Add the house to the level container
 	$LevelContainer.add_child(house)
-	
-	print("House spawned at position: ", end_position, " with skin: ", random_skin)
 
 
 func on_tower_button_pressed(tower_data: TowerData):
+	# Hide tooltip when entering placement mode
+	hide_tooltip()
+	
 	# Check if player can afford the tower before entering placement mode
 	if not can_afford(tower_data.cost[0]):
-		print("Cannot afford tower! Cost: ", tower_data.cost[0], " Gold: ", gold)
 		return
 	
 	selected_tower_data = tower_data
@@ -839,7 +1132,6 @@ func on_tower_button_pressed(tower_data: TowerData):
 	show_all_grid_overlays()
 
 func show_tower_preview():
-	print("show_tower_preview called")
 	if tower_preview:
 		tower_preview.queue_free()
 	tower_preview = preload("res://scenes/towers/towerPreview.tscn").instantiate()
@@ -950,11 +1242,10 @@ func get_snapped_position(mouse_pos: Vector2) -> Vector2:
 
 
 #testing enemy spawns
-func spawn_enemy(enemy_path_points, enemy_data_path: String = "res://assets/Enemies/firebug/firebug.tres"):
+func spawn_enemy(enemy_path_points, enemy_data_path: String = "res://assets/Enemies/firebug/firebug.tres", override_health: int = -1):
 	# Load the enemy data
 	var enemy_data = load(enemy_data_path) as Resource
 	if not enemy_data:
-		print("❌ Failed to load enemy data: ", enemy_data_path)
 		return
 	
 	# Get scene path from enemy data
@@ -963,25 +1254,26 @@ func spawn_enemy(enemy_path_points, enemy_data_path: String = "res://assets/Enem
 		scene_path = enemy_data.scene_path
 	
 	if scene_path == "":
-		print("❌ Enemy data missing scene_path: ", enemy_data_path)
 		return
 	
 	# Load the enemy scene from the data
 	var enemy_scene = load(scene_path)
 	if not enemy_scene:
-		print("❌ Failed to load enemy scene: ", scene_path)
 		return
 		
 	var enemy = enemy_scene.instantiate()
 	if not enemy:
-		print("❌ Failed to instantiate enemy scene: ", scene_path)
 		return
 	
 	# Set the enemy data
 	if enemy.has_method("set_enemy_data"):
 		enemy.set_enemy_data(enemy_data)
-	else:
-		print("⚠️  Enemy scene missing set_enemy_data method: ", scene_path)
+	
+	# Apply health scaling if provided
+	if override_health > 0 and enemy.has_method("set_health"):
+		enemy.set_health(override_health)
+	elif override_health > 0 and "health" in enemy:
+		enemy.health = override_health
 	
 	var spawn_offset = Vector2.ZERO
 	if enemy_path_points.size() > 1:
@@ -1006,8 +1298,6 @@ func spawn_enemy(enemy_path_points, enemy_data_path: String = "res://assets/Enem
 	
 	if enemy.has_signal("enemy_died"):
 		enemy.connect("enemy_died", Callable(self, "_on_enemy_died"))
-	
-	print("✅ Successfully spawned enemy: ", enemy_data.enemy_name if enemy_data.enemy_name else "Unknown")
 
 # Example: Spawn different enemy types randomly
 func spawn_random_enemy(enemy_path_points):
@@ -1038,55 +1328,90 @@ func spawn_enemy_for_wave(enemy_path_points, wave_number: int):
 
 
 func _on_enemy_spawn_timer_timeout():
-	if testing_mode:
-		spawn_next_test_enemy(path_points)
+	if current_game_mode != null and current_game_mode.mode_type == "endless" and is_wave_active:
+		# Spawn enemy for endless mode (continuous spawning)
+		spawn_endless_enemy()
+		# No need to track enemies_remaining_in_wave for endless mode - it's continuous
 	else:
-		spawn_enemy(path_points)
+		$EnemySpawnTimer.stop()
 
-# Testing function that cycles through all enemy types
-func spawn_next_test_enemy(enemy_path_points):
-	if enemy_test_list.size() == 0:
-		print("No valid enemies in test list!")
-		return
-		
-	if current_enemy_test_index >= enemy_test_list.size():
-		current_enemy_test_index = 0  # Reset to beginning
-		print("🔄 Cycling back to first enemy")
+func spawn_endless_enemy():
+	# Define enemy types by difficulty tiers
+	var easy_enemies = [
+		"res://assets/Enemies/firebug/firebug.tres",
+		"res://assets/Enemies/leafbug/leafbug.tres"
+	]
+	var medium_enemies = [
+		"res://assets/Enemies/fireWasp/fireWasp.tres",
+		"res://assets/Enemies/flyingLocust/flyingLocust.tres",
+		"res://assets/Enemies/clampBeetle/clampBeetle.tres"
+	]
+	var hard_enemies = [
+		"res://assets/Enemies/voidButterfly/voidButterfly.tres",
+		"res://assets/Enemies/scorpion/scorpion.tres",
+		"res://assets/Enemies/magmaCrab/magmaCrab.tres"
+	]
 	
-	var enemy_data_path = enemy_test_list[current_enemy_test_index]
+	# Choose enemy pool based on difficulty level
+	var available_enemies = []
+	if endless_difficulty_level <= 2:
+		# Levels 1-2: Only easy enemies
+		available_enemies = easy_enemies.duplicate()
+	elif endless_difficulty_level <= 4:
+		# Levels 3-4: Easy and medium enemies
+		available_enemies = easy_enemies.duplicate()
+		available_enemies.append_array(medium_enemies)
+	else:
+		# Level 5+: All enemy types
+		available_enemies = easy_enemies.duplicate()
+		available_enemies.append_array(medium_enemies)
+		available_enemies.append_array(hard_enemies)
 	
-	# Load enemy data for debugging info
-	var enemy_data = load(enemy_data_path) as Resource
-	var enemy_name = "Unknown"
-	if enemy_data and enemy_data.has_method("get"):
-		enemy_name = enemy_data.enemy_name if enemy_data.enemy_name else "Unknown"
-	
-	print("🐛 Testing enemy ", current_enemy_test_index + 1, "/", enemy_test_list.size(), ": ", enemy_name, " (", enemy_data_path, ")")
-	
-	spawn_enemy(enemy_path_points, enemy_data_path)
-	current_enemy_test_index += 1
+	var random_enemy = available_enemies[randi() % available_enemies.size()]
+	spawn_enemy_with_scaling(path_points, random_enemy)
 
+# Testing functions removed - now using game mode system
 
 func _on_enemy_died(gold_earned):
-	earn_gold(gold_earned)
-	show_gold_feedback(gold_earned)
+	# Apply gold scaling based on game mode
+	var scaled_gold = gold_earned
+	if current_game_mode != null:
+		scaled_gold = current_game_mode.get_scaled_gold(gold_earned)
+	
+	earn_gold(scaled_gold)
+	show_gold_feedback(scaled_gold)
+	
+	# Track achievement progress
+	var achievement_manager = get_node("/root/AchievementManager")
+	if achievement_manager:
+		achievement_manager.track_enemy_defeated()
+		achievement_manager.track_gold_earned(scaled_gold)
+	
+	# Track enemies killed in endless mode
+	if current_game_mode != null and current_game_mode.mode_type == "endless":
+		endless_enemies_killed += 1
+	
+	# Track enemies for wave completion
+	if current_game_mode != null and is_wave_active:
+		enemies_remaining_in_wave -= 1
 
 
 func hide_all_grid_overlays():
 	for child in $LevelContainer.get_children():
 		if child.has_node("gridOverlay"):
-			print("Hiding gridOverlay in:", child)
 			child.get_node("gridOverlay").visible = false
 
 
 func show_all_grid_overlays():
 	for child in $LevelContainer.get_children():
 		if child.has_node("gridOverlay"):
-			print("Showing gridOverlay in:", child)
 			child.get_node("gridOverlay").visible = true
 
 
 func show_tower_menu(tower):
+	# Hide tooltip when opening tower menu
+	hide_tooltip()
+	
 	if placing_tower:
 		return
 	# If the menu is already open for this tower, do nothing
@@ -1209,7 +1534,6 @@ func show_tower_menu(tower):
 		if menu.visible and bg.get_parent() == parent:
 			bg.position = menu.position
 			bg.size = menu.size
-			print("BG updated, menu rect: ", menu.get_rect(), " bg rect: ", bg.get_rect())
 		else:
 			if is_instance_valid(bg):
 				bg.queue_free()
@@ -1255,19 +1579,190 @@ func _on_delete_no_pressed(action):
 
 
 func _on_upgrade_button_pressed() -> void:
-	print("Upgrade button pressed!")
-	print("selected_tower:", selected_tower)
 	if not selected_tower or not is_instance_valid(selected_tower):
-		print("selected_tower is invalid or null!")
 		return
-	print("selected_tower.level:", selected_tower.level)
 	if selected_tower.level < 3:
 		var next_level = selected_tower.level + 1
 		var upgrade_cost = selected_tower.tower_data.cost[next_level - 1] if selected_tower.tower_data.cost.size() >= next_level else null
-		print("next_level:", next_level, "upgrade_cost:", upgrade_cost)
 		if upgrade_cost != null and can_afford(upgrade_cost):
-			print("Upgrading tower!")
 			spend_gold(upgrade_cost)
 			selected_tower.upgrade()
 			hide_tower_menu_with_bg()
 			await get_tree().process_frame
+
+# === Tooltip System ===
+
+func setup_tooltip_system():
+	"""Initialize the tooltip system"""
+	# Create tooltip instance
+	var tooltip_scene = preload("res://scenes/ui/TowerTooltip.tscn")
+	tower_tooltip = tooltip_scene.instantiate()
+	# Add tooltip to CanvasLayer to ensure it's above UI elements
+	$CanvasLayer.add_child(tower_tooltip)
+	
+	# Create tooltip timer
+	tooltip_timer = Timer.new()
+	tooltip_timer.wait_time = 1.0
+	tooltip_timer.one_shot = true
+	tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
+	add_child(tooltip_timer)
+	
+	# Connect hover events to tower buttons
+	setup_tower_button_tooltips()
+	
+	# Connect hover events to upgrade button
+	setup_upgrade_button_tooltip()
+
+func setup_tower_button_tooltips():
+	"""Setup tooltip events for all tower build buttons"""
+	var tower_paths = [
+		"res://assets/towers/tower1/tower1.tres",
+		"res://assets/towers/tower2/tower2.tres",
+		"res://assets/towers/tower3/tower3.tres",
+		"res://assets/towers/tower4/tower4.tres",
+		"res://assets/towers/tower5/tower5.tres",
+		"res://assets/towers/tower6/tower6.tres",
+		"res://assets/towers/tower7/tower7.tres",
+		"res://assets/towers/tower8/tower8.tres",
+	]
+	
+	for i in range(tower_paths.size()):
+		var button = $CanvasLayer.get_node("ui/MarginContainer/buildMenu/towerButton%d" % (i+1))
+		var tower_data = load(tower_paths[i])
+		
+		# Connect mouse enter and exit events
+		button.mouse_entered.connect(_on_tower_button_mouse_entered.bind(button, tower_data, 1, false))
+		button.mouse_exited.connect(_on_tower_button_mouse_exited)
+
+func setup_upgrade_button_tooltip():
+	"""Setup tooltip events for the upgrade button"""
+	var upgrade_button = $TowerMenu.get_node("upgradeButton")
+	upgrade_button.mouse_entered.connect(_on_upgrade_button_mouse_entered)
+	upgrade_button.mouse_exited.connect(_on_upgrade_button_mouse_exited)
+
+func _on_tower_button_mouse_entered(button: Control, tower_data: TowerData, level: int, is_upgrade: bool):
+	"""Handle mouse entering a tower button"""
+	# Cancel any existing tooltip timer
+	tooltip_timer.stop()
+	
+	# Store pending tooltip info
+	tooltip_pending_button = button
+	tooltip_pending_tower_data = tower_data
+	tooltip_pending_level = level
+	tooltip_pending_is_upgrade = is_upgrade
+	
+	# Start tooltip timer
+	tooltip_timer.start()
+
+func _on_tower_button_mouse_exited():
+	"""Handle mouse exiting a tower button"""
+	# Cancel tooltip timer and hide tooltip
+	tooltip_timer.stop()
+	hide_tooltip()
+
+func _on_upgrade_button_mouse_entered():
+	"""Handle mouse entering the upgrade button"""
+	if not selected_tower or not is_instance_valid(selected_tower):
+		return
+	
+	if selected_tower.level >= 3:
+		return  # No tooltip for max level towers
+	
+	# Cancel any existing tooltip timer
+	tooltip_timer.stop()
+	
+	# Store pending tooltip info for upgrade
+	tooltip_pending_button = $TowerMenu.get_node("upgradeButton")
+	tooltip_pending_tower_data = selected_tower.tower_data
+	tooltip_pending_level = selected_tower.level + 1
+	tooltip_pending_is_upgrade = true
+	
+	# Start tooltip timer
+	tooltip_timer.start()
+
+func _on_upgrade_button_mouse_exited():
+	"""Handle mouse exiting the upgrade button"""
+	# Cancel tooltip timer and hide tooltip
+	tooltip_timer.stop()
+	hide_tooltip()
+
+func _on_tooltip_timer_timeout():
+	"""Show tooltip after timer expires"""
+	if tooltip_pending_button and tooltip_pending_tower_data:
+		show_tooltip()
+
+func show_tooltip():
+	"""Display the tooltip at the appropriate position"""
+	if not tower_tooltip or not tooltip_pending_button or not tooltip_pending_tower_data:
+		return
+	
+	# Make sure tooltip is hidden during setup
+	tower_tooltip.visible = false
+	
+	# Calculate button position first
+	var button_global_pos = tooltip_pending_button.global_position
+	var button_size = tooltip_pending_button.size
+	var viewport_size = get_viewport().get_visible_rect().size
+	
+	# Setup tooltip content (this will calculate dynamic size)
+	tower_tooltip.setup_tooltip(tooltip_pending_tower_data, tooltip_pending_level, tooltip_pending_is_upgrade)
+	
+	# Wait for size calculation to complete fully
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	# Get the calculated tooltip size
+	var tooltip_size = tower_tooltip.size if tower_tooltip.size.x > 0 else tower_tooltip.custom_minimum_size
+	
+	# Try to position tooltip to the right of the button first
+	var tooltip_pos = Vector2(button_global_pos.x + button_size.x + 10, button_global_pos.y)
+	
+	# If it would go off the right edge, position to the left instead
+	if tooltip_pos.x + tooltip_size.x > viewport_size.x:
+		tooltip_pos.x = button_global_pos.x - tooltip_size.x - 10
+	
+	# If it would go off the bottom, adjust vertically
+	if tooltip_pos.y + tooltip_size.y > viewport_size.y:
+		tooltip_pos.y = button_global_pos.y + button_size.y - tooltip_size.y
+	
+	# Now show tooltip at calculated position (only show after everything is ready)
+	tower_tooltip.show_at_position(tooltip_pos)
+
+func hide_tooltip():
+	"""Hide the tooltip"""
+	if tower_tooltip:
+		tower_tooltip.hide_tooltip()
+
+# === Achievement System ===
+
+func setup_achievement_system():
+	"""Initialize the achievement system"""
+	# Connect to achievement signals
+	var achievement_manager = get_node("/root/AchievementManager")
+	if achievement_manager:
+		achievement_manager.achievement_unlocked.connect(_on_achievement_unlocked)
+		achievement_manager.skin_unlocked.connect(_on_skin_unlocked)
+
+func _on_achievement_unlocked(achievement_id: String):
+	"""Handle achievement unlocked"""
+	var achievement_manager = get_node("/root/AchievementManager")
+	if achievement_manager:
+		var achievement_data = achievement_manager.achievement_definitions.get(achievement_id, {})
+		var achievement_name = achievement_data.get("name", "Unknown Achievement")
+		var achievement_description = achievement_data.get("description", "")
+		var unlocked_skin = achievement_data.get("unlocks_skin", -1)
+		
+		show_achievement_notification(achievement_name, achievement_description, unlocked_skin)
+
+func _on_skin_unlocked(skin_id: int):
+	"""Handle skin unlocked"""
+	print("Skin " + str(skin_id) + " unlocked!")
+
+func show_achievement_notification(achievement_name: String, description: String, skin_id: int = -1):
+	"""Show an achievement notification"""
+	# For now, just print to console
+	# TODO: Implement proper notification UI
+	print("ACHIEVEMENT UNLOCKED: " + achievement_name + " - " + description)
+	if skin_id > 0:
+		print("New house skin unlocked: Skin " + str(skin_id))

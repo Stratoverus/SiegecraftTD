@@ -2,6 +2,8 @@
 extends Resource
 class_name TowerData
 
+@export var name: String
+@export var description: String
 @export var scene_path: String
 @export var type: String
 @export var weapon_rotates: bool

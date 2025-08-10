@@ -5,6 +5,8 @@
 
 [resource]
 script = ExtResource("4_yui47")
+name = "Longshot Tower"
+description = "Fires a single, powerful arrow with exceptional range and precision."
 scene_path = "res://scenes/towers/tower6/tower6.tscn"
 type = "physical"
 weapon_rotates = true
@@ -13,7 +15,7 @@ projectile_scene = "res://scenes/towers/tower6/projectileT6.tscn"
 projectile_release_frame = 2
 cost = Array[int]([300, 500, 800])
 damage = Array[int]([500, 750, 1500])
-attack_range = Array[float]([350.0, 350.0, 350.0])
+attack_range = Array[float]([450.0, 450.0, 450.0])
 attack_speed = Array[float]([0.7, 0.9, 1.5])
 projectile_speed = Array[float]([700.0, 700.0, 700.0])
 icon = Array[Texture]([ExtResource("1_jeppd"), ExtResource("1_jeppd"), ExtResource("1_jeppd")])

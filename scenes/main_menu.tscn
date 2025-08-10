@@ -9,14 +9,14 @@ script = ExtResource("1_0ettg")
 
 [node name="Title" type="Label" parent="."]
 offset_right = 1920.0
-offset_bottom = 500.0
+offset_bottom = 350.0
 theme_override_font_sizes/font_size = 200
 text = "Siegecraft TD"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
-offset_top = 500.0
+offset_top = 350.0
 offset_right = 1920.0
 offset_bottom = 1080.0
 theme = SubResource("Theme_rhts7")
@@ -39,6 +39,11 @@ text = "LOAD GAME"
 layout_mode = 2
 theme_override_font_sizes/font_size = 60
 text = "SETTINGS"
+
+[node name="houseSkins" type="Button" parent="CenterContainer/MainButtons"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 60
+text = "HOUSE SKINS"
 
 [node name="credits" type="Button" parent="CenterContainer/MainButtons"]
 layout_mode = 2
@@ -144,9 +149,72 @@ size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 60
 text = "BACK"
 
+[node name="HouseSkinsMenu" type="VBoxContainer" parent="CenterContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="title" type="Label" parent="CenterContainer/HouseSkinsMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 80
+text = "HOUSE SKINS"
+horizontal_alignment = 1
+
+[node name="currentSkinLabel" type="Label" parent="CenterContainer/HouseSkinsMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Current: Classic Cottage"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/HouseSkinsMenu"]
+custom_minimum_size = Vector2(800, 400)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="skinGrid" type="GridContainer" parent="CenterContainer/HouseSkinsMenu/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 4
+
+[node name="back" type="Button" parent="CenterContainer/HouseSkinsMenu"]
+custom_minimum_size = Vector2(353, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 60
+text = "BACK"
+
+[node name="GameModeMenu" type="VBoxContainer" parent="CenterContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="normal" type="Button" parent="CenterContainer/GameModeMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 60
+text = "NORMAL"
+
+[node name="extraHard" type="Button" parent="CenterContainer/GameModeMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 60
+text = "EXTRA HARD"
+
+[node name="endless" type="Button" parent="CenterContainer/GameModeMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 60
+text = "ENDLESS"
+
+[node name="back" type="Button" parent="CenterContainer/GameModeMenu"]
+custom_minimum_size = Vector2(353, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 60
+text = "BACK"
+
 [connection signal="pressed" from="CenterContainer/MainButtons/newGame" to="." method="_on_new_game_pressed"]
 [connection signal="pressed" from="CenterContainer/MainButtons/loadGame" to="." method="_on_load_game_pressed"]
 [connection signal="pressed" from="CenterContainer/MainButtons/settings" to="." method="_on_settings_pressed"]
+[connection signal="pressed" from="CenterContainer/MainButtons/houseSkins" to="." method="_on_house_skins_pressed"]
 [connection signal="pressed" from="CenterContainer/MainButtons/credits" to="." method="_on_credits_pressed"]
 [connection signal="pressed" from="CenterContainer/MainButtons/quit" to="." method="_on_quit_pressed"]
 [connection signal="pressed" from="CenterContainer/SettingsMenu/back" to="." method="_on_back_pressed"]
@@ -156,3 +224,8 @@ text = "BACK"
 [connection signal="value_changed" from="CenterContainer/SettingsMenu/sfxVolSlider" to="." method="_on_sfx_vol_slider_value_changed"]
 [connection signal="pressed" from="CenterContainer/CreditsMenu/back" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="CenterContainer/LoadMenu/back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CenterContainer/HouseSkinsMenu/back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CenterContainer/GameModeMenu/normal" to="." method="_on_normal_pressed"]
+[connection signal="pressed" from="CenterContainer/GameModeMenu/extraHard" to="." method="_on_extra_hard_pressed"]
+[connection signal="pressed" from="CenterContainer/GameModeMenu/endless" to="." method="_on_endless_pressed"]
+[connection signal="pressed" from="CenterContainer/GameModeMenu/back" to="." method="_on_back_pressed"]

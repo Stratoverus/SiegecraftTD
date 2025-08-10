@@ -1,0 +1,487 @@
+[gd_scene load_steps=22 format=3 uid="uid://c3kpjtu13d4kk"]
+
+[ext_resource type="Script" uid="uid://ds1mdpvgt2qu3" path="res://scenes/main.gd" id="1_o5qli"]
+[ext_resource type="Texture2D" uid="uid://lynys0otyc4c" path="res://assets/goldCoin.tres" id="2_dp3eg"]
+[ext_resource type="Texture2D" uid="uid://bp887cac0kmiu" path="res://assets/Towers/tower1/base/tower1L1Icon.tres" id="3_sugp2"]
+[ext_resource type="Texture2D" uid="uid://dn1fi8xiyyj76" path="res://assets/Towers/tower1/weapon/weapon1Icon.tres" id="4_jyhfs"]
+[ext_resource type="Texture2D" uid="uid://d18gbpfxkbwop" path="res://assets/Towers/tower2/base/tower2L1Icon.tres" id="4_tbgi4"]
+[ext_resource type="Texture2D" uid="uid://bqg7jma0l7v8j" path="res://assets/Towers/tower2/weapon/weapon1Icon.tres" id="5_tbgi4"]
+[ext_resource type="Texture2D" uid="uid://dlfrncgpjsudm" path="res://assets/Towers/tower3/base/tower3L1Icon.tres" id="6_tefeu"]
+[ext_resource type="Texture2D" uid="uid://b67ct55l67jgr" path="res://assets/Towers/tower3/weapon/weapon1Icon.tres" id="7_o6xl0"]
+[ext_resource type="Texture2D" uid="uid://bsduh72ppslga" path="res://assets/Towers/tower4/base/tower4L1Icon.tres" id="8_tipki"]
+[ext_resource type="Texture2D" uid="uid://bfwedeq8cxw3x" path="res://assets/Towers/tower4/weapon/projectileT4Icon.tres" id="9_85g3d"]
+[ext_resource type="Texture2D" uid="uid://bj2jwuhhpc28r" path="res://assets/Towers/tower5/base/towerT5L1Icon.tres" id="10_ya4ey"]
+[ext_resource type="Texture2D" uid="uid://bg6d071qvdahd" path="res://assets/Towers/tower5/weapon/weasponT5L1Icon.tres" id="11_eb6dy"]
+[ext_resource type="Texture2D" uid="uid://bu5a40yv6r30t" path="res://assets/Towers/tower6/base/towerT6L1Icon.tres" id="12_trceg"]
+[ext_resource type="Texture2D" uid="uid://deygqg3vptx0j" path="res://assets/Towers/tower6/weapon/weaponT6L1Icon.tres" id="13_a8y0u"]
+[ext_resource type="Texture2D" uid="uid://wrwfeei5ork1" path="res://assets/Towers/tower7/base/tower7L1Icon.tres" id="14_jkv2x"]
+[ext_resource type="Texture2D" uid="uid://rx2tk76xupkm" path="res://assets/Towers/tower8/base/tower8L1Icon.tres" id="15_jbj1t"]
+[ext_resource type="Texture2D" uid="uid://dkrsrave3h1ee" path="res://assets/Towers/tower7/weapon/weaponT7L1Icon.tres" id="16_jbj1t"]
+[ext_resource type="Texture2D" uid="uid://dhnjlh60r41ax" path="res://assets/Towers/tower8/weapon/weaponT8L1Icon.tres" id="17_muem4"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dp3eg"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0ld40"]
+bg_color = Color(0.649056, 0, 0.104449, 1)
+
+[sub_resource type="Theme" id="Theme_sugp2"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_o5qli")
+
+[node name="LevelContainer" type="Node2D" parent="."]
+
+[node name="TowerContainer" type="Node2D" parent="."]
+
+[node name="EnemyContainer" type="Node2D" parent="."]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="ui" type="Panel" parent="CanvasLayer"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -448.0
+offset_top = -184.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="goldContainer" type="HBoxContainer" parent="CanvasLayer/ui"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -40.0
+offset_right = 40.0
+grow_vertical = 0
+
+[node name="goldIcon" type="TextureRect" parent="CanvasLayer/ui/goldContainer"]
+custom_minimum_size = Vector2(32, 20)
+layout_mode = 2
+texture = ExtResource("2_dp3eg")
+expand_mode = 2
+
+[node name="goldLabel" type="Label" parent="CanvasLayer/ui/goldContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+
+[node name="gameMenu" type="Button" parent="CanvasLayer/ui"]
+process_mode = 3
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -53.0
+offset_top = -31.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "Menu
+"
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/ui"]
+layout_mode = 0
+offset_right = 446.0
+offset_bottom = 145.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+
+[node name="buildMenu" type="GridContainer" parent="CanvasLayer/ui/MarginContainer"]
+layout_mode = 2
+columns = 6
+
+[node name="towerButton1" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("3_sugp2")
+icon_alignment = 1
+expand_icon = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton1"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_right = 24.0
+grow_horizontal = 2
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("4_jyhfs")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton1"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
+
+[node name="towerButton2" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("4_tbgi4")
+icon_alignment = 1
+expand_icon = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton2"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -13.0
+offset_right = 37.0
+offset_bottom = 50.0
+grow_horizontal = 2
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("5_tbgi4")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton2"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
+
+[node name="towerButton3" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("6_tefeu")
+icon_alignment = 1
+expand_icon = true
+
+[node name="TextureRect2" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton3"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -13.0
+offset_top = 1.0
+offset_right = 37.0
+offset_bottom = 51.0
+grow_horizontal = 2
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("7_o6xl0")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton3"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
+
+[node name="towerButton4" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("8_tipki")
+icon_alignment = 1
+expand_icon = true
+
+[node name="TextureRect3" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton4"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -8.0
+offset_top = 2.0
+offset_right = 24.0
+offset_bottom = 80.0
+grow_horizontal = 2
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("9_85g3d")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton4"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
+
+[node name="towerButton5" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("10_ya4ey")
+icon_alignment = 1
+expand_icon = true
+
+[node name="TextureRect4" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton5"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -12.0
+offset_top = 3.0
+offset_right = 20.0
+offset_bottom = 35.0
+grow_horizontal = 2
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("11_eb6dy")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton5"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
+
+[node name="towerButton6" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("12_trceg")
+icon_alignment = 1
+expand_icon = true
+
+[node name="TextureRect5" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton6"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -12.0
+offset_top = 1.0
+offset_right = 20.0
+offset_bottom = 35.0
+grow_horizontal = 2
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("13_a8y0u")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton6"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
+
+[node name="towerButton7" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("14_jkv2x")
+icon_alignment = 1
+expand_icon = true
+
+[node name="TextureRect6" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton7"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -13.0
+offset_top = 2.99999
+offset_right = 19.0
+offset_bottom = 37.0
+grow_horizontal = 2
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("16_jbj1t")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton7"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
+
+[node name="towerButton8" type="Button" parent="CanvasLayer/ui/MarginContainer/buildMenu"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("15_jbj1t")
+icon_alignment = 1
+expand_icon = true
+
+[node name="TextureRect7" type="TextureRect" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton8"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -13.0
+offset_top = -2.0
+offset_right = 19.0
+offset_bottom = 38.0
+grow_horizontal = 2
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("17_muem4")
+
+[node name="towerCost" type="Label" parent="CanvasLayer/ui/MarginContainer/buildMenu/towerButton8"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+text = "0"
+horizontal_alignment = 2
+
+[node name="round" type="Label" parent="CanvasLayer/ui"]
+layout_mode = 0
+offset_left = 278.0
+offset_top = 152.0
+offset_right = 337.0
+offset_bottom = 175.0
+text = "Round: "
+
+[node name="timer" type="Label" parent="CanvasLayer/ui"]
+layout_mode = 0
+offset_left = 120.0
+offset_top = 152.0
+offset_right = 201.0
+offset_bottom = 175.0
+text = "Time Left: "
+
+[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/ui"]
+layout_mode = 0
+offset_left = 188.0
+offset_top = 103.0
+offset_right = 419.0
+offset_bottom = 130.0
+theme_override_styles/background = SubResource("StyleBoxFlat_dp3eg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_0ld40")
+step = 1.0
+value = 100.0
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="CanvasLayer/ui/HealthBar"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -26.0
+offset_top = -20.0
+offset_right = 26.0
+offset_bottom = 3.0
+grow_horizontal = 2
+text = "Health"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Label" type="Label" parent="CanvasLayer/ui/HealthBar"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -13.5
+offset_top = -10.5
+offset_right = 15.5
+offset_bottom = 12.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "100"
+
+[node name="pauseFade" type="CenterContainer" parent="."]
+process_mode = 3
+visible = false
+z_index = 4096
+custom_minimum_size = Vector2(1920, 1080)
+offset_right = 1920.0
+offset_bottom = 1080.0
+
+[node name="gameMenu" type="VBoxContainer" parent="pauseFade"]
+layout_mode = 2
+
+[node name="resume" type="Button" parent="pauseFade/gameMenu"]
+layout_mode = 2
+text = "Resume"
+
+[node name="saveGame" type="Button" parent="pauseFade/gameMenu"]
+layout_mode = 2
+text = "Save Game"
+
+[node name="loadGame" type="Button" parent="pauseFade/gameMenu"]
+layout_mode = 2
+text = "Load Game"
+
+[node name="settings" type="Button" parent="pauseFade/gameMenu"]
+layout_mode = 2
+text = "Settings"
+
+[node name="quitMenu" type="Button" parent="pauseFade/gameMenu"]
+layout_mode = 2
+text = "Quit to Menu"
+
+[node name="quitDesktop" type="Button" parent="pauseFade/gameMenu"]
+layout_mode = 2
+text = "Quit to Desktop"
+
+[node name="EnemySpawnTimer" type="Timer" parent="."]
+wait_time = 0.5
+autostart = true
+
+[node name="TowerMenu" type="VBoxContainer" parent="."]
+visible = false
+z_index = 999
+custom_minimum_size = Vector2(0, 50)
+offset_right = 75.0
+offset_bottom = 85.0
+theme = SubResource("Theme_sugp2")
+
+[node name="TowerStats" type="VBoxContainer" parent="TowerMenu"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="attackLabel" type="Label" parent="TowerMenu/TowerStats"]
+layout_mode = 2
+
+[node name="attackSpeedLabel" type="Label" parent="TowerMenu/TowerStats"]
+layout_mode = 2
+
+[node name="upgradeButton" type="Button" parent="TowerMenu"]
+layout_mode = 2
+text = "Upgrade"
+
+[node name="deleteButton" type="Button" parent="TowerMenu"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+text = "Delete Tower"
+
+[connection signal="pressed" from="CanvasLayer/ui/gameMenu" to="." method="_on_game_menu_pressed"]
+[connection signal="pressed" from="CanvasLayer/ui/MarginContainer/buildMenu/towerButton1" to="." method="_on_tower_button_1_pressed"]
+[connection signal="pressed" from="CanvasLayer/ui/MarginContainer/buildMenu/towerButton2" to="." method="_on_tower_button_2_pressed"]
+[connection signal="pressed" from="CanvasLayer/ui/MarginContainer/buildMenu/towerButton3" to="." method="_on_tower_button_3_pressed"]
+[connection signal="pressed" from="CanvasLayer/ui/MarginContainer/buildMenu/towerButton4" to="." method="_on_tower_button_4_pressed"]
+[connection signal="pressed" from="CanvasLayer/ui/MarginContainer/buildMenu/towerButton5" to="." method="_on_tower_button_5_pressed"]
+[connection signal="pressed" from="CanvasLayer/ui/MarginContainer/buildMenu/towerButton6" to="." method="_on_tower_button_6_pressed"]
+[connection signal="pressed" from="CanvasLayer/ui/MarginContainer/buildMenu/towerButton7" to="." method="_on_tower_button_7_pressed"]
+[connection signal="pressed" from="CanvasLayer/ui/MarginContainer/buildMenu/towerButton8" to="." method="_on_tower_button_8_pressed"]
+[connection signal="pressed" from="pauseFade/gameMenu/resume" to="." method="_on_resume_pressed"]
+[connection signal="pressed" from="pauseFade/gameMenu/quitDesktop" to="." method="_on_quit_desktop_pressed"]
+[connection signal="timeout" from="EnemySpawnTimer" to="." method="_on_enemy_spawn_timer_timeout"]
+[connection signal="pressed" from="TowerMenu/upgradeButton" to="." method="_on_upgrade_button_pressed"]
+[connection signal="pressed" from="TowerMenu/deleteButton" to="." method="_on_delete_button_pressed"]
