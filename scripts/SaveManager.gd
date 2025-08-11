@@ -10,7 +10,8 @@ signal load_failed(slot_number: int, error: String)
 
 # Save/load file paths
 const SAVE_SLOTS = 3
-const SAVE_FILE_FORMAT = "user://game_save_slot_%d.save"
+const SAVE_FILE_FORMAT = "user://profiles/%s/game_save_slot_%d.save"
+const CHECKPOINT_FILE_FORMAT = "user://profiles/%s/checkpoint.save"
 
 # Save data structure
 const SAVE_VERSION = 2  # Updated for path loading fixes and map handling improvements
@@ -20,7 +21,39 @@ var current_save_slot: int = 1
 
 func get_save_file_path(slot: int) -> String:
 	"""Get save file path for given slot"""
-	return SAVE_FILE_FORMAT % slot
+	var profile_manager = get_node("/root/ProfileManager")
+	if profile_manager and profile_manager.has_profile():
+		var clean_name = profile_manager.clean_profile_name(profile_manager.profile_name)
+		# Ensure profile save directory exists
+		var profile_save_dir = "user://profiles/" + clean_name
+		if not DirAccess.dir_exists_absolute(profile_save_dir):
+			DirAccess.open("user://profiles/").make_dir_recursive(clean_name)
+		return SAVE_FILE_FORMAT % [clean_name, slot]
+	else:
+		# Fallback to default profile if no profile
+		var clean_name = ProfileManager.clean_profile_name("default")
+		var profile_save_dir = "user://profiles/" + clean_name
+		if not DirAccess.open(profile_save_dir):
+			DirAccess.open("user://profiles/").make_dir_recursive(clean_name)
+		return SAVE_FILE_FORMAT % [clean_name, slot]
+
+func get_checkpoint_file_path() -> String:
+	"""Get checkpoint file path for current profile"""
+	var profile_manager = get_node("/root/ProfileManager")
+	if profile_manager and profile_manager.has_profile():
+		var clean_name = profile_manager.clean_profile_name(profile_manager.profile_name)
+		# Ensure profile save directory exists
+		var profile_save_dir = "user://profiles/" + clean_name
+		if not DirAccess.dir_exists_absolute(profile_save_dir):
+			DirAccess.open("user://profiles/").make_dir_recursive(clean_name)
+		return CHECKPOINT_FILE_FORMAT % clean_name
+	else:
+		# Fallback to default profile if no profile
+		var clean_name = ProfileManager.clean_profile_name("default")
+		var profile_save_dir = "user://profiles/" + clean_name
+		if not DirAccess.open(profile_save_dir):
+			DirAccess.open("user://profiles/").make_dir_recursive(clean_name)
+		return CHECKPOINT_FILE_FORMAT % clean_name
 
 func save_file_exists(slot: int) -> bool:
 	"""Check if save file exists for given slot"""
@@ -29,6 +62,41 @@ func save_file_exists(slot: int) -> bool:
 func get_save_file_info(slot: int) -> Dictionary:
 	"""Get information about a save file without fully loading it"""
 	var file_path = get_save_file_path(slot)
+	if not FileAccess.file_exists(file_path):
+		return {}
+	
+	var file = FileAccess.open(file_path, FileAccess.READ)
+	if not file:
+		return {}
+	
+	var json_string = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var parse_result = json.parse(json_string)
+	
+	if parse_result != OK:
+		return {}
+	
+	var save_data = json.data
+	
+	# Extract summary information
+	var info = {
+		"exists": true,
+		"timestamp": save_data.get("timestamp", ""),
+		"game_mode": save_data.get("game_mode_name", "Unknown"),
+		"wave_number": save_data.get("current_wave_number", 1),
+		"gold": save_data.get("gold", 0),
+		"health": save_data.get("health", 100),
+		"play_time": save_data.get("total_play_time", 0.0),
+		"formatted_time": format_timestamp(save_data.get("timestamp", ""))
+	}
+	
+	return info
+
+func get_checkpoint_file_info() -> Dictionary:
+	"""Get information about the checkpoint file without fully loading it"""
+	var file_path = get_checkpoint_file_path()
 	if not FileAccess.file_exists(file_path):
 		return {}
 	
@@ -186,6 +254,30 @@ func collect_game_state(main_scene: Node) -> Dictionary:
 					"attack_cooldown": tower.attack_cooldown if "attack_cooldown" in tower else 0.0
 				}
 				save_data["towers"].append(tower_data)
+			elif tower.has_method("_process") and "elapsed" in tower and "build_time" in tower:
+				# Save tower construction progress
+				var construction_data = {
+					"position": {"x": tower.position.x, "y": tower.position.y},
+					"tower_scene_path": tower.tower_scene.resource_path if tower.tower_scene else "",
+					"elapsed_time": tower.elapsed,
+					"build_time": tower.build_time,
+					"stage": tower.stage if "stage" in tower else 0,
+					"mode": tower.mode if "mode" in tower else "build",
+					"is_construction": true
+				}
+				# Save metadata if it exists
+				if tower.has_meta("initial_tower_data"):
+					var tower_data_resource = tower.get_meta("initial_tower_data")
+					if tower_data_resource and tower_data_resource.resource_path:
+						construction_data["initial_tower_data_path"] = tower_data_resource.resource_path
+				# Also save upgrade metadata
+				if tower.has_meta("upgrade_tower_data"):
+					var upgrade_data_resource = tower.get_meta("upgrade_tower_data")
+					if upgrade_data_resource and upgrade_data_resource.resource_path:
+						construction_data["upgrade_tower_data_path"] = upgrade_data_resource.resource_path
+				if tower.has_meta("upgrade_level"):
+					construction_data["upgrade_level"] = tower.get_meta("upgrade_level")
+				save_data["towers"].append(construction_data)
 	
 	# Try to determine current map path
 	save_data["map_path"] = "res://scenes/map.tscn"  # Default map path
@@ -312,8 +404,8 @@ func find_game_mode_path(game_mode: Resource) -> String:
 	"""Try to find the resource path for a game mode"""
 	# Check common game mode paths
 	var common_paths = [
-		"res://assets/gameMode/normalModeComplete.tres",
-		"res://assets/gameMode/extraHardModeComplete.tres",
+		"res://assets/gameMode/normalMode.tres",
+		"res://assets/gameMode/extraHardMode.tres",
 		"res://assets/gameMode/endlessMode.tres"
 	]
 	
@@ -326,9 +418,9 @@ func find_game_mode_path(game_mode: Resource) -> String:
 	if game_mode.mode_type == "endless":
 		return "res://assets/gameMode/endlessMode.tres"
 	elif game_mode.mode_type == "extra_hard":
-		return "res://assets/gameMode/extraHardModeComplete.tres"
+		return "res://assets/gameMode/extraHardMode.tres"
 	else:
-		return "res://assets/gameMode/normalModeComplete.tres"
+		return "res://assets/gameMode/normalMode.tres"
 
 func load_game_mode_by_type(mode_type: String) -> Resource:
 	"""Load a game mode by its type"""
@@ -336,11 +428,11 @@ func load_game_mode_by_type(mode_type: String) -> Resource:
 		"endless":
 			return load("res://assets/gameMode/endlessMode.tres")
 		"extra_hard":
-			return load("res://assets/gameMode/extraHardModeComplete.tres")
+			return load("res://assets/gameMode/extraHardMode.tres")
 		"normal":
-			return load("res://assets/gameMode/normalModeComplete.tres")
+			return load("res://assets/gameMode/normalMode.tres")
 		_:
-			return load("res://assets/gameMode/normalModeComplete.tres")
+			return load("res://assets/gameMode/normalMode.tres")
 
 func get_tower_data_path(tower: Node) -> String:
 	"""Get the resource path for a tower's data"""
@@ -379,6 +471,12 @@ func clear_existing_towers(main_scene: Node):
 
 func restore_tower(tower_data: Dictionary, main_scene: Node):
 	"""Restore a tower from save data"""
+	
+	# Check if this is construction data
+	if tower_data.get("is_construction", false):
+		restore_tower_construction(tower_data, main_scene)
+		return
+	
 	var tower_data_path = tower_data.get("tower_data_path", "")
 	if tower_data_path == "":
 		return
@@ -418,6 +516,59 @@ func restore_tower(tower_data: Dictionary, main_scene: Node):
 	# Lower Y positions (higher on screen) should be behind higher Y positions (lower on screen)
 	tower.z_index = int(tower.position.y)
 
+func restore_tower_construction(construction_data: Dictionary, main_scene: Node):
+	"""Restore a tower construction from save data"""
+	var tower_scene_path = construction_data.get("tower_scene_path", "")
+	if tower_scene_path == "":
+		return
+	
+	var tower_scene = load(tower_scene_path)
+	if not tower_scene:
+		return
+	
+	# Create the construction node
+	var construction_scene = preload("res://scenes/towers/towerConstruction/TowerBuild.tscn")
+	var construction = construction_scene.instantiate()
+	
+	# Set position
+	var pos_data = construction_data.get("position", {"x": 0, "y": 0})
+	construction.position = Vector2(pos_data.x, pos_data.y)
+	
+	# Restore construction state
+	construction.tower_scene = tower_scene
+	construction.tower_position = construction.position
+	construction.elapsed = construction_data.get("elapsed_time", 0.0)
+	construction.build_time = construction_data.get("build_time", 3.0)
+	construction.stage = construction_data.get("stage", 0)
+	construction.mode = construction_data.get("mode", "build")
+	
+	# Set the tower parent reference
+	if main_scene.has_node("TowerContainer"):
+		construction.tower_parent = main_scene.get_node("TowerContainer")
+		main_scene.get_node("TowerContainer").add_child(construction)
+	
+	# Restore metadata if it was saved
+	if construction_data.has("initial_tower_data_path"):
+		var tower_data_path = construction_data["initial_tower_data_path"]
+		if tower_data_path != "":
+			var tower_data_resource = load(tower_data_path)
+			if tower_data_resource:
+				construction.set_meta("initial_tower_data", tower_data_resource)
+	
+	# Restore upgrade metadata
+	if construction_data.has("upgrade_tower_data_path"):
+		var upgrade_data_path = construction_data["upgrade_tower_data_path"]
+		if upgrade_data_path != "":
+			var upgrade_data_resource = load(upgrade_data_path)
+			if upgrade_data_resource:
+				construction.set_meta("upgrade_tower_data", upgrade_data_resource)
+	
+	if construction_data.has("upgrade_level"):
+		construction.set_meta("upgrade_level", construction_data["upgrade_level"])
+	
+	# Set z_index based on position
+	construction.z_index = int(construction.position.y)
+
 func delete_save(slot: int) -> bool:
 	"""Delete a save file"""
 	var file_path = get_save_file_path(slot)
@@ -434,12 +585,9 @@ func get_all_save_info() -> Array:
 	return saves_info
 
 func create_checkpoint_save(main_scene: Node):
-	"""Create an automatic checkpoint save (uses slot 0)"""
-	# Save to slot 0 as automatic checkpoint, don't show notification for auto-saves
-	current_save_slot = 0
-	
+	"""Create an automatic checkpoint save"""
 	var save_data = collect_game_state(main_scene)
-	var file_path = get_save_file_path(0)
+	var file_path = get_checkpoint_file_path()
 	
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
 	if not file:
@@ -453,11 +601,44 @@ func create_checkpoint_save(main_scene: Node):
 
 func has_checkpoint_save() -> bool:
 	"""Check if there's an automatic checkpoint save"""
-	return save_file_exists(0)
+	return FileAccess.file_exists(get_checkpoint_file_path())
 
 func load_checkpoint_save(main_scene: Node) -> bool:
 	"""Load the automatic checkpoint save"""
-	return load_game(0, main_scene)
+	var checkpoint_path = get_checkpoint_file_path()
+	if not FileAccess.file_exists(checkpoint_path):
+		print("No checkpoint save found")
+		return false
+	
+	var file = FileAccess.open(checkpoint_path, FileAccess.READ)
+	if not file:
+		print("Failed to open checkpoint save")
+		return false
+	
+	var json_string = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var parse_result = json.parse(json_string)
+	if parse_result != OK:
+		print("Failed to parse checkpoint save JSON")
+		return false
+	
+	var save_data = json.data
+	
+	# Validate save version
+	var save_version = save_data.get("save_version", 0)
+	if save_version != SAVE_VERSION:
+		print("Checkpoint save version incompatible")
+		return false
+	
+	apply_game_state(save_data, main_scene)
+	
+	# Ensure achievements and house skins are properly loaded after loading game
+	ensure_systems_loaded()
+	
+	print("Checkpoint loaded successfully")
+	return true
 
 func ensure_systems_loaded():
 	"""Ensure all singletons are properly loaded after loading a save"""

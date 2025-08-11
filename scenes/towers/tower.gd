@@ -470,6 +470,9 @@ func spawn_projectile(enemy):
 	if projectile.has_method("set_target_position"):
 		projectile.set_target_position(validated_target_position)
 	
+	# Add projectile to scene tree first (required for all projectiles)
+	get_tree().current_scene.add_child(projectile)
+	
 	# Set up splash damage if this tower has splash type
 	if tower_data.type == "splash" or tower_data.type == "special":
 		projectile.is_splash_projectile = true
@@ -479,8 +482,6 @@ func spawn_projectile(enemy):
 		else:
 			# Fallback to a default splash radius if array is too small
 			projectile.splash_radius = 50.0
-	else:
-		get_tree().current_scene.add_child(projectile)
 	
 	# Handle launching based on projectile speed
 	if projectile_speed == 0:

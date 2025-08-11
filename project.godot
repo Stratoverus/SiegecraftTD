@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+ProfileManager="*res://scripts/ProfileManager.gd"
 GameModeManager="*res://GameModeManager.gd"
 AchievementManager="*res://scripts/AchievementManager.gd"
 HouseSkinManager="*res://scripts/HouseSkinManager.gd"

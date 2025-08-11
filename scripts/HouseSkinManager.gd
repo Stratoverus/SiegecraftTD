@@ -45,6 +45,7 @@ func set_selected_skin(skin_id: int):
 		selected_skin_id = skin_id
 		skin_changed.emit(skin_id)
 		save_selected_skin()
+		sync_to_profile()  # Sync to profile
 		print("House skin changed to: " + get_skin_name(skin_id))
 	else:
 		print("Skin " + str(skin_id) + " is not unlocked!")
@@ -118,3 +119,22 @@ func load_selected_skin():
 				selected_skin_id = 1
 	else:
 		selected_skin_id = 1  # Default skin
+
+# Profile system integration methods
+func load_from_profile(profile_selected_skin: int):
+	"""Load skin selection from a profile"""
+	# Verify the skin is still unlocked
+	var achievement_manager = get_node("/root/AchievementManager")
+	if achievement_manager and achievement_manager.is_skin_unlocked(profile_selected_skin):
+		selected_skin_id = profile_selected_skin
+	else:
+		selected_skin_id = 1  # Fallback to default
+	
+	# Emit signal to update UI
+	skin_changed.emit(selected_skin_id)
+
+func sync_to_profile():
+	"""Sync current skin selection to profile"""
+	var profile_manager = get_node("/root/ProfileManager")
+	if profile_manager:
+		profile_manager.sync_from_subsystems()

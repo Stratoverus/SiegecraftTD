@@ -300,3 +300,31 @@ func reset_achievements():
 	levels_completed_perfect = 0
 	game_modes_completed.clear()
 	save_achievements()
+
+# Profile system integration methods
+func load_from_profile(profile_achievements: Dictionary, profile_unlocked_skins: Array):
+	"""Load achievement data from a profile"""
+	achievements = profile_achievements
+	
+	# Convert the generic Array to Array[int] properly
+	unlocked_skins.clear()
+	for skin_id in profile_unlocked_skins:
+		unlocked_skins.append(skin_id as int)
+	
+	# Ensure skin1 is always unlocked
+	if not unlocked_skins.has(1):
+		unlocked_skins.append(1)
+
+func sync_to_profile():
+	"""Sync current achievement data to profile"""
+	var profile_manager = get_node("/root/ProfileManager")
+	if profile_manager:
+		profile_manager.sync_from_subsystems()
+
+func _on_achievement_unlocked(_achievement_id: String):
+	"""Handle achievement unlocked - sync to profile"""
+	sync_to_profile()
+
+func _on_skin_unlocked(_skin_id: int):
+	"""Handle skin unlocked - sync to profile"""
+	sync_to_profile()

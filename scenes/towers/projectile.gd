@@ -154,7 +154,7 @@ func create_splash_damage():
 	# Prevent multiple splash damage applications
 	if has_hit_target:
 		return
-	
+		
 	# Validate that impact location is on road tile
 	var main_scene = get_tree().current_scene
 	if main_scene.has_method("is_position_on_road_tile"):

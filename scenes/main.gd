@@ -28,6 +28,10 @@ var tower_menu_cooldown_for: Node2D = null
 
 # Game mode system
 var current_game_mode = null
+
+# Profile stat tracking
+var start_time: float = 0.0
+var session_play_time: float = 0.0  # Track play time for this session only
 var current_wave_number: int = 1
 var current_wave_data = null
 var wave_timer: float = 0.0
@@ -57,6 +61,13 @@ var tooltip_pending_is_upgrade: bool = false
 
 func _ready():
 	add_to_group("main_game")
+	
+	# Track profile stats for starting a new game
+	var profile = get_node("/root/ProfileManager")
+	if profile:
+		profile.update_stat("games_played", 1)
+		start_time = Time.get_ticks_msec() / 1000.0  # Convert to seconds
+	
 	load_map("res://scenes/map.tscn")
 	update_ui()
 	hide_all_grid_overlays()
@@ -70,15 +81,22 @@ func _ready():
 	# Initialize achievement system
 	setup_achievement_system()
 	
+	# Add restart checkpoint button to pause menu
+	add_restart_checkpoint_button()
+	
 	# Check if we should load a saved game
 	var game_mode_manager = get_node("/root/GameModeManager")
 	var should_load_save = false
+	var should_load_checkpoint = false
 	var save_slot = -1
 	
 	if game_mode_manager and game_mode_manager.has_meta("load_save_slot"):
 		save_slot = game_mode_manager.get_meta("load_save_slot")
 		game_mode_manager.remove_meta("load_save_slot")
 		should_load_save = true
+	elif game_mode_manager and game_mode_manager.has_meta("load_checkpoint"):
+		game_mode_manager.remove_meta("load_checkpoint")
+		should_load_checkpoint = true
 	
 	if should_load_save:
 		# Load the saved game
@@ -91,6 +109,17 @@ func _ready():
 			else:
 				# Load failed, continue with normal initialization
 				show_notification("Failed to load save!")
+	elif should_load_checkpoint:
+		# Load the checkpoint save
+		var save_manager = get_node("/root/SaveManager")
+		if save_manager:
+			var success = save_manager.load_checkpoint_save(self)
+			if success:
+				# The checkpoint has been loaded, return early
+				return
+			else:
+				# Load failed, continue with normal initialization
+				show_notification("Failed to load checkpoint!")
 	
 	# Initialize game mode system (only if not loaded from save)
 	initialize_game_mode()
@@ -100,7 +129,7 @@ func _ready():
 		update_game_mode_ui()
 
 # Preload fallback game mode
-const DEFAULT_GAME_MODE = preload("res://assets/gameMode/normalModeComplete.tres")
+const DEFAULT_GAME_MODE = preload("res://assets/gameMode/normalMode.tres")
 
 # Game mode system functions
 func initialize_game_mode():
@@ -260,6 +289,8 @@ func handle_game_mode_timing(delta):
 			if int(endless_survival_time) % 120 == 0 and endless_survival_time > 0:
 				var save_manager = get_node("/root/SaveManager")
 				if save_manager:
+					# Save current session stats before creating checkpoint
+					save_session_stats()
 					save_manager.create_checkpoint_save(self)
 	else:
 		# Wave-based mode timing
@@ -332,6 +363,14 @@ func wave_complete():
 	if achievement_manager:
 		achievement_manager.track_wave_survived(current_wave_number)
 	
+	# Track profile stats for wave completion
+	var profile_manager = get_node("/root/ProfileManager")
+	if profile_manager:
+		profile_manager.update_stat("total_waves_survived", 1)
+		var current_highest = profile_manager.get_stat("highest_wave_reached")
+		if current_wave_number > current_highest:
+			profile_manager.set_stat("highest_wave_reached", current_wave_number)
+	
 	# Note: Endless mode no longer uses wave completion - it's continuous
 	if current_game_mode.mode_type != "endless":
 		# In wave mode, check if there are more waves
@@ -348,6 +387,13 @@ func wave_complete():
 			# All waves complete - victory!
 			print("All waves complete! Victory!")
 			
+			# Track profile stats for victory
+			var profile = get_node("/root/ProfileManager")
+			if profile:
+				profile.update_stat("times_won", 1)
+				# Track play time for this session only
+				profile.update_stat("total_play_time", int(session_play_time))
+		
 		# Track achievement progress for level completion
 		var achievement_mgr = get_node("/root/AchievementManager")
 		if achievement_mgr:
@@ -355,11 +401,11 @@ func wave_complete():
 			var mode_name = ""
 			if current_game_mode:
 				mode_name = current_game_mode.mode_name
-			achievement_mgr.track_level_completed(perfect_run, mode_name)
-	
-	# Create checkpoint save AFTER wave progression is set up
+			achievement_mgr.track_level_completed(perfect_run, mode_name)	# Create checkpoint save AFTER wave progression is set up
 	var save_manager = get_node("/root/SaveManager")
 	if save_manager:
+		# Save current session stats before creating checkpoint
+		save_session_stats()
 		save_manager.create_checkpoint_save(self)
 		print("Checkpoint saved after wave ", current_wave_number - 1, " completed, ready for wave ", current_wave_number)
 			# TODO: Add victory screen
@@ -528,6 +574,9 @@ func _process(delta):
 		if tower_menu_click_cooldown == 0.0:
 			tower_menu_cooldown_for = null
 	
+	# Track play time for this session (but don't save continuously)
+	session_play_time += delta
+	
 	# Handle game mode timing
 	if current_game_mode != null:
 		handle_game_mode_timing(delta)
@@ -692,10 +741,15 @@ func can_afford(cost: int) -> bool:
 func spend_gold(amount: int):
 	gold -= amount
 	update_ui()
+	# Also update tower upgrade UI if tower menu is open
+	update_tower_upgrade_ui()
 
 
 func earn_gold(amount: int):
 	gold += amount
+	update_ui()
+	# Also update tower upgrade UI if tower menu is open
+	update_tower_upgrade_ui()
 	update_ui()
 
 
@@ -838,6 +892,36 @@ func update_ui():
 	
 	# Update tower button states based on current gold
 	update_tower_button_costs()
+
+func update_tower_upgrade_ui():
+	"""Update the tower upgrade button state when gold changes"""
+	if not selected_tower or not $TowerMenu.visible:
+		return
+		
+	var menu = $TowerMenu
+	var upgrade_button = menu.get_node("upgradeButton")
+	
+	if selected_tower.level >= 3:
+		# Tower is max level, no changes needed
+		return
+	
+	# Update upgrade button affordability
+	var next_level = selected_tower.level + 1
+	var upgrade_cost = selected_tower.tower_data.cost[next_level - 1] if selected_tower.tower_data.cost.size() >= next_level else 0
+	var can_afford_upgrade = can_afford(upgrade_cost)
+	
+	upgrade_button.disabled = not can_afford_upgrade
+	
+	# Update visual appearance
+	var upgrade_cost_label = upgrade_button.get_node("upgradeCost") if upgrade_button.has_node("upgradeCost") else null
+	if can_afford_upgrade:
+		upgrade_button.modulate = Color.WHITE
+		if upgrade_cost_label:
+			upgrade_cost_label.add_theme_color_override("font_color", Color.WHITE)
+	else:
+		upgrade_button.modulate = Color(0.5, 0.5, 0.5, 1.0)
+		if upgrade_cost_label:
+			upgrade_cost_label.add_theme_color_override("font_color", Color.RED)
 	
 	# Update health bar
 	var health_bar = $CanvasLayer/ui/HealthBar
@@ -877,6 +961,13 @@ func update_ui():
 
 func game_over():
 	"""Handle game over logic"""
+	
+	# Track profile stats for loss
+	var profile = get_node("/root/ProfileManager")
+	if profile:
+		profile.update_stat("times_lost", 1)
+		# Track play time for this session only
+		profile.update_stat("total_play_time", int(session_play_time))
 	
 	# Pause the game
 	get_tree().paused = true
@@ -983,12 +1074,17 @@ func add_tower(tower_scene: PackedScene, tower_position: Vector2, cost: int):
 		build_instance.position = tower_position
 		build_instance.set_meta("initial_tower_data", selected_tower_data)
 		$TowerContainer.add_child(build_instance)
-	spend_gold(cost)
+		spend_gold(cost)
+		
+		# Track achievement progress
+		var achievement_manager = get_node("/root/AchievementManager")
+		if achievement_manager:
+			achievement_manager.track_tower_built()
 	
-	# Track achievement progress
-	var achievement_manager = get_node("/root/AchievementManager")
-	if achievement_manager:
-		achievement_manager.track_tower_built()
+	# Track profile stats
+	var profile_manager = get_node("/root/ProfileManager")
+	if profile_manager:
+		profile_manager.update_stat("total_towers_built", 1)
 
 func can_place_tower_at(pos: Vector2) -> bool:
 	var tilemap = $LevelContainer/map/tileLayer1
@@ -1338,6 +1434,77 @@ func _on_quit_desktop_pressed() -> void:
 	get_tree().quit()
 
 
+func _on_quit_menu_pressed() -> void:
+	# Unpause the game and return to main menu
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+
+func add_restart_checkpoint_button():
+	"""Add restart checkpoint button to pause menu"""
+	if not has_node("pauseFade/gameMenu"):
+		return
+		
+	var game_menu = $pauseFade/gameMenu
+	
+	# Check if button already exists
+	for child in game_menu.get_children():
+		if child.name == "RestartCheckpointButton":
+			return  # Already added
+	
+	# Create the restart checkpoint button
+	var restart_btn = Button.new()
+	restart_btn.name = "RestartCheckpointButton"
+	restart_btn.text = "Restart Checkpoint"
+	
+	# Since it's in a VBoxContainer, just add it and let the container handle positioning
+	restart_btn.pressed.connect(_on_restart_checkpoint_pressed)
+	
+	# Add it before the quit buttons (after settings if it exists)
+	var settings_index = -1
+	for i in range(game_menu.get_child_count()):
+		var child = game_menu.get_child(i)
+		if child.name == "settings":
+			settings_index = i
+			break
+	
+	if settings_index >= 0:
+		game_menu.add_child(restart_btn)
+		game_menu.move_child(restart_btn, settings_index + 1)
+	else:
+		game_menu.add_child(restart_btn)
+
+func _on_restart_checkpoint_pressed() -> void:
+	# Restart from the checkpoint save like the Continue button in main menu
+	var save_manager = get_node("/root/SaveManager")
+	if not save_manager:
+		print("No save manager available")
+		show_notification("Failed to restart!")
+		return
+	
+	# Unpause the game first
+	get_tree().paused = false
+	
+	# Store the load flag for the main scene (same as Continue button)
+	var game_mode_manager = get_node("/root/GameModeManager")
+	if game_mode_manager:
+		game_mode_manager.set_meta("load_checkpoint", true)
+	
+	# Transition to main scene (it will auto-load checkpoint in _ready)
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
+
+func save_session_stats():
+	"""Save current session statistics to profile (only called on save/victory/defeat)"""
+	var profile_manager = get_node("/root/ProfileManager")
+	if profile_manager:
+		# Save current session play time
+		profile_manager.update_stat("total_play_time", int(session_play_time))
+		
+		# Reset session timer for next session
+		session_play_time = 0.0
+		
+		print("Session stats saved to profile")
+
+
 #for tower placement, get position
 func get_snapped_position(mouse_pos: Vector2) -> Vector2:
 	var tilemap = $LevelContainer/map/tileLayer1
@@ -1530,6 +1697,12 @@ func _on_enemy_died(gold_earned):
 	if achievement_manager:
 		achievement_manager.track_enemy_defeated()
 		achievement_manager.track_gold_earned(scaled_gold)
+	
+	# Track profile stats
+	var profile_manager = get_node("/root/ProfileManager")
+	if profile_manager:
+		profile_manager.update_stat("total_enemies_defeated", 1)
+		profile_manager.update_stat("total_gold_earned", scaled_gold)
 	
 	# Track enemies killed in endless mode
 	if current_game_mode != null and current_game_mode.mode_type == "endless":
