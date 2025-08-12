@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dtpy00bjir1ys"
+path="res://.godot/imported/Imminent Threat TRANS TO ROCK.wav-db0bebd8a233e39351f9813a2e63e2f4.sample"
+
+[deps]
+
+source_file="res://assets/sounds/music/Imminent Threat Collection/Loops/Imminent Threat TRANS TO ROCK.wav"
+dest_files=["res://.godot/imported/Imminent Threat TRANS TO ROCK.wav-db0bebd8a233e39351f9813a2e63e2f4.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

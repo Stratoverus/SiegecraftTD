@@ -231,6 +231,16 @@ func collect_game_state(main_scene: Node) -> Dictionary:
 		"map_path": "",
 		"path_points": main_scene.path_points,
 		
+		# Session stats (reset each new game, preserved during checkpoints)
+		"session_enemies_killed": main_scene.session_enemies_killed,
+		"session_towers_built": main_scene.session_towers_built,
+		"session_gold_earned": main_scene.session_gold_earned,
+		"session_gold_spent": main_scene.session_gold_spent,
+		"session_waves_completed": main_scene.session_waves_completed,
+		"session_starting_health": main_scene.session_starting_health,
+		"session_perfect_run": main_scene.session_perfect_run,
+		"session_play_time": main_scene.session_play_time,
+		
 		# Play time tracking
 		"total_play_time": 0.0  # Could add play time tracking later
 	}
@@ -312,6 +322,24 @@ func apply_game_state(save_data: Dictionary, main_scene: Node):
 	main_scene.current_spawn_group_index = save_data.get("current_spawn_group_index", 0)
 	main_scene.enemies_spawned_in_group = save_data.get("enemies_spawned_in_group", 0)
 	main_scene.spawn_timer = save_data.get("spawn_timer", 0.0)
+	
+	# Apply session stats (if present, otherwise keep current values)
+	if save_data.has("session_enemies_killed"):
+		main_scene.session_enemies_killed = save_data.get("session_enemies_killed", 0)
+		main_scene.session_towers_built = save_data.get("session_towers_built", 0)
+		main_scene.session_gold_earned = save_data.get("session_gold_earned", 0)
+		main_scene.session_gold_spent = save_data.get("session_gold_spent", 0)
+		main_scene.session_waves_completed = save_data.get("session_waves_completed", 0)
+		main_scene.session_starting_health = save_data.get("session_starting_health", 100)
+		main_scene.session_perfect_run = save_data.get("session_perfect_run", true)
+		main_scene.session_play_time = save_data.get("session_play_time", 0.0)
+		print("Session stats restored from save:")
+		print("  - Enemies killed: ", main_scene.session_enemies_killed)
+		print("  - Towers built: ", main_scene.session_towers_built)
+		print("  - Waves completed: ", main_scene.session_waves_completed)
+		print("  - Play time: ", main_scene.session_play_time)
+	else:
+		print("No session stats in save data, keeping current values")
 	
 	# Load game mode
 	var game_mode_path = save_data.get("game_mode_path", "")
@@ -597,6 +625,11 @@ func create_checkpoint_save(main_scene: Node):
 	file.store_string(JSON.stringify(save_data))
 	file.close()
 	
+	print("Checkpoint saved with session stats:")
+	print("  - Enemies killed: ", save_data.get("session_enemies_killed", 0))
+	print("  - Towers built: ", save_data.get("session_towers_built", 0))
+	print("  - Waves completed: ", save_data.get("session_waves_completed", 0))
+	print("  - Play time: ", save_data.get("session_play_time", 0.0))
 	print("Checkpoint saved")
 
 func has_checkpoint_save() -> bool:
@@ -642,10 +675,8 @@ func load_checkpoint_save(main_scene: Node) -> bool:
 
 func ensure_systems_loaded():
 	"""Ensure all singletons are properly loaded after loading a save"""
-	# Reload achievements
-	var achievement_manager = get_node("/root/AchievementManager")
-	if achievement_manager:
-		achievement_manager.load_achievements()
+	# Note: Achievements are now loaded via ProfileManager, not directly
+	print("SaveManager: ensure_systems_loaded() - achievements now loaded via ProfileManager")
 	
 	# Reload house skin selection
 	var house_skin_manager = get_node("/root/HouseSkinManager")

@@ -32,6 +32,16 @@ var current_game_mode = null
 # Profile stat tracking
 var start_time: float = 0.0
 var session_play_time: float = 0.0  # Track play time for this session only
+
+# Session-only stats (reset each game)
+var session_enemies_killed: int = 0
+var session_towers_built: int = 0
+var session_gold_earned: int = 0
+var session_gold_spent: int = 0
+var session_waves_completed: int = 0
+var session_starting_health: int = 100
+var session_perfect_run: bool = true
+
 var current_wave_number: int = 1
 var current_wave_data = null
 var wave_timer: float = 0.0
@@ -62,11 +72,28 @@ var tooltip_pending_is_upgrade: bool = false
 func _ready():
 	add_to_group("main_game")
 	
+	# Initialize session stats
+	reset_session_stats()
+	
 	# Track profile stats for starting a new game
 	var profile = get_node("/root/ProfileManager")
 	if profile:
 		profile.update_stat("games_played", 1)
+		# Note: This stat will be saved at the next auto-save or victory/defeat screen
 		start_time = Time.get_ticks_msec() / 1000.0  # Convert to seconds
+
+func reset_session_stats():
+	"""Reset all session statistics for a new game/load
+	Note: Session stats are preserved across saves/loads within the same playthrough.
+	They only reset when starting a completely new game."""
+	session_enemies_killed = 0
+	session_towers_built = 0
+	session_gold_earned = 0
+	session_gold_spent = 0
+	session_waves_completed = 0
+	session_starting_health = health  # Store starting health
+	session_perfect_run = true
+	session_play_time = 0.0
 	
 	load_map("res://scenes/map.tscn")
 	update_ui()
@@ -104,6 +131,7 @@ func _ready():
 		if save_manager:
 			var success = save_manager.load_game(save_slot, self)
 			if success:
+				# Don't reset session stats when loading a game - they should be restored from save
 				# The game state has been loaded, return early
 				return
 			else:
@@ -115,6 +143,7 @@ func _ready():
 		if save_manager:
 			var success = save_manager.load_checkpoint_save(self)
 			if success:
+				# Don't reset session stats when loading a checkpoint - they should be restored from save
 				# The checkpoint has been loaded, return early
 				return
 			else:
@@ -289,8 +318,7 @@ func handle_game_mode_timing(delta):
 			if int(endless_survival_time) % 120 == 0 and endless_survival_time > 0:
 				var save_manager = get_node("/root/SaveManager")
 				if save_manager:
-					# Save current session stats before creating checkpoint
-					save_session_stats()
+					# Create checkpoint save (session stats are included automatically)
 					save_manager.create_checkpoint_save(self)
 	else:
 		# Wave-based mode timing
@@ -358,10 +386,14 @@ func spawn_enemy_with_scaling(enemy_path_points, enemy_data_path: String):
 func wave_complete():
 	is_wave_active = false
 	
+	# Track session stats
+	session_waves_completed += 1
+	
 	# Track achievement progress for wave completion
 	var achievement_manager = get_node("/root/AchievementManager")
 	if achievement_manager:
-		achievement_manager.track_wave_survived(current_wave_number)
+		var mode_name = current_game_mode.mode_name if current_game_mode else "Unknown"
+		achievement_manager.track_wave_survived(current_wave_number, mode_name)
 	
 	# Track profile stats for wave completion
 	var profile_manager = get_node("/root/ProfileManager")
@@ -386,29 +418,15 @@ func wave_complete():
 		else:
 			# All waves complete - victory!
 			print("All waves complete! Victory!")
-			
-			# Track profile stats for victory
-			var profile = get_node("/root/ProfileManager")
-			if profile:
-				profile.update_stat("times_won", 1)
-				# Track play time for this session only
-				profile.update_stat("total_play_time", int(session_play_time))
-		
-		# Track achievement progress for level completion
-		var achievement_mgr = get_node("/root/AchievementManager")
-		if achievement_mgr:
-			var perfect_run = (health == 100)  # Perfect if no health lost (starts at 100)
-			var mode_name = ""
-			if current_game_mode:
-				mode_name = current_game_mode.mode_name
-			achievement_mgr.track_level_completed(perfect_run, mode_name)	# Create checkpoint save AFTER wave progression is set up
+			victory()
+			return
+	
+	# Create checkpoint save AFTER wave progression is set up
 	var save_manager = get_node("/root/SaveManager")
 	if save_manager:
-		# Save current session stats before creating checkpoint
-		save_session_stats()
+		# Create checkpoint save (session stats are included automatically)
 		save_manager.create_checkpoint_save(self)
 		print("Checkpoint saved after wave ", current_wave_number - 1, " completed, ready for wave ", current_wave_number)
-			# TODO: Add victory screen
 
 func update_game_mode_ui():
 	# Update round/timer display
@@ -740,6 +758,7 @@ func can_afford(cost: int) -> bool:
 
 func spend_gold(amount: int):
 	gold -= amount
+	session_gold_spent += amount
 	update_ui()
 	# Also update tower upgrade UI if tower menu is open
 	update_tower_upgrade_ui()
@@ -747,6 +766,7 @@ func spend_gold(amount: int):
 
 func earn_gold(amount: int):
 	gold += amount
+	session_gold_earned += amount
 	update_ui()
 	# Also update tower upgrade UI if tower menu is open
 	update_tower_upgrade_ui()
@@ -755,6 +775,8 @@ func earn_gold(amount: int):
 
 func take_damage(amount: int):
 	health -= amount
+	if session_perfect_run and health < session_starting_health:
+		session_perfect_run = false
 	update_ui()
 	if health <= 0:
 		game_over()
@@ -892,6 +914,41 @@ func update_ui():
 	
 	# Update tower button states based on current gold
 	update_tower_button_costs()
+	
+	# Update health bar
+	var health_bar = $CanvasLayer/ui/HealthBar
+	var health_label = $CanvasLayer/ui/HealthBar/Label
+	if health_bar:		
+		health_bar.max_value = 100  # Assuming max health is 100
+		health_bar.step = 1.0  # Ensure step is 1
+		
+		# Use call_deferred to ensure the UI updates properly
+		health_bar.call_deferred("set_value", health)
+		
+		# Update health label to show current/max health
+		if health_label:
+			health_label.text = str(health) + "/100"
+		
+		# Change health bar color based on health level by modifying the fill style
+		var health_percentage = float(health) / 100.0
+		var fill_style = health_bar.get_theme_stylebox("fill")
+		if fill_style:
+			var new_style = fill_style.duplicate()
+			if health_percentage > 0.6:
+				new_style.bg_color = Color.GREEN
+			elif health_percentage > 0.3:
+				new_style.bg_color = Color.YELLOW
+			else:
+				new_style.bg_color = Color.RED
+			health_bar.add_theme_stylebox_override("fill", new_style)
+		else:
+			# Fallback to self_modulate if no style found
+			if health_percentage > 0.6:
+				health_bar.self_modulate = Color.GREEN
+			elif health_percentage > 0.3:
+				health_bar.self_modulate = Color.YELLOW
+			else:
+				health_bar.self_modulate = Color.RED
 
 func update_tower_upgrade_ui():
 	"""Update the tower upgrade button state when gold changes"""
@@ -967,13 +1024,56 @@ func game_over():
 	if profile:
 		profile.update_stat("times_lost", 1)
 		# Track play time for this session only
-		profile.update_stat("total_play_time", int(session_play_time))
+		profile.add_play_time(session_play_time)
+		# Save stats to disk (this is one of the allowed save times)
+		profile.save_profile_stats()
 	
 	# Pause the game
 	get_tree().paused = true
 	
 	# Create and show game over screen
 	show_game_over_screen()
+
+func victory():
+	"""Handle victory logic"""
+	
+	print("=== VICTORY ACHIEVED ===")
+	print("Session Stats:")
+	print("  Waves Completed: ", session_waves_completed)
+	print("  Enemies Killed: ", session_enemies_killed)
+	print("  Towers Built: ", session_towers_built)
+	print("  Gold Earned: ", session_gold_earned)
+	print("  Gold Spent: ", session_gold_spent)
+	print("  Perfect Run: ", session_perfect_run)
+	print("  Play Time: ", session_play_time, " seconds")
+	
+	# Track profile stats for victory
+	var profile = get_node("/root/ProfileManager")
+	if profile:
+		profile.update_stat("times_won", 1)
+		# Track play time for this session only
+		profile.add_play_time(session_play_time)
+		# Save stats to disk (this is one of the allowed save times)
+		profile.save_profile_stats()
+	
+	# Track achievement progress for level completion
+	var achievement_mgr = get_node("/root/AchievementManager")
+	if achievement_mgr:
+		var perfect_run = (health == 100)  # Perfect if no health lost (starts at 100)
+		var mode_name = ""
+		if current_game_mode:
+			mode_name = current_game_mode.mode_name
+		achievement_mgr.track_level_completed(perfect_run, mode_name)
+		
+		# Track total waves completed for this mode
+		if current_game_mode and current_game_mode.mode_type != "endless":
+			achievement_mgr.track_mode_waves_completed(current_wave_number, mode_name)
+	
+	# Pause the game
+	get_tree().paused = true
+	
+	# Create and show victory screen
+	show_victory_screen()
 
 func show_game_over_screen():
 	"""Display the game over screen with options"""
@@ -1054,12 +1154,294 @@ func _on_restart_pressed():
 
 func _on_main_menu_pressed():
 	"""Return to main menu"""
+	print("Main menu button pressed!")
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 func _on_quit_pressed():
 	"""Quit the game"""
+	print("Quit button pressed!")
 	get_tree().quit()
+
+func show_victory_screen():
+	"""Display the victory screen with options"""
+	# Create a semi-transparent overlay
+	var overlay = ColorRect.new()
+	overlay.color = Color(0, 0, 0, 0.7)  # Semi-transparent black
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP  # Block input to underlying UI
+	overlay.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	
+	# Create victory panel
+	var panel = Panel.new()
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	panel.custom_minimum_size = Vector2(500, 400)
+	panel.position = Vector2(-250, -200)  # Center the panel
+	panel.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	
+	# Create vertical box container for layout
+	var vbox = VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vbox.add_theme_constant_override("separation", 15)
+	vbox.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	
+	# Victory title
+	var title = Label.new()
+	title.text = "VICTORY!"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color.GREEN)
+	
+	# Basic victory message
+	var victory_msg = Label.new()
+	var mode_name = current_game_mode.mode_name if current_game_mode else "Unknown"
+	var perfect_text = " (Perfect Run!)" if session_perfect_run else ""
+	victory_msg.text = "You successfully defended against all waves!\nMode: %s%s" % [mode_name, perfect_text]
+	victory_msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	victory_msg.add_theme_font_size_override("font_size", 16)
+	
+	# Quick stats summary
+	var quick_stats = Label.new()
+	var minutes = int(session_play_time / 60)
+	var seconds = int(session_play_time) % 60
+	quick_stats.text = "Time: %02d:%02d | Waves: %d | Final Gold: %d | Health: %d" % [minutes, seconds, session_waves_completed, gold, health]
+	quick_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	quick_stats.add_theme_font_size_override("font_size", 14)
+	
+	# View Detailed Stats button
+	var stats_btn = Button.new()
+	stats_btn.text = "View Detailed Stats"
+	stats_btn.custom_minimum_size = Vector2(200, 50)
+	stats_btn.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	stats_btn.connect("pressed", Callable(self, "_on_view_stats_pressed"))
+	
+	# Main menu button
+	var menu_btn = Button.new()
+	menu_btn.text = "Return to Main Menu"
+	menu_btn.custom_minimum_size = Vector2(200, 50)
+	menu_btn.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	menu_btn.connect("pressed", Callable(self, "_on_main_menu_pressed"))
+	
+	# Quit button
+	var quit_btn = Button.new()
+	quit_btn.text = "Quit Game"
+	quit_btn.custom_minimum_size = Vector2(200, 50)
+	quit_btn.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	quit_btn.connect("pressed", Callable(self, "_on_quit_pressed"))
+	
+	# Add spacers for centering buttons
+	var spacer1 = Control.new()
+	spacer1.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var spacer2 = Control.new()
+	spacer2.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	
+	# Add elements to layout
+	vbox.add_child(spacer1)
+	vbox.add_child(title)
+	vbox.add_child(victory_msg)
+	vbox.add_child(quick_stats)
+	vbox.add_child(stats_btn)
+	vbox.add_child(menu_btn)
+	vbox.add_child(quit_btn)
+	vbox.add_child(spacer2)
+	
+	panel.add_child(vbox)
+	overlay.add_child(panel)
+	
+	# Add to scene with high z-index
+	$CanvasLayer.add_child(overlay)
+	overlay.z_index = 100
+
+func _on_victory_continue_pressed():
+	"""Continue playing after victory"""
+	get_tree().paused = false
+	if current_game_mode.mode_type == "endless":
+		# For endless mode, just continue the current game
+		pass
+	else:
+		# For other modes, restart the level
+		get_tree().reload_current_scene()
+
+func _on_view_stats_pressed():
+	"""Show detailed session stats popup"""
+	print("View stats button pressed!")
+	# Create a new overlay for the stats popup
+	var stats_overlay = ColorRect.new()
+	stats_overlay.color = Color(0, 0, 0, 0.8)  # Darker overlay
+	stats_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	stats_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	stats_overlay.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	
+	# Create stats panel
+	var stats_panel = Panel.new()
+	stats_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	stats_panel.custom_minimum_size = Vector2(600, 500)
+	stats_panel.position = Vector2(-300, -250)
+	stats_panel.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	
+	# Create scroll container for stats
+	var scroll = ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.add_theme_constant_override("margin_left", 20)
+	scroll.add_theme_constant_override("margin_right", 20)
+	scroll.add_theme_constant_override("margin_top", 20)
+	scroll.add_theme_constant_override("margin_bottom", 60)
+	
+	# Create vertical box for stats content
+	var stats_vbox = VBoxContainer.new()
+	stats_vbox.add_theme_constant_override("separation", 10)
+	
+	# Stats title
+	var stats_title = Label.new()
+	stats_title.text = "Session Statistics"
+	stats_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats_title.add_theme_font_size_override("font_size", 24)
+	stats_title.add_theme_color_override("font_color", Color.CYAN)
+	
+	# Game info section
+	var game_info = Label.new()
+	var mode_name = current_game_mode.mode_name if current_game_mode else "Unknown"
+	var minutes = int(session_play_time / 60)
+	var seconds = int(session_play_time) % 60
+	game_info.text = "=== GAME INFORMATION ===\nMode: %s\nPlay Time: %02d:%02d\nPerfect Run: %s" % [
+		mode_name, 
+		minutes, 
+		seconds, 
+		"Yes" if session_perfect_run else "No"
+	]
+	game_info.add_theme_font_size_override("font_size", 16)
+	
+	# Combat stats section
+	var combat_stats = Label.new()
+	combat_stats.text = "\n=== COMBAT STATISTICS ===\nWaves Completed: %d\nEnemies Defeated: %d\nTowers Built: %d" % [
+		session_waves_completed,
+		session_enemies_killed,
+		session_towers_built
+	]
+	combat_stats.add_theme_font_size_override("font_size", 16)
+	
+	# Economic stats section
+	var economic_stats = Label.new()
+	var net_gold = session_gold_earned - session_gold_spent
+	economic_stats.text = "\n=== ECONOMIC STATISTICS ===\nGold Earned: %d\nGold Spent: %d\nNet Gold: %d\nEnding Gold: %d" % [
+		session_gold_earned,
+		session_gold_spent,
+		net_gold,
+		gold
+	]
+	economic_stats.add_theme_font_size_override("font_size", 16)
+	
+	# Defensive stats section
+	var defensive_stats = Label.new()
+	var damage_taken = session_starting_health - health
+	defensive_stats.text = "\n=== DEFENSIVE STATISTICS ===\nStarting Health: %d\nDamage Taken: %d\nHealth Remaining: %d\nSurvival Rate: %.1f%%" % [
+		session_starting_health,
+		damage_taken,
+		health,
+		(float(health) / float(session_starting_health)) * 100.0
+	]
+	defensive_stats.add_theme_font_size_override("font_size", 16)
+	
+	# Performance ratings
+	var performance = Label.new()
+	var rating = get_performance_rating()
+	performance.text = "\n=== PERFORMANCE RATING ===\nOverall Grade: %s" % rating
+	performance.add_theme_font_size_override("font_size", 16)
+	performance.add_theme_color_override("font_color", get_rating_color(rating))
+	
+	# Close button
+	var close_btn = Button.new()
+	close_btn.text = "Close"
+	close_btn.custom_minimum_size = Vector2(150, 40)
+	close_btn.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	close_btn.position = Vector2(-170, -50)
+	close_btn.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	close_btn.connect("pressed", Callable(self, "_on_close_stats_pressed").bind(stats_overlay))
+	
+	# Add all elements
+	stats_vbox.add_child(stats_title)
+	stats_vbox.add_child(game_info)
+	stats_vbox.add_child(combat_stats)
+	stats_vbox.add_child(economic_stats)
+	stats_vbox.add_child(defensive_stats)
+	stats_vbox.add_child(performance)
+	
+	scroll.add_child(stats_vbox)
+	stats_panel.add_child(scroll)
+	stats_panel.add_child(close_btn)
+	stats_overlay.add_child(stats_panel)
+	
+	# Add to scene with even higher z-index
+	$CanvasLayer.add_child(stats_overlay)
+	stats_overlay.z_index = 110
+
+func get_performance_rating() -> String:
+	"""Calculate performance rating based on session stats"""
+	var score = 0
+	
+	# Perfect run bonus
+	if session_perfect_run:
+		score += 30
+	
+	# Health remaining bonus (scaled)
+	score += int((float(health) / float(session_starting_health)) * 25)
+	
+	# Efficiency bonus (enemies killed per tower)
+	if session_towers_built > 0:
+		var efficiency = float(session_enemies_killed) / float(session_towers_built)
+		if efficiency >= 50:
+			score += 20
+		elif efficiency >= 30:
+			score += 15
+		elif efficiency >= 20:
+			score += 10
+		elif efficiency >= 10:
+			score += 5
+	
+	# Economic bonus (net positive gold)
+	if session_gold_earned > session_gold_spent:
+		score += 15
+	
+	# Time bonus (for completing quickly - less than 10 minutes)
+	if session_play_time < 600:  # 10 minutes
+		score += 10
+	
+	# Return letter grade
+	if score >= 85:
+		return "S"
+	elif score >= 75:
+		return "A"
+	elif score >= 65:
+		return "B"
+	elif score >= 50:
+		return "C"
+	elif score >= 35:
+		return "D"
+	else:
+		return "F"
+
+func get_rating_color(rating: String) -> Color:
+	"""Get color for performance rating"""
+	match rating:
+		"S":
+			return Color.GOLD
+		"A":
+			return Color.GREEN
+		"B":
+			return Color.CYAN
+		"C":
+			return Color.YELLOW
+		"D":
+			return Color.ORANGE
+		"F":
+			return Color.RED
+		_:
+			return Color.WHITE
+
+func _on_close_stats_pressed(stats_overlay: Control):
+	"""Close the stats popup"""
+	print("Close stats button pressed!")
+	stats_overlay.queue_free()
 
 
 # Call this to place a tower of the selected type and cost
@@ -1076,15 +1458,13 @@ func add_tower(tower_scene: PackedScene, tower_position: Vector2, cost: int):
 		$TowerContainer.add_child(build_instance)
 		spend_gold(cost)
 		
-		# Track achievement progress
+		# Track session stats
+		session_towers_built += 1
+		
+		# Track achievement and profile stats through AchievementManager
 		var achievement_manager = get_node("/root/AchievementManager")
 		if achievement_manager:
 			achievement_manager.track_tower_built()
-	
-	# Track profile stats
-	var profile_manager = get_node("/root/ProfileManager")
-	if profile_manager:
-		profile_manager.update_stat("total_towers_built", 1)
 
 func can_place_tower_at(pos: Vector2) -> bool:
 	var tilemap = $LevelContainer/map/tileLayer1
@@ -1175,6 +1555,20 @@ func _unhandled_input(event):
 		else:
 			$pauseFade.visible = true
 			get_tree().paused = true
+	
+	# Test achievement notification (T key) - for development testing
+	if event is InputEventKey and event.keycode == KEY_T and event.pressed:
+		var achievement_manager = get_node("/root/AchievementManager")
+		if achievement_manager:
+			# Show test notification WITHOUT actually unlocking the achievement
+			achievement_manager.test_achievement_notification("first_victory")
+	
+	# Test multiple achievements (Y key) - for testing queuing
+	if event is InputEventKey and event.keycode == KEY_Y and event.pressed:
+		var achievement_manager = get_node("/root/AchievementManager")
+		if achievement_manager:
+			# Show multiple test notifications with proper timing for queue testing
+			achievement_manager.test_multiple_notifications()
 
 
 func load_map(map_path):
@@ -1409,11 +1803,15 @@ func _on_tower_button_8_pressed() -> void:
 
 
 func _on_game_menu_pressed() -> void:
-	if $pauseFade.visible:
-		$pauseFade.visible = false
+	if $CanvasLayer/pauseFade.visible:
+		$CanvasLayer/pauseFade.visible = false
 		get_tree().paused = false
 	else:
-		$pauseFade.visible = true
+		# Reset to main pause menu when opening
+		$CanvasLayer/pauseFade/centerContainer/gameMenuPanel.visible = true
+		$CanvasLayer/pauseFade/centerContainer/settingsMenuPanel.visible = false
+		_apply_pause_menu_styling()
+		$CanvasLayer/pauseFade.visible = true
 		get_tree().paused = true
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
@@ -1422,12 +1820,95 @@ func _on_game_menu_pressed() -> void:
 
 
 func _on_resume_pressed() -> void:
-	$pauseFade.visible = false
+	$CanvasLayer/pauseFade.visible = false
 	get_tree().paused = false
 
 
+func _on_pause_settings_pressed() -> void:
+	"""Show the pause menu settings"""
+	$CanvasLayer/pauseFade/centerContainer/gameMenuPanel.visible = false
+	$CanvasLayer/pauseFade/centerContainer/settingsMenuPanel.visible = true
+	_apply_pause_menu_styling()
+	_setup_pause_settings_values()
+
+
+func _on_pause_settings_back_pressed() -> void:
+	"""Go back from pause settings to main pause menu"""
+	$CanvasLayer/pauseFade/centerContainer/settingsMenuPanel.visible = false
+	$CanvasLayer/pauseFade/centerContainer/gameMenuPanel.visible = true
+	_apply_pause_menu_styling()
+
+
+func _apply_pause_menu_styling() -> void:
+	"""Apply styled backgrounds to pause menu panels"""
+	# Style the main game menu panel
+	if $CanvasLayer/pauseFade/centerContainer/gameMenuPanel.visible:
+		var style_box = StyleBoxFlat.new()
+		style_box.bg_color = Color(0.05, 0.1, 0.15, 0.95)  # Dark blue-gray like notifications
+		style_box.border_color = Color(0.3, 0.6, 1.0, 0.8)  # Blue border like notifications
+		style_box.border_width_left = 3
+		style_box.border_width_right = 3
+		style_box.border_width_top = 3
+		style_box.border_width_bottom = 3
+		style_box.corner_radius_top_left = 12
+		style_box.corner_radius_top_right = 12
+		style_box.corner_radius_bottom_left = 12
+		style_box.corner_radius_bottom_right = 12
+		$CanvasLayer/pauseFade/centerContainer/gameMenuPanel.add_theme_stylebox_override("panel", style_box)
+	
+	# Style the settings menu panel
+	if $CanvasLayer/pauseFade/centerContainer/settingsMenuPanel.visible:
+		var style_box = StyleBoxFlat.new()
+		style_box.bg_color = Color(0.05, 0.1, 0.15, 0.95)  # Dark blue-gray like notifications
+		style_box.border_color = Color(0.3, 0.6, 1.0, 0.8)  # Blue border like notifications
+		style_box.border_width_left = 3
+		style_box.border_width_right = 3
+		style_box.border_width_top = 3
+		style_box.border_width_bottom = 3
+		style_box.corner_radius_top_left = 12
+		style_box.corner_radius_top_right = 12
+		style_box.corner_radius_bottom_left = 12
+		style_box.corner_radius_bottom_right = 12
+		$CanvasLayer/pauseFade/centerContainer/settingsMenuPanel.add_theme_stylebox_override("panel", style_box)
+
+
+func _setup_pause_settings_values() -> void:
+	"""Initialize pause menu settings values to match current settings"""
+	# Set fullscreen checkbox
+	$CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/fullscreen.button_pressed = true if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN else false
+	
+	# Set volume sliders to current values
+	$CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/mainVolSlider.value = db_to_linear(AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Master")))
+	$CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/musicVolSlider.value = db_to_linear(AudioServer.get_bus_volume_db(AudioServer.get_bus_index("MUSIC")))
+	$CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/sfxVolSlider.value = db_to_linear(AudioServer.get_bus_volume_db(AudioServer.get_bus_index("SFX")))
+
+
+func _on_pause_fullscreen_toggled(toggled_on: bool) -> void:
+	"""Handle fullscreen toggle from pause menu"""
+	if toggled_on:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
+
+
+func _on_pause_main_vol_slider_value_changed(value: float) -> void:
+	"""Handle main volume change from pause menu"""
+	AudioServer.set_bus_volume_linear(AudioServer.get_bus_index("Master"), value)
+
+
+func _on_pause_music_vol_slider_value_changed(value: float) -> void:
+	"""Handle music volume change from pause menu"""
+	AudioServer.set_bus_volume_linear(AudioServer.get_bus_index("MUSIC"), value)
+
+
+func _on_pause_sfx_vol_slider_value_changed(value: float) -> void:
+	"""Handle SFX volume change from pause menu"""
+	AudioServer.set_bus_volume_linear(AudioServer.get_bus_index("SFX"), value)
+
+
 func _on_quit_desktop_pressed() -> void:
-	# Show auto-save notification before quitting
+	# Save current session stats before quitting
+	save_session_stats()
 	show_notification("Game Auto-Saved!")
 	# Small delay to show the notification
 	await get_tree().create_timer(1.0).timeout
@@ -1435,6 +1916,8 @@ func _on_quit_desktop_pressed() -> void:
 
 
 func _on_quit_menu_pressed() -> void:
+	# Save current session stats before returning to menu
+	save_session_stats()
 	# Unpause the game and return to main menu
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
@@ -1497,10 +1980,13 @@ func save_session_stats():
 	var profile_manager = get_node("/root/ProfileManager")
 	if profile_manager:
 		# Save current session play time
-		profile_manager.update_stat("total_play_time", int(session_play_time))
+		profile_manager.add_play_time(session_play_time)
 		
 		# Reset session timer for next session
 		session_play_time = 0.0
+		
+		# Explicitly save the profile stats to disk
+		profile_manager.save_profile_stats()
 		
 		print("Session stats saved to profile")
 
@@ -1692,17 +2178,14 @@ func _on_enemy_died(gold_earned):
 	earn_gold(scaled_gold)
 	show_gold_feedback(scaled_gold)
 	
-	# Track achievement progress
+	# Track session stats
+	session_enemies_killed += 1
+	
+	# Track achievement and profile stats through AchievementManager
 	var achievement_manager = get_node("/root/AchievementManager")
 	if achievement_manager:
 		achievement_manager.track_enemy_defeated()
 		achievement_manager.track_gold_earned(scaled_gold)
-	
-	# Track profile stats
-	var profile_manager = get_node("/root/ProfileManager")
-	if profile_manager:
-		profile_manager.update_stat("total_enemies_defeated", 1)
-		profile_manager.update_stat("total_gold_earned", scaled_gold)
 	
 	# Track enemies killed in endless mode
 	if current_game_mode != null and current_game_mode.mode_type == "endless":
@@ -2063,6 +2546,7 @@ func setup_achievement_system():
 
 func _on_achievement_unlocked(achievement_id: String):
 	"""Handle achievement unlocked"""
+	print("Main: _on_achievement_unlocked called for: ", achievement_id)
 	var achievement_manager = get_node("/root/AchievementManager")
 	if achievement_manager:
 		var achievement_data = achievement_manager.achievement_definitions.get(achievement_id, {})
@@ -2070,7 +2554,10 @@ func _on_achievement_unlocked(achievement_id: String):
 		var achievement_description = achievement_data.get("description", "")
 		var unlocked_skin = achievement_data.get("unlocks_skin", -1)
 		
+		print("Main: Showing notification for: ", achievement_name)
 		show_achievement_notification(achievement_name, achievement_description, unlocked_skin)
+	else:
+		print("Main: No achievement manager found")
 
 func _on_skin_unlocked(skin_id: int):
 	"""Handle skin unlocked"""
@@ -2078,8 +2565,10 @@ func _on_skin_unlocked(skin_id: int):
 
 func show_achievement_notification(achievement_name: String, description: String, skin_id: int = -1):
 	"""Show an achievement notification"""
-	# For now, just print to console
-	# TODO: Implement proper notification UI
-	print("ACHIEVEMENT UNLOCKED: " + achievement_name + " - " + description)
-	if skin_id > 0:
-		print("New house skin unlocked: Skin " + str(skin_id))
+	print("Main: show_achievement_notification called for: ", achievement_name)
+	var achievement_popup = $CanvasLayer/AchievementNotification
+	if achievement_popup:
+		print("Main: Found achievement popup, calling show_achievement")
+		achievement_popup.show_achievement(achievement_name, description, skin_id)
+	else:
+		print("Main: Achievement popup not found at $CanvasLayer/AchievementNotification")

@@ -28,10 +28,14 @@ var default_profile_data: Dictionary = {
 		"total_waves_survived": 0,
 		"total_enemies_defeated": 0,
 		"total_towers_built": 0,
-		"highest_wave_reached": 0,
+		"highest_wave_reached": 0,  # For endless mode specifically
+		"total_normal_waves_completed": 0,  # Total waves completed in normal mode
+		"total_extra_hard_waves_completed": 0,  # Total waves completed in extra hard mode
 		"total_gold_earned": 0,
 		"times_lost": 0,
-		"times_won": 0
+		"times_won": 0,
+		"levels_completed_perfect": 0,
+		"game_modes_completed": []
 	}
 }
 
@@ -85,6 +89,9 @@ func save_profile() -> bool:
 	"""Save the current profile to disk"""
 	if profile_name == "":
 		return false
+	
+	# Sync data from subsystems before saving
+	sync_from_subsystems()
 	
 	var clean_name = clean_profile_name(profile_name)
 	var file_path = PROFILES_DIR + clean_name + ".profile"
@@ -207,15 +214,19 @@ func update_stat(stat_name: String, value: int):
 	
 	if current_profile["stats"].has(stat_name):
 		current_profile["stats"][stat_name] += value
-		save_profile()
+		
+		# Auto-save for certain critical stats that should persist immediately
+		var immediate_save_stats = ["total_towers_built"]
+		if stat_name in immediate_save_stats:
+			save_profile()
 
 func set_stat(stat_name: String, value: int):
-	"""Set a profile statistic to a specific value"""
+	"""Set a profile statistic to a specific value (does not auto-save)"""
 	if not current_profile.has("stats"):
 		current_profile["stats"] = default_profile_data["stats"].duplicate()
 	
 	current_profile["stats"][stat_name] = value
-	save_profile()
+	# Note: Stats are only saved during auto-saves, victory, or defeat screens
 
 func get_stat(stat_name: String) -> int:
 	"""Get a profile statistic"""
@@ -224,18 +235,24 @@ func get_stat(stat_name: String) -> int:
 	
 	return current_profile["stats"].get(stat_name, 0)
 
+func save_profile_stats():
+	"""Explicitly save profile stats to disk (used during auto-saves, victory, defeat)"""
+	save_profile()
+	print("Profile stats saved to disk")
+
 func get_profile_data() -> Dictionary:
 	"""Get the current profile data"""
 	return current_profile
 
 func initialize_subsystems():
 	"""Initialize other game systems with profile data"""
-	# Initialize achievement manager with profile achievements
+	# Initialize achievement manager with profile achievements and tracking stats
 	var achievement_manager = get_node("/root/AchievementManager")
 	if achievement_manager:
 		var achievements = current_profile.get("achievements", {})
 		var unlocked_skins = current_profile.get("unlocked_skins", [1])
-		achievement_manager.load_from_profile(achievements, unlocked_skins)
+		var stats = current_profile.get("stats", {})
+		achievement_manager.load_from_profile(achievements, unlocked_skins, stats)
 	
 	# Initialize house skin manager with profile skin selection
 	var house_skin_manager = get_node("/root/HouseSkinManager")
@@ -245,18 +262,30 @@ func initialize_subsystems():
 
 func sync_from_subsystems():
 	"""Sync profile data from other game systems"""
-	# Sync achievements
+	# Check for new achievements (achievements are now stored directly in profile)
 	var achievement_manager = get_node("/root/AchievementManager")
 	if achievement_manager:
-		current_profile["achievements"] = achievement_manager.achievements
-		current_profile["unlocked_skins"] = achievement_manager.unlocked_skins
+		print("ProfileManager: Syncing from subsystems - checking achievements")
+		# Check for new achievements - they will be automatically stored in profile
+		var has_new_achievements = achievement_manager.check_all_achievements_on_save()
+		if has_new_achievements:
+			print("New achievements unlocked during save!")
+		
+		# Note: Achievements and unlocked_skins are now stored directly in profile
+		# No need to sync from AchievementManager as it reads from profile
+		print("ProfileManager: Achievement sync complete")
 	
 	# Sync house skin selection
 	var house_skin_manager = get_node("/root/HouseSkinManager")
 	if house_skin_manager:
 		current_profile["selected_skin_id"] = house_skin_manager.selected_skin_id
-	
-	save_profile()
+		print("ProfileManager: House skin sync complete")
+
+func force_reload_subsystems():
+	"""Force all subsystems to reload from current profile data"""
+	if has_profile():
+		initialize_subsystems()
+		print("Forced reload of all subsystems from profile data")
 
 func get_formatted_play_time() -> String:
 	"""Get formatted total play time"""
@@ -343,3 +372,74 @@ func unclean_profile_name(clean_name: String) -> String:
 	# This is a simple reverse of clean_profile_name
 	# For now, just replace underscores with spaces
 	return clean_name.replace("_", " ")
+
+func reset_current_profile() -> bool:
+	"""Reset the current profile's stats, unlocked skins, and saves"""
+	if not has_profile():
+		print("No active profile to reset")
+		return false
+	
+	# Reset profile data to defaults while keeping name and creation date
+	var profile_name_backup = current_profile.name
+	var created_date_backup = current_profile.created_date
+	
+	# Reset to default data
+	current_profile = default_profile_data.duplicate(true)
+	current_profile.name = profile_name_backup
+	current_profile.created_date = created_date_backup
+	current_profile.last_played = Time.get_datetime_string_from_system()
+	
+	print("ProfileManager: Profile data reset to defaults. Achievements: ", current_profile.get("achievements", {}))
+	
+	# IMPORTANT: Load reset data into subsystems BEFORE saving
+	# This ensures AchievementManager has the reset (empty) data
+	initialize_subsystems()
+	
+	# Also clear any legacy achievement save file to prevent conflicts
+	var achievement_manager = get_node("/root/AchievementManager")
+	if achievement_manager:
+		achievement_manager.clear_legacy_save_file()
+	
+	# Save the reset profile (sync_from_subsystems should now sync the reset data)
+	if not save_profile():
+		print("Failed to save reset profile")
+		return false
+	
+	# Clear all save game files for this profile
+	var save_manager = get_node("/root/SaveManager")
+	if save_manager:
+		_clear_profile_saves()
+	
+	print("Profile reset successfully: ", profile_name_backup)
+	return true
+
+func _clear_profile_saves():
+	"""Clear all save files for the current profile"""
+	var clean_name = clean_profile_name(profile_name)
+	var profile_save_dir = "user://profiles/" + clean_name
+	
+	# Clear save slots
+	for i in range(1, 4):  # Slots 1, 2, 3
+		var save_file = profile_save_dir + "/game_save_slot_%d.save" % i
+		if FileAccess.file_exists(save_file):
+			DirAccess.remove_absolute(save_file)
+			print("Cleared save slot: ", i)
+	
+	# Clear checkpoint
+	var checkpoint_file = profile_save_dir + "/checkpoint.save"
+	if FileAccess.file_exists(checkpoint_file):
+		DirAccess.remove_absolute(checkpoint_file)
+		print("Cleared checkpoint")
+	
+	# Clear any other save-related files that might exist
+	var dir = DirAccess.open(profile_save_dir)
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		while file_name != "":
+			if file_name.ends_with(".save") or file_name.ends_with(".tmp"):
+				var full_path = profile_save_dir + "/" + file_name
+				DirAccess.remove_absolute(full_path)
+				print("Cleared additional save file: ", file_name)
+			file_name = dir.get_next()
+		dir.list_dir_end()

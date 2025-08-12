@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://57j47f6m5g3l"
+path="res://.godot/imported/Imminent Threat ROCK CHILL Loop.wav-1af0af835d66d3c47629f5f074630789.sample"
+
+[deps]
+
+source_file="res://assets/sounds/music/Imminent Threat Collection/Loops/Imminent Threat ROCK CHILL Loop.wav"
+dest_files=["res://.godot/imported/Imminent Threat ROCK CHILL Loop.wav-1af0af835d66d3c47629f5f074630789.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

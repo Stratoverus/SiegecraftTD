@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://c3kpjtu13d4kk"]
+[gd_scene load_steps=23 format=3 uid="uid://c3kpjtu13d4kk"]
 
 [ext_resource type="Script" uid="uid://ds1mdpvgt2qu3" path="res://scenes/main.gd" id="1_o5qli"]
 [ext_resource type="Texture2D" uid="uid://lynys0otyc4c" path="res://assets/goldCoin.tres" id="2_dp3eg"]
@@ -18,6 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://rx2tk76xupkm" path="res://assets/Towers/tower8/base/tower8L1Icon.tres" id="15_jbj1t"]
 [ext_resource type="Texture2D" uid="uid://dkrsrave3h1ee" path="res://assets/Towers/tower7/weapon/weaponT7L1Icon.tres" id="16_jbj1t"]
 [ext_resource type="Texture2D" uid="uid://dhnjlh60r41ax" path="res://assets/Towers/tower8/weapon/weaponT8L1Icon.tres" id="17_muem4"]
+[ext_resource type="PackedScene" uid="uid://bkj8g4qts5rwc" path="res://scenes/ui/AchievementNotification.tscn" id="18_c3bfe"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dp3eg"]
 bg_color = Color(0, 0, 0, 1)
@@ -405,32 +406,177 @@ grow_horizontal = 2
 grow_vertical = 2
 text = "100"
 
-[node name="pauseFade" type="CenterContainer" parent="."]
+[node name="AchievementNotification" parent="CanvasLayer" instance=ExtResource("18_c3bfe")]
+visible = false
+
+[node name="pauseFade" type="Control" parent="CanvasLayer"]
 process_mode = 3
 visible = false
 z_index = 4096
-custom_minimum_size = Vector2(1920, 1080)
-offset_right = 1920.0
-offset_bottom = 1080.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="gameMenu" type="VBoxContainer" parent="pauseFade"]
+[node name="background" type="ColorRect" parent="CanvasLayer/pauseFade"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="pausedIndicator" type="Label" parent="CanvasLayer/pauseFade"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 50.0
+offset_right = 150.0
+offset_bottom = 100.0
+theme_override_font_sizes/font_size = 48
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
+text = "GAME PAUSED"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="centerContainer" type="CenterContainer" parent="CanvasLayer/pauseFade"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="gameMenuPanel" type="Panel" parent="CanvasLayer/pauseFade/centerContainer"]
 layout_mode = 2
+custom_minimum_size = Vector2(300, 200)
 
-[node name="resume" type="Button" parent="pauseFade/gameMenu"]
+[node name="gameMenu" type="VBoxContainer" parent="CanvasLayer/pauseFade/centerContainer/gameMenuPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="resumeButton" type="Button" parent="CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu"]
 layout_mode = 2
 text = "Resume"
 
-[node name="settings" type="Button" parent="pauseFade/gameMenu"]
+[node name="gameMenuSettings" type="Button" parent="CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu"]
 layout_mode = 2
 text = "Settings"
 
-[node name="quitMenu" type="Button" parent="pauseFade/gameMenu"]
+[node name="quitToMainMenuButton" type="Button" parent="CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu"]
 layout_mode = 2
-text = "Quit to Menu"
+text = "Quit to Main Menu"
 
-[node name="quitDesktop" type="Button" parent="pauseFade/gameMenu"]
+[node name="quitToDesktopButton" type="Button" parent="CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu"]
 layout_mode = 2
 text = "Quit to Desktop"
+
+[node name="settingsMenuPanel" type="Panel" parent="CanvasLayer/pauseFade/centerContainer"]
+visible = false
+layout_mode = 2
+custom_minimum_size = Vector2(400, 300)
+
+[node name="settingsMenu" type="VBoxContainer" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="back" type="Button" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu"]
+custom_minimum_size = Vector2(353, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+process_mode = 3
+text = "BACK"
+
+[node name="fullscreen" type="CheckBox" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu"]
+layout_mode = 2
+process_mode = 3
+text = "FULLSCREEN"
+
+[node name="mainVolSlider" type="HSlider" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+process_mode = 3
+max_value = 1.0
+step = 0.001
+
+[node name="mainVolLabel" type="Label" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/mainVolSlider"]
+custom_minimum_size = Vector2(400, 55)
+layout_mode = 0
+offset_top = -16.0
+offset_right = 400.0
+offset_bottom = 39.0
+process_mode = 3
+text = "MAIN VOLUME"
+horizontal_alignment = 1
+
+[node name="musicVolSlider" type="HSlider" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+process_mode = 3
+max_value = 1.0
+step = 0.001
+
+[node name="musicVolLabel" type="Label" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/musicVolSlider"]
+custom_minimum_size = Vector2(400, 55)
+layout_mode = 0
+offset_top = -16.0
+offset_right = 400.0
+offset_bottom = 39.0
+process_mode = 3
+text = "MUSIC VOLUME"
+horizontal_alignment = 1
+
+[node name="sfxVolSlider" type="HSlider" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+process_mode = 3
+max_value = 1.0
+step = 0.001
+
+[node name="sfxVolLabel" type="Label" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/sfxVolSlider"]
+custom_minimum_size = Vector2(400, 55)
+layout_mode = 0
+offset_top = -16.0
+offset_right = 400.0
+offset_bottom = 39.0
+process_mode = 3
+text = "SFX VOLUME"
+horizontal_alignment = 1
 
 [node name="EnemySpawnTimer" type="Timer" parent="."]
 wait_time = 0.5
@@ -472,9 +618,15 @@ text = "Delete Tower"
 [connection signal="pressed" from="CanvasLayer/ui/MarginContainer/buildMenu/towerButton6" to="." method="_on_tower_button_6_pressed"]
 [connection signal="pressed" from="CanvasLayer/ui/MarginContainer/buildMenu/towerButton7" to="." method="_on_tower_button_7_pressed"]
 [connection signal="pressed" from="CanvasLayer/ui/MarginContainer/buildMenu/towerButton8" to="." method="_on_tower_button_8_pressed"]
-[connection signal="pressed" from="pauseFade/gameMenu/resume" to="." method="_on_resume_pressed"]
-[connection signal="pressed" from="pauseFade/gameMenu/quitMenu" to="." method="_on_quit_menu_pressed"]
-[connection signal="pressed" from="pauseFade/gameMenu/quitDesktop" to="." method="_on_quit_desktop_pressed"]
+[connection signal="pressed" from="CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu/resumeButton" to="." method="_on_resume_pressed"]
+[connection signal="pressed" from="CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu/gameMenuSettings" to="." method="_on_pause_settings_pressed"]
+[connection signal="pressed" from="CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu/quitToMainMenuButton" to="." method="_on_quit_menu_pressed"]
+[connection signal="pressed" from="CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu/quitToDesktopButton" to="." method="_on_quit_desktop_pressed"]
+[connection signal="pressed" from="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/back" to="." method="_on_pause_settings_back_pressed"]
+[connection signal="toggled" from="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/fullscreen" to="." method="_on_pause_fullscreen_toggled"]
+[connection signal="value_changed" from="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/mainVolSlider" to="." method="_on_pause_main_vol_slider_value_changed"]
+[connection signal="value_changed" from="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/musicVolSlider" to="." method="_on_pause_music_vol_slider_value_changed"]
+[connection signal="value_changed" from="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/sfxVolSlider" to="." method="_on_pause_sfx_vol_slider_value_changed"]
 [connection signal="timeout" from="EnemySpawnTimer" to="." method="_on_enemy_spawn_timer_timeout"]
 [connection signal="pressed" from="TowerMenu/upgradeButton" to="." method="_on_upgrade_button_pressed"]
 [connection signal="pressed" from="TowerMenu/deleteButton" to="." method="_on_delete_button_pressed"]

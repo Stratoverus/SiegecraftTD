@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://yemjmkcwpe1a"
+path="res://.godot/imported/Imminent Threat.mp3-bec448a1608f2d0c740822d267fad69b.mp3str"
+
+[deps]
+
+source_file="res://assets/sounds/music/Imminent Threat Collection/Imminent Threat.mp3"
+dest_files=["res://.godot/imported/Imminent Threat.mp3-bec448a1608f2d0c740822d267fad69b.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

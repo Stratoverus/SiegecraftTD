@@ -53,6 +53,11 @@ func setup_main_menu():
 	if house_skin_manager:
 		house_skin_manager.skin_changed.connect(_on_skin_changed)
 	
+	# Connect to profile loaded signal to refresh UI when profiles change
+	var profile_manager = get_node("/root/ProfileManager")
+	if profile_manager:
+		profile_manager.profile_loaded.connect(_on_profile_loaded)
+	
 	# Update profile display
 	update_profile_display()
 	_update_current_skin_display()
@@ -114,8 +119,14 @@ func show_profile_selection_dialog():
 		profile_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hbox.add_child(profile_btn)
 		
-		# Delete button (only if not current and more than 1 profile)
-		if profile_name != current_profile_name and all_profiles.size() > 1:
+		# Reset button for current profile OR Delete button for others
+		if profile_name == current_profile_name:
+			var reset_btn = Button.new()
+			reset_btn.text = "Reset"
+			reset_btn.modulate = Color.ORANGE  # Make it visually distinct
+			reset_btn.pressed.connect(_on_profile_reset.bind(profile_name, dialog))
+			hbox.add_child(reset_btn)
+		elif all_profiles.size() > 1:
 			var delete_btn = Button.new()
 			delete_btn.text = "Delete"
 			delete_btn.pressed.connect(_on_profile_delete.bind(profile_name, dialog))
@@ -190,15 +201,83 @@ func _delete_profile_confirmed(profile_name: String, main_dialog: AcceptDialog, 
 		main_dialog.queue_free()
 		show_profile_selection_dialog()
 	else:
-		# Show the main dialog again if deletion failed
-		main_dialog.show()
+		# Clean up dialogs properly and show main dialog again if deletion failed
+		confirm_dialog.hide()  # Immediately remove exclusive child status
 		confirm_dialog.queue_free()
+		main_dialog.show()
 
 func _delete_profile_canceled(main_dialog: AcceptDialog, confirm_dialog: ConfirmationDialog):
 	"""Handle profile deletion cancel"""
-	# Show the main dialog again
-	main_dialog.show()
+	# Hide confirm dialog immediately to remove exclusive child status
+	confirm_dialog.hide()
 	confirm_dialog.queue_free()
+	main_dialog.show()
+
+func _on_profile_reset(profile_name: String, dialog: AcceptDialog):
+	"""Handle profile reset"""
+	# Close the main dialog first to prevent exclusive child issue
+	dialog.hide()
+	
+	var confirm_dialog = ConfirmationDialog.new()
+	confirm_dialog.dialog_text = "Are you sure you want to reset profile '" + profile_name + "'?\n\nThis will:\n• Delete all save games\n• Reset all stats to zero\n• Reset unlocked skins to default\n\nThis action cannot be undone."
+	confirm_dialog.confirmed.connect(_reset_profile_confirmed.bind(profile_name, dialog, confirm_dialog))
+	confirm_dialog.canceled.connect(_reset_profile_canceled.bind(dialog, confirm_dialog))
+	
+	# Create a simple border style without border
+	var style_box = StyleBoxFlat.new()
+	style_box.set_border_width_all(0)  # No border
+	style_box.bg_color = Color(0.2, 0.2, 0.2, 0.9)
+	confirm_dialog.add_theme_stylebox_override("panel", style_box)
+	
+	# Remove any default styling that might cause yellow borders
+	var empty_style = StyleBoxEmpty.new()
+	confirm_dialog.add_theme_stylebox_override("label_frame", empty_style)
+	confirm_dialog.add_theme_stylebox_override("content_frame", empty_style)
+	confirm_dialog.add_theme_stylebox_override("frame", empty_style)
+	
+	add_child(confirm_dialog)
+	confirm_dialog.popup_centered()
+
+func _reset_profile_confirmed(profile_name: String, main_dialog: AcceptDialog, confirm_dialog: ConfirmationDialog):
+	"""Confirm profile reset"""
+	var profile_manager = get_node("/root/ProfileManager")
+	if profile_manager.reset_current_profile():
+		print("Profile reset: ", profile_name)
+		# Update the UI to reflect changes
+		update_profile_display()
+		# Update skins menu if visible
+		if $CenterContainer/HouseSkinsMenu.visible:
+			_populate_house_skins_menu()
+		# Update achievements menu if visible
+		if $CenterContainer/AchievementsMenu.visible:
+			_populate_achievements_menu()
+		# Clean up dialogs and refresh
+		confirm_dialog.queue_free()
+		main_dialog.queue_free()
+		# Show a success message
+		var success_dialog = AcceptDialog.new()
+		success_dialog.dialog_text = "Profile '" + profile_name + "' has been reset successfully!"
+		add_child(success_dialog)
+		success_dialog.popup_centered()
+		success_dialog.confirmed.connect(success_dialog.queue_free)
+	else:
+		# Clean up dialogs properly and show main dialog again if reset failed
+		confirm_dialog.hide()  # Immediately remove exclusive child status
+		confirm_dialog.queue_free()
+		main_dialog.show()
+		# Show error message
+		var error_dialog = AcceptDialog.new()
+		error_dialog.dialog_text = "Failed to reset profile. Please try again."
+		add_child(error_dialog)
+		error_dialog.popup_centered()
+		error_dialog.confirmed.connect(error_dialog.queue_free)
+
+func _reset_profile_canceled(main_dialog: AcceptDialog, confirm_dialog: ConfirmationDialog):
+	"""Handle profile reset cancel"""
+	# Hide confirm dialog immediately to remove exclusive child status
+	confirm_dialog.hide()
+	confirm_dialog.queue_free()
+	main_dialog.show()
 
 func _on_create_profile(name_edit: LineEdit, dialog: AcceptDialog):
 	"""Handle creating new profile"""
@@ -318,9 +397,15 @@ func _populate_stats_menu():
 		$CenterContainer/StatsMenu/StatsContainer/wavesValue.text = str(int(stats.get("total_waves_survived", 0)))
 		$CenterContainer/StatsMenu/StatsContainer/enemiesValue.text = str(int(stats.get("total_enemies_defeated", 0)))
 		$CenterContainer/StatsMenu/StatsContainer/towersValue.text = str(int(stats.get("total_towers_built", 0)))
-		$CenterContainer/StatsMenu/StatsContainer/highestWaveValue.text = str(int(stats.get("highest_wave_reached", 0)))
+		$CenterContainer/StatsMenu/StatsContainer/highestWaveValue.text = str(int(stats.get("highest_wave_reached", 0))) + " (Endless)"
 		$CenterContainer/StatsMenu/StatsContainer/goldEarnedValue.text = str(int(stats.get("total_gold_earned", 0)))
 		$CenterContainer/StatsMenu/StatsContainer/playTimeValue.text = profile_manager.get_formatted_play_time()
+		
+		# Add new wave completion stats if UI elements exist
+		if has_node("CenterContainer/StatsMenu/StatsContainer/normalWavesValue"):
+			$CenterContainer/StatsMenu/StatsContainer/normalWavesValue.text = str(int(stats.get("total_normal_waves_completed", 0)))
+		if has_node("CenterContainer/StatsMenu/StatsContainer/extraHardWavesValue"):
+			$CenterContainer/StatsMenu/StatsContainer/extraHardWavesValue.text = str(int(stats.get("total_extra_hard_waves_completed", 0)))
 
 func _on_achievements_pressed() -> void:
 	"""Show the achievements menu"""
@@ -330,20 +415,201 @@ func _on_achievements_pressed() -> void:
 	$CenterContainer/AchievementsMenu/back.grab_focus()
 
 func _populate_achievements_menu():
-	"""Populate the achievements menu"""
-	# TODO: Populate with actual achievements
+	"""Populate the achievements menu with actual achievements and progress"""
 	var achievements_list = $CenterContainer/AchievementsMenu/ScrollContainer/achievementsList
 	
 	# Clear existing children
 	for child in achievements_list.get_children():
 		child.queue_free()
 	
-	# Add placeholder text for now
-	var label = Label.new()
-	label.text = "Achievements system integration coming soon!"
-	label.add_theme_font_size_override("font_size", 24)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	achievements_list.add_child(label)
+	var achievement_manager = get_node("/root/AchievementManager")
+	if not achievement_manager:
+		var error_label = Label.new()
+		error_label.text = "Achievement Manager not found!"
+		error_label.add_theme_color_override("font_color", Color.RED)
+		achievements_list.add_child(error_label)
+		return
+	
+	# Create achievement entries
+	for achievement_id in achievement_manager.achievement_definitions:
+		var achievement_data = achievement_manager.achievement_definitions[achievement_id]
+		var is_unlocked = achievement_manager.is_achievement_unlocked(achievement_id)
+		
+		# Create container for this achievement
+		var achievement_container = _create_achievement_entry(achievement_id, achievement_data, is_unlocked, achievement_manager)
+		achievements_list.add_child(achievement_container)
+
+func _create_achievement_entry(achievement_id: String, achievement_data: Dictionary, is_unlocked: bool, achievement_manager) -> Control:
+	"""Create a UI entry for a single achievement"""
+	var container = PanelContainer.new()
+	container.custom_minimum_size = Vector2(600, 100)
+	
+	# Style the container based on unlock status
+	var style_box = StyleBoxFlat.new()
+	if is_unlocked:
+		style_box.bg_color = Color(0.2, 0.4, 0.2, 0.8)  # Green tint for unlocked
+		style_box.border_color = Color(0.4, 0.8, 0.4, 1.0)
+	else:
+		style_box.bg_color = Color(0.2, 0.2, 0.2, 0.8)  # Gray for locked
+		style_box.border_color = Color(0.4, 0.4, 0.4, 1.0)
+	
+	style_box.border_width_left = 2
+	style_box.border_width_right = 2
+	style_box.border_width_top = 2
+	style_box.border_width_bottom = 2
+	style_box.corner_radius_top_left = 8
+	style_box.corner_radius_top_right = 8
+	style_box.corner_radius_bottom_left = 8
+	style_box.corner_radius_bottom_right = 8
+	
+	container.add_theme_stylebox_override("panel", style_box)
+	
+	# Main horizontal box
+	var hbox = HBoxContainer.new()
+	container.add_child(hbox)
+	
+	# Left side - Achievement info
+	var left_vbox = VBoxContainer.new()
+	left_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_child(left_vbox)
+	
+	# Achievement name
+	var name_label = Label.new()
+	name_label.text = achievement_data.name
+	name_label.add_theme_font_size_override("font_size", 18)
+	if is_unlocked:
+		name_label.add_theme_color_override("font_color", Color(0.8, 1.0, 0.8, 1.0))
+	else:
+		name_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1.0))
+	left_vbox.add_child(name_label)
+	
+	# Achievement description
+	var desc_label = Label.new()
+	desc_label.text = achievement_data.description
+	desc_label.add_theme_font_size_override("font_size", 14)
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if is_unlocked:
+		desc_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))
+	else:
+		desc_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6, 1.0))
+	left_vbox.add_child(desc_label)
+	
+	# Progress tracking
+	var progress_info = _get_achievement_progress(achievement_id, achievement_manager)
+	if progress_info != "":
+		var progress_label = Label.new()
+		progress_label.text = progress_info
+		progress_label.add_theme_font_size_override("font_size", 12)
+		progress_label.add_theme_color_override("font_color", Color(0.8, 0.8, 1.0, 1.0))
+		left_vbox.add_child(progress_label)
+	
+	# Right side - Status and reward
+	var right_vbox = VBoxContainer.new()
+	right_vbox.custom_minimum_size = Vector2(150, 0)
+	hbox.add_child(right_vbox)
+	
+	# Status
+	var status_label = Label.new()
+	if is_unlocked:
+		status_label.text = "✓ UNLOCKED"
+		status_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4, 1.0))
+	else:
+		status_label.text = "LOCKED"
+		status_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8, 1.0))
+	status_label.add_theme_font_size_override("font_size", 12)
+	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	right_vbox.add_child(status_label)
+	
+	# Reward info
+	var reward_label = Label.new()
+	var skin_id = achievement_data.get("unlocks_skin", -1)
+	if skin_id > 0:
+		var house_skin_manager = get_node("/root/HouseSkinManager")
+		if house_skin_manager:
+			var skin_name = house_skin_manager.get_skin_name(skin_id)
+			reward_label.text = "Unlocks:\n" + skin_name
+		else:
+			reward_label.text = "Unlocks:\nHouse Skin " + str(skin_id)
+	else:
+		reward_label.text = "No reward"
+	
+	reward_label.add_theme_font_size_override("font_size", 10)
+	reward_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.4, 1.0))
+	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	reward_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	right_vbox.add_child(reward_label)
+	
+	return container
+
+func _get_achievement_progress(achievement_id: String, achievement_manager) -> String:
+	"""Get progress information for an achievement"""
+	match achievement_id:
+		"first_victory":
+			var modes_completed = achievement_manager.get_game_modes_completed().size()
+			return "Game modes completed: %d/1" % modes_completed
+		
+		"wave_master":
+			var waves = achievement_manager.get_highest_wave_survived()
+			return "Highest wave: %d/50" % waves
+		
+		"survivalist":
+			var waves = achievement_manager.get_highest_wave_survived()
+			return "Highest wave: %d/100" % waves
+		
+		"wave_crusher":
+			var waves = achievement_manager.get_highest_wave_survived()
+			return "Highest wave: %d/200" % waves
+		
+		"endurance_champion":
+			var waves = achievement_manager.get_highest_wave_survived()
+			return "Highest wave: %d/500" % waves
+		
+		"apocalypse_survivor":
+			var waves = achievement_manager.get_highest_wave_survived()
+			return "Highest wave: %d/1000" % waves
+		
+		"tower_enthusiast":
+			var towers = achievement_manager.get_total_towers_built()
+			return "Towers built: %d/100" % towers
+		
+		"building_tycoon":
+			var towers = achievement_manager.get_total_towers_built()
+			return "Towers built: %d/500" % towers
+		
+		"enemy_slayer":
+			var enemies = achievement_manager.get_total_enemies_defeated()
+			return "Enemies defeated: %d/1000" % enemies
+		
+		"mass_destroyer":
+			var enemies = achievement_manager.get_total_enemies_defeated()
+			return "Enemies defeated: %d/5000" % enemies
+		
+		"legendary_commander":
+			var enemies = achievement_manager.get_total_enemies_defeated()
+			return "Enemies defeated: %d/10000" % enemies
+		
+		"perfectionist":
+			var perfect = achievement_manager.get_levels_completed_perfect()
+			return "Perfect completions: %d/1" % perfect
+		
+		"strategic_genius":
+			var completed_extra_hard = "Extra Hard" in achievement_manager.get_game_modes_completed()
+			return "Extra Hard completed: %s" % ("Yes" if completed_extra_hard else "No")
+		
+		"treasure_hunter":
+			var gold = achievement_manager.get_total_gold_earned()
+			return "Total gold earned: %d/50000" % gold
+		
+		"economist", "gold_hoarder":
+			# These require tracking current game gold, which isn't implemented yet
+			return "Progress tracking not available"
+		
+		"speed_runner", "tower_master", "ultimate_defender":
+			# These require additional tracking not yet implemented
+			return "Progress tracking not available"
+		
+		_:
+			return ""
 
 func _on_house_skins_pressed() -> void:
 	"""Show the house skins menu"""
@@ -583,6 +849,18 @@ func _on_skin_selected(skin_id: int):
 func _on_skin_changed(_new_skin_id: int):
 	"""Handle when skin is changed from elsewhere"""
 	_update_current_skin_display()
+
+func _on_profile_loaded(profile_name: String):
+	"""Handle profile loaded - refresh all UI that depends on profile data"""
+	print("Profile loaded in main menu: ", profile_name)
+	update_profile_display()
+	_update_current_skin_display()
+	
+	# Refresh menus if they're currently visible
+	if $CenterContainer/HouseSkinsMenu.visible:
+		_populate_house_skins_menu()
+	if $CenterContainer/AchievementsMenu.visible:
+		_populate_achievements_menu()
 
 func _update_current_skin_display():
 	"""Update the current skin display label"""

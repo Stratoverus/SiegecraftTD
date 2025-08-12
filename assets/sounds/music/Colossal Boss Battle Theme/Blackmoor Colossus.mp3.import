@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://6ff8nehindjh"
+path="res://.godot/imported/Blackmoor Colossus.mp3-deff495e22e31baeaf2b5d9beaaf80e9.mp3str"
+
+[deps]
+
+source_file="res://assets/sounds/music/Colossal Boss Battle Theme/Blackmoor Colossus.mp3"
+dest_files=["res://.godot/imported/Blackmoor Colossus.mp3-deff495e22e31baeaf2b5d9beaaf80e9.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
