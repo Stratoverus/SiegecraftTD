@@ -457,14 +457,14 @@ func update_game_mode_ui():
 # Dynamically set the cost label for each tower button in the build menu and update button states
 func update_tower_button_costs():
 	var tower_paths = [
-		"res://assets/towers/tower1/tower1.tres",
-		"res://assets/towers/tower2/tower2.tres",
-		"res://assets/towers/tower3/tower3.tres",
-		"res://assets/towers/tower4/tower4.tres",
-		"res://assets/towers/tower5/tower5.tres",
-		"res://assets/towers/tower6/tower6.tres",
-		"res://assets/towers/tower7/tower7.tres",
-		"res://assets/towers/tower8/tower8.tres",
+		"res://assets/Towers/tower1/tower1.tres",
+		"res://assets/Towers/tower2/tower2.tres",
+		"res://assets/Towers/tower3/tower3.tres",
+		"res://assets/Towers/tower4/tower4.tres",
+		"res://assets/Towers/tower5/tower5.tres",
+		"res://assets/Towers/tower6/tower6.tres",
+		"res://assets/Towers/tower7/tower7.tres",
+		"res://assets/Towers/tower8/tower8.tres",
 	]
 	for i in range(tower_paths.size()):
 		var tower_data = load(tower_paths[i])
@@ -1731,7 +1731,7 @@ func show_tower_preview():
 
 
 func _on_tower_button_1_pressed() -> void:
-	var tower_data = preload("res://assets/towers/tower1/tower1.tres")
+	var tower_data = preload("res://assets/Towers/tower1/tower1.tres")
 	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
@@ -1740,7 +1740,7 @@ func _on_tower_button_1_pressed() -> void:
 
 
 func _on_tower_button_2_pressed() -> void:
-	var tower_data = preload("res://assets/towers/tower2/tower2.tres")
+	var tower_data = preload("res://assets/Towers/tower2/tower2.tres")
 	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
@@ -1749,7 +1749,7 @@ func _on_tower_button_2_pressed() -> void:
 
 
 func _on_tower_button_3_pressed() -> void:
-	var tower_data = preload("res://assets/towers/tower3/tower3.tres")
+	var tower_data = preload("res://assets/Towers/tower3/tower3.tres")
 	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
@@ -1758,7 +1758,7 @@ func _on_tower_button_3_pressed() -> void:
 
 
 func _on_tower_button_4_pressed() -> void:
-	var tower_data = preload("res://assets/towers/tower4/tower4.tres")
+	var tower_data = preload("res://assets/Towers/tower4/tower4.tres")
 	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
@@ -1767,7 +1767,7 @@ func _on_tower_button_4_pressed() -> void:
 
 
 func _on_tower_button_5_pressed() -> void:
-	var tower_data = preload("res://assets/towers/tower5/tower5.tres")
+	var tower_data = preload("res://assets/Towers/tower5/tower5.tres")
 	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
@@ -1776,7 +1776,7 @@ func _on_tower_button_5_pressed() -> void:
 
 
 func _on_tower_button_6_pressed() -> void:
-	var tower_data = preload("res://assets/towers/tower6/tower6.tres")
+	var tower_data = preload("res://assets/Towers/tower6/tower6.tres")
 	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
@@ -1785,7 +1785,7 @@ func _on_tower_button_6_pressed() -> void:
 
 
 func _on_tower_button_7_pressed() -> void:
-	var tower_data = preload("res://assets/towers/tower7/tower7.tres")
+	var tower_data = preload("res://assets/Towers/tower7/tower7.tres")
 	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
@@ -1794,7 +1794,7 @@ func _on_tower_button_7_pressed() -> void:
 
 
 func _on_tower_button_8_pressed() -> void:
-	var tower_data = preload("res://assets/towers/tower8/tower8.tres")
+	var tower_data = preload("res://assets/Towers/tower8/tower8.tres")
 	on_tower_button_pressed(tower_data)
 	if $TowerMenu.visible:
 		var mouse_pos = get_viewport().get_mouse_position()
@@ -2416,14 +2416,14 @@ func setup_tooltip_system():
 func setup_tower_button_tooltips():
 	"""Setup tooltip events for all tower build buttons"""
 	var tower_paths = [
-		"res://assets/towers/tower1/tower1.tres",
-		"res://assets/towers/tower2/tower2.tres",
-		"res://assets/towers/tower3/tower3.tres",
-		"res://assets/towers/tower4/tower4.tres",
-		"res://assets/towers/tower5/tower5.tres",
-		"res://assets/towers/tower6/tower6.tres",
-		"res://assets/towers/tower7/tower7.tres",
-		"res://assets/towers/tower8/tower8.tres",
+		"res://assets/Towers/tower1/tower1.tres",
+		"res://assets/Towers/tower2/tower2.tres",
+		"res://assets/Towers/tower3/tower3.tres",
+		"res://assets/Towers/tower4/tower4.tres",
+		"res://assets/Towers/tower5/tower5.tres",
+		"res://assets/Towers/tower6/tower6.tres",
+		"res://assets/Towers/tower7/tower7.tres",
+		"res://assets/Towers/tower8/tower8.tres",
 	]
 	
 	for i in range(tower_paths.size()):

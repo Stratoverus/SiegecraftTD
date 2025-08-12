@@ -469,14 +469,14 @@ func get_tower_data_path(tower: Node) -> String:
 	
 	# Check common tower data paths
 	var common_paths = [
-		"res://assets/towers/tower1/tower1.tres",
-		"res://assets/towers/tower2/tower2.tres",
-		"res://assets/towers/tower3/tower3.tres",
-		"res://assets/towers/tower4/tower4.tres",
-		"res://assets/towers/tower5/tower5.tres",
-		"res://assets/towers/tower6/tower6.tres",
-		"res://assets/towers/tower7/tower7.tres",
-		"res://assets/towers/tower8/tower8.tres"
+		"res://assets/Towers/tower1/tower1.tres",
+		"res://assets/Towers/tower2/tower2.tres",
+		"res://assets/Towers/tower3/tower3.tres",
+		"res://assets/Towers/tower4/tower4.tres",
+		"res://assets/Towers/tower5/tower5.tres",
+		"res://assets/Towers/tower6/tower6.tres",
+		"res://assets/Towers/tower7/tower7.tres",
+		"res://assets/Towers/tower8/tower8.tres"
 	]
 	
 	for path in common_paths:
@@ -555,7 +555,7 @@ func restore_tower_construction(construction_data: Dictionary, main_scene: Node)
 		return
 	
 	# Create the construction node
-	var construction_scene = preload("res://scenes/towers/towerConstruction/TowerBuild.tscn")
+	var construction_scene = preload("res://scenes/towers/towerConstruction/towerBuild.tscn")
 	var construction = construction_scene.instantiate()
 	
 	# Set position

@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://d1m8t57voowjq"]
+[gd_scene load_steps=4 format=3 uid="uid://d1m8t57voowjq"]
 
 [ext_resource type="Script" uid="uid://yfasanscw4vc" path="res://scenes/main_menu.gd" id="1_0ettg"]
+[ext_resource type="AudioStream" uid="uid://yemjmkcwpe1a" path="res://assets/sounds/music/Imminent Threat Collection/Imminent Threat.mp3" id="2_ekxnf"]
 
 [sub_resource type="Theme" id="Theme_rhts7"]
 
@@ -435,6 +436,13 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 60
 text = "BACK"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_ekxnf")
+volume_db = -10.0
+autoplay = true
+bus = &"MUSIC"
+parameters/looping = false
 
 [connection signal="pressed" from="ProfileDisplay/changeNameButton" to="." method="_on_change_name_pressed"]
 [connection signal="pressed" from="CenterContainer/MainButtons/newGame" to="." method="_on_new_game_pressed"]
