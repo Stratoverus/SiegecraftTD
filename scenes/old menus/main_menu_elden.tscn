@@ -1,0 +1,497 @@
+[gd_scene load_steps=15 format=3 uid="uid://b10dor48uqamc"]
+
+[ext_resource type="Script" uid="uid://yfasanscw4vc" path="res://scenes/main_menu.gd" id="1_hky6u"]
+[ext_resource type="AudioStream" uid="uid://yemjmkcwpe1a" path="res://assets/sounds/music/Imminent Threat Collection/Imminent Threat.mp3" id="2_kka1e"]
+
+[sub_resource type="Gradient" id="Gradient_atmospheric"]
+offsets = PackedFloat32Array(0, 0, 1)
+colors = PackedColorArray(0.02, 0.015, 0.01, 1, 0.05, 0.04, 0.025, 1, 0.1, 0.08, 0.05, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_atmospheric"]
+gradient = SubResource("Gradient_atmospheric")
+fill_from = Vector2(0.5, 0)
+fill_to = Vector2(0.5, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_background_vignette"]
+bg_color = Color(0, 0, 0, 0.8)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_title_backdrop"]
+bg_color = Color(0, 0, 0, 0.6)
+border_width_bottom = 4
+border_color = Color(0.6, 0.5, 0.3, 0.8)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_profile_ornament"]
+bg_color = Color(0.05, 0.04, 0.02, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.4, 0.25, 0.7)
+shadow_color = Color(0, 0, 0, 0.8)
+shadow_size = 12
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_button_hover"]
+bg_color = Color(0.2, 0.15, 0.1, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.7, 0.4, 1)
+shadow_color = Color(0.8, 0.7, 0.4, 0.3)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_button_normal"]
+bg_color = Color(0.1, 0.08, 0.06, 0.7)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.35, 0.2, 0.6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_button_pressed"]
+bg_color = Color(0.15, 0.12, 0.08, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.8, 0.5, 1)
+
+[sub_resource type="Theme" id="Theme_small_elden"]
+Button/colors/font_color = Color(0.8, 0.75, 0.6, 1)
+Button/colors/font_hover_color = Color(0.95, 0.9, 0.75, 1)
+Button/colors/font_pressed_color = Color(0.85, 0.8, 0.65, 1)
+Button/font_sizes/font_size = 18
+Button/styles/hover = SubResource("StyleBoxFlat_menu_button_hover")
+Button/styles/normal = SubResource("StyleBoxFlat_menu_button_normal")
+Button/styles/pressed = SubResource("StyleBoxFlat_menu_button_pressed")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ornate_panel"]
+bg_color = Color(0.08, 0.06, 0.04, 0.9)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.6, 0.5, 0.3, 0.8)
+shadow_color = Color(0, 0, 0, 0.9)
+shadow_size = 20
+shadow_offset = Vector2(0, 8)
+
+[sub_resource type="Theme" id="Theme_elden_buttons"]
+Button/colors/font_color = Color(0.9, 0.85, 0.7, 1)
+Button/colors/font_focus_color = Color(1, 0.95, 0.8, 1)
+Button/colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+Button/colors/font_pressed_color = Color(0.95, 0.9, 0.75, 1)
+Button/font_sizes/font_size = 28
+Button/styles/focus = SubResource("StyleBoxFlat_menu_button_hover")
+Button/styles/hover = SubResource("StyleBoxFlat_menu_button_hover")
+Button/styles/normal = SubResource("StyleBoxFlat_menu_button_normal")
+Button/styles/pressed = SubResource("StyleBoxFlat_menu_button_pressed")
+
+[sub_resource type="Theme" id="Theme_elden_settings"]
+CheckBox/colors/font_color = Color(0.9, 0.85, 0.7, 1)
+CheckBox/colors/font_hover_color = Color(1, 0.95, 0.8, 1)
+CheckBox/font_sizes/font_size = 22
+HSlider/colors/grabber_color = Color(0.8, 0.7, 0.4, 1)
+HSlider/colors/grabber_highlight_color = Color(0.9, 0.8, 0.5, 1)
+HSlider/colors/trough_color = Color(0.3, 0.25, 0.15, 0.8)
+Label/colors/font_color = Color(0.9, 0.85, 0.7, 1)
+Label/font_sizes/font_size = 20
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hky6u")
+
+[node name="AtmosphericBackground" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("GradientTexture2D_atmospheric")
+stretch_mode = 1
+
+[node name="BackgroundVignette" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_background_vignette")
+
+[node name="TitleRegion" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 140.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_title_backdrop")
+
+[node name="GameTitle" type="Label" parent="TitleRegion"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -40.0
+offset_right = 300.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.75, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 72
+text = "⚜ SIEGECRAFT ⚜"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Subtitle" type="Label" parent="TitleRegion"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = 35.0
+offset_right = 200.0
+offset_bottom = 65.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.7, 0.65, 0.5, 0.9)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 24
+text = "~ Tower Defense ~"
+horizontal_alignment = 1
+
+[node name="ProfileHeraldry" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -320.0
+offset_top = 160.0
+offset_right = -40.0
+offset_bottom = 280.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_profile_ornament")
+
+[node name="ProfileFrame" type="VBoxContainer" parent="ProfileHeraldry"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="ProfileTitle" type="Label" parent="ProfileHeraldry/ProfileFrame"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.7, 0.5, 1)
+theme_override_font_sizes/font_size = 18
+text = "⚔ CHOSEN ⚔"
+horizontal_alignment = 1
+
+[node name="profileNameLabel" type="Label" parent="ProfileHeraldry/ProfileFrame"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.75, 1)
+theme_override_font_sizes/font_size = 24
+text = "Lord Commander"
+horizontal_alignment = 1
+
+[node name="ProfileRank" type="Label" parent="ProfileHeraldry/ProfileFrame"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.6, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+text = "Elden Lord of Towers"
+horizontal_alignment = 1
+
+[node name="RuneCount" type="Label" parent="ProfileHeraldry/ProfileFrame"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.8, 0.4, 1)
+theme_override_font_sizes/font_size = 14
+text = "◈ Runes: 1,247 ◈"
+horizontal_alignment = 1
+
+[node name="changeNameButton" type="Button" parent="ProfileHeraldry/ProfileFrame"]
+layout_mode = 2
+theme = SubResource("Theme_small_elden")
+theme_override_font_sizes/font_size = 16
+text = "Alter Identity"
+
+[node name="CentralLayout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 30
+
+[node name="MainMenuPanel" type="Panel" parent="CentralLayout"]
+custom_minimum_size = Vector2(400, 350)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ornate_panel")
+
+[node name="MenuContent" type="VBoxContainer" parent="CentralLayout/MainMenuPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="MenuOrnament" type="Label" parent="CentralLayout/MainMenuPanel/MenuContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.7, 0.4, 1)
+theme_override_font_sizes/font_size = 28
+text = "═══ GRACE MENU ═══"
+horizontal_alignment = 1
+
+[node name="MenuDivider1" type="Control" parent="CentralLayout/MainMenuPanel/MenuContent"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="PrimaryActions" type="VBoxContainer" parent="CentralLayout/MainMenuPanel/MenuContent"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="newGame" type="Button" parent="CentralLayout/MainMenuPanel/MenuContent/PrimaryActions"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme = SubResource("Theme_elden_buttons")
+text = "◆ BEGIN JOURNEY ◆"
+
+[node name="loadGame" type="Button" parent="CentralLayout/MainMenuPanel/MenuContent/PrimaryActions"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme = SubResource("Theme_elden_buttons")
+text = "◆ CONTINUE QUEST ◆"
+
+[node name="MenuDivider2" type="Control" parent="CentralLayout/MainMenuPanel/MenuContent"]
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+
+[node name="SecondaryActions" type="VBoxContainer" parent="CentralLayout/MainMenuPanel/MenuContent"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="profile" type="Button" parent="CentralLayout/MainMenuPanel/MenuContent/SecondaryActions"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = SubResource("Theme_elden_buttons")
+text = "◇ Status & Achievements ◇"
+
+[node name="settings" type="Button" parent="CentralLayout/MainMenuPanel/MenuContent/SecondaryActions"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = SubResource("Theme_elden_buttons")
+text = "◇ Game Settings ◇"
+
+[node name="credits" type="Button" parent="CentralLayout/MainMenuPanel/MenuContent/SecondaryActions"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = SubResource("Theme_elden_buttons")
+text = "◇ Hall of Heroes ◇"
+
+[node name="MenuDivider3" type="Control" parent="CentralLayout/MainMenuPanel/MenuContent"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="quit" type="Button" parent="CentralLayout/MainMenuPanel/MenuContent"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme = SubResource("Theme_elden_buttons")
+text = "◈ Return to Reality ◈"
+
+[node name="SettingsPanel" type="Panel" parent="CentralLayout"]
+visible = false
+custom_minimum_size = Vector2(500, 400)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ornate_panel")
+
+[node name="SettingsContent" type="VBoxContainer" parent="CentralLayout/SettingsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 25
+
+[node name="SettingsTitle" type="Label" parent="CentralLayout/SettingsPanel/SettingsContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.7, 0.4, 1)
+theme_override_font_sizes/font_size = 32
+text = "═══ GAME SETTINGS ═══"
+horizontal_alignment = 1
+
+[node name="SettingsScrollContainer" type="ScrollContainer" parent="CentralLayout/SettingsPanel/SettingsContent"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SettingsGrid" type="VBoxContainer" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = SubResource("Theme_elden_settings")
+theme_override_constants/separation = 20
+
+[node name="DisplayHeader" type="Label" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.6, 0.4, 1)
+theme_override_font_sizes/font_size = 24
+text = "◆ DISPLAY SETTINGS ◆"
+
+[node name="fullscreen" type="CheckBox" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid"]
+layout_mode = 2
+text = "⚡ Fullscreen Grace"
+
+[node name="AudioHeader" type="Label" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.6, 0.4, 1)
+theme_override_font_sizes/font_size = 24
+text = "◆ AUDIO SETTINGS ◆"
+
+[node name="MasterVolumeSection" type="VBoxContainer" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MasterLabel" type="Label" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid/MasterVolumeSection"]
+layout_mode = 2
+text = "♫ Master Volume"
+
+[node name="mainVolSlider" type="HSlider" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid/MasterVolumeSection"]
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+
+[node name="MusicVolumeSection" type="VBoxContainer" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MusicLabel" type="Label" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid/MusicVolumeSection"]
+layout_mode = 2
+text = "♪ Musical Ambience"
+
+[node name="musicVolSlider" type="HSlider" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid/MusicVolumeSection"]
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+
+[node name="SFXVolumeSection" type="VBoxContainer" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SFXLabel" type="Label" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid/SFXVolumeSection"]
+layout_mode = 2
+text = "⚔ Battle Echoes"
+
+[node name="sfxVolSlider" type="HSlider" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid/SFXVolumeSection"]
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+
+[node name="SettingsActions" type="HBoxContainer" parent="CentralLayout/SettingsPanel/SettingsContent"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Spacer" type="Control" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="back" type="Button" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsActions"]
+custom_minimum_size = Vector2(140, 50)
+layout_mode = 2
+theme = SubResource("Theme_elden_buttons")
+text = "◇ Return ◇"
+
+[node name="apply" type="Button" parent="CentralLayout/SettingsPanel/SettingsContent/SettingsActions"]
+custom_minimum_size = Vector2(140, 50)
+layout_mode = 2
+theme = SubResource("Theme_elden_buttons")
+text = "◆ Apply ◆"
+
+[node name="RunicInscription" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -250.0
+offset_top = -50.0
+offset_right = 250.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.5, 0.45, 0.3, 0.8)
+theme_override_font_sizes/font_size = 16
+text = "◈ Dark Waters Studios ◈"
+horizontal_alignment = 1
+
+[node name="GraceParticles" type="Label" parent="."]
+layout_mode = 1
+offset_left = 50.0
+offset_top = 200.0
+offset_right = 150.0
+offset_bottom = 300.0
+theme_override_colors/font_color = Color(0.9, 0.8, 0.4, 0.3)
+theme_override_font_sizes/font_size = 48
+text = "✦
+◆
+✧
+◇"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_kka1e")
+volume_db = -15.0
+autoplay = true
+bus = &"MUSIC"
+
+[connection signal="pressed" from="ProfileHeraldry/ProfileFrame/changeNameButton" to="." method="_on_change_name_pressed"]
+[connection signal="pressed" from="CentralLayout/MainMenuPanel/MenuContent/PrimaryActions/newGame" to="." method="_on_new_game_pressed"]
+[connection signal="pressed" from="CentralLayout/MainMenuPanel/MenuContent/PrimaryActions/loadGame" to="." method="_on_load_game_pressed"]
+[connection signal="pressed" from="CentralLayout/MainMenuPanel/MenuContent/SecondaryActions/profile" to="." method="_on_profile_pressed"]
+[connection signal="pressed" from="CentralLayout/MainMenuPanel/MenuContent/SecondaryActions/settings" to="." method="_on_settings_pressed"]
+[connection signal="pressed" from="CentralLayout/MainMenuPanel/MenuContent/SecondaryActions/credits" to="." method="_on_credits_pressed"]
+[connection signal="pressed" from="CentralLayout/MainMenuPanel/MenuContent/quit" to="." method="_on_quit_pressed"]
+[connection signal="toggled" from="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid/fullscreen" to="." method="_on_fullscreen_toggled"]
+[connection signal="value_changed" from="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid/MasterVolumeSection/mainVolSlider" to="." method="_on_main_vol_slider_value_changed"]
+[connection signal="value_changed" from="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid/MusicVolumeSection/musicVolSlider" to="." method="_on_music_vol_slider_value_changed"]
+[connection signal="value_changed" from="CentralLayout/SettingsPanel/SettingsContent/SettingsScrollContainer/SettingsGrid/SFXVolumeSection/sfxVolSlider" to="." method="_on_sfx_vol_slider_value_changed"]
+[connection signal="pressed" from="CentralLayout/SettingsPanel/SettingsContent/SettingsActions/back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CentralLayout/SettingsPanel/SettingsContent/SettingsActions/apply" to="." method="_on_apply_pressed"]

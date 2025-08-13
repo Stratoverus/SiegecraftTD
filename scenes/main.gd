@@ -81,25 +81,13 @@ func _ready():
 		profile.update_stat("games_played", 1)
 		# Note: This stat will be saved at the next auto-save or victory/defeat screen
 		start_time = Time.get_ticks_msec() / 1000.0  # Convert to seconds
-
-func reset_session_stats():
-	"""Reset all session statistics for a new game/load
-	Note: Session stats are preserved across saves/loads within the same playthrough.
-	They only reset when starting a completely new game."""
-	session_enemies_killed = 0
-	session_towers_built = 0
-	session_gold_earned = 0
-	session_gold_spent = 0
-	session_waves_completed = 0
-	session_starting_health = health  # Store starting health
-	session_perfect_run = true
-	session_play_time = 0.0
 	
-	load_map("res://scenes/map.tscn")
-	update_ui()
-	hide_all_grid_overlays()
-	$TowerMenu.connect("gui_input", Callable(self, "_on_TowerMenu_gui_input"))
-	$CanvasLayer/ui.connect("gui_input", Callable(self, "_on_ui_gui_input"))
+	# Only connect signals if they aren't already connected
+	if not $TowerMenu.is_connected("gui_input", Callable(self, "_on_TowerMenu_gui_input")):
+		$TowerMenu.connect("gui_input", Callable(self, "_on_TowerMenu_gui_input"))
+	if not $CanvasLayer/ui.is_connected("gui_input", Callable(self, "_on_ui_gui_input")):
+		$CanvasLayer/ui.connect("gui_input", Callable(self, "_on_ui_gui_input"))
+	
 	update_tower_button_costs()
 	
 	# Initialize tooltip system
@@ -156,6 +144,69 @@ func reset_session_stats():
 	# Initial UI update for game mode
 	if current_game_mode != null:
 		update_game_mode_ui()
+
+func reset_session_stats():
+	"""Reset all session statistics for a new game/load
+	Note: Session stats are preserved across saves/loads within the same playthrough.
+	They only reset when starting a completely new game."""
+	session_enemies_killed = 0
+	session_towers_built = 0
+	session_gold_earned = 0
+	session_gold_spent = 0
+	session_waves_completed = 0
+	session_starting_health = health  # Store starting health
+	session_perfect_run = true
+	session_play_time = 0.0
+	
+	load_map("res://scenes/map.tscn")
+	update_ui()
+	hide_all_grid_overlays()
+
+func debug_print_endless_scaling():
+	"""Debug function to print current endless scaling values"""
+	if current_game_mode == null or current_game_mode.mode_type != "endless":
+		print("Not in endless mode")
+		return
+		
+	print("=== Endless Mode Scaling Debug ===")
+	print("Current difficulty level: ", endless_difficulty_level)
+	print("Survival time: %.1f seconds" % endless_survival_time)
+	print()
+	
+	# Test with different enemy types
+	var test_enemies = [
+		["Easy (firebug)", "res://assets/Enemies/firebug/firebug.tres"],
+		["Medium (fireWasp)", "res://assets/Enemies/fireWasp/fireWasp.tres"], 
+		["Hard (magmaCrab)", "res://assets/Enemies/magmaCrab/magmaCrab.tres"]
+	]
+	
+	var base_health = 100
+	var base_speed = 100.0
+	
+	for enemy_info in test_enemies:
+		var enemy_name = enemy_info[0]
+		var path = enemy_info[1]
+		
+		var scaled_health = get_endless_scaled_health(base_health, path)
+		var scaled_speed = get_endless_scaled_speed(base_speed, path)
+		
+		print("%s:" % enemy_name)
+		print("  Health: %d (%.2fx)" % [scaled_health, scaled_health / float(base_health)])
+		print("  Speed: %.1f (%.2fx)" % [scaled_speed, scaled_speed / base_speed])
+		print()
+	
+	print("Difficulty thresholds:")
+	print("  Level 1-3: Easy enemies only")
+	print("  Level 4-7: Easy + Medium enemies") 
+	print("  Level 8-9: All enemies (hard rare)")
+	print("  Level 10+: All enemies + differential buffs")
+	print("===================================")
+
+func _input(event):
+	# Add debug key for testing scaling
+	if event is InputEventKey and event.pressed:
+		if event.keycode == KEY_F9:  # Press F9 to print scaling debug info
+			debug_print_endless_scaling()
 
 # Preload fallback game mode
 const DEFAULT_GAME_MODE = preload("res://assets/gameMode/normalMode.tres")
@@ -240,27 +291,68 @@ func get_endless_spawn_interval() -> float:
 	var reduction_per_level = 0.2
 	return max(0.8, base_interval - (endless_difficulty_level - 1) * reduction_per_level)
 
-func get_endless_scaled_health(base_health: int) -> int:
-	"""Get scaled health for endless mode based on time-based difficulty"""
-	# Start with reduced health in early levels, then scale up
+func get_endless_scaled_health(base_health: int, enemy_type: String = "") -> int:
+	"""Get scaled health for endless mode with gradual scaling and enemy type multipliers"""
 	var health_multiplier = 1.0
 	
-	if endless_difficulty_level == 1:
-		# First minute: 70% health
-		health_multiplier = 0.7
-	elif endless_difficulty_level == 2:
-		# Second minute: 85% health  
-		health_multiplier = 0.85
+	if endless_difficulty_level <= 2:
+		# First 2 minutes: reduced health for easier start
+		health_multiplier = 0.7 + (endless_difficulty_level - 1) * 0.15  # 0.7 to 0.85
+	elif endless_difficulty_level <= 10:
+		# Minutes 3-10: gradual linear scaling to normal difficulty
+		var progress = (endless_difficulty_level - 2) / 8.0  # 0 to 1 over levels 3-10
+		health_multiplier = 0.85 + progress * 0.35  # 0.85 to 1.2
 	else:
-		# After 2 minutes: scale up by 20% per level
-		health_multiplier = 1.0 + (endless_difficulty_level - 3) * 0.2
+		# Level 10+: exponential scaling begins
+		var exponential_factor = 1.12
+		health_multiplier = 1.2 * pow(exponential_factor, endless_difficulty_level - 10)
+	
+	# Apply enemy type multipliers for level 10+
+	if endless_difficulty_level >= 10:
+		if enemy_type.contains("firebug") or enemy_type.contains("leafbug"):
+			# Easy enemies get 4x buff
+			health_multiplier *= 4.0
+		elif enemy_type.contains("fireWasp") or enemy_type.contains("flyingLocust") or enemy_type.contains("clampBeetle"):
+			# Medium enemies get 2x buff  
+			health_multiplier *= 2.0
+		# Hard enemies (voidButterfly, scorpion, magmaCrab) keep normal scaling
 	
 	return int(base_health * health_multiplier)
+
+func get_endless_scaled_speed(base_speed: float, enemy_type: String = "") -> float:
+	"""Get scaled speed for endless mode with gradual scaling and enemy type multipliers"""
+	var speed_multiplier = 1.0
+	
+	if endless_difficulty_level <= 2:
+		# First 2 minutes: normal to slightly faster
+		speed_multiplier = 1.0 + (endless_difficulty_level - 1) * 0.05  # 1.0 to 1.05
+	elif endless_difficulty_level <= 10:
+		# Minutes 3-10: gradual speed increase
+		var progress = (endless_difficulty_level - 2) / 8.0  # 0 to 1 over levels 3-10
+		speed_multiplier = 1.05 + progress * 0.25  # 1.05 to 1.3
+	else:
+		# Level 10+: exponential speed scaling begins
+		var exponential_factor = 1.08
+		speed_multiplier = 1.3 + (pow(exponential_factor, endless_difficulty_level - 10) - 1) * 0.8
+		# Cap at 3x speed to keep it reasonable
+		speed_multiplier = min(speed_multiplier, 3.0)
+	
+	# Apply enemy type multipliers for level 10+
+	if endless_difficulty_level >= 10:
+		if enemy_type.contains("firebug") or enemy_type.contains("leafbug"):
+			# Easy enemies get 4x speed buff
+			speed_multiplier = min(speed_multiplier * 4.0, 3.0)  # Still cap at 3x
+		elif enemy_type.contains("fireWasp") or enemy_type.contains("flyingLocust") or enemy_type.contains("clampBeetle"):
+			# Medium enemies get 2x speed buff
+			speed_multiplier = min(speed_multiplier * 2.0, 3.0)  # Still cap at 3x
+		# Hard enemies keep normal scaling
+	
+	return base_speed * speed_multiplier
 
 func spawn_endless_enemies():
 	# Simple endless mode implementation - spawn random enemies with scaling
 	var enemy_count = 5 + (current_wave_number * 2)  # Increasing enemy count
-	var spawn_interval = max(0.5, 2.0 - (current_wave_number * 0.1))  # Decreasing spawn interval
+	var spawn_interval = max(0.1, 1.0 - (current_wave_number * 0.1))  # Decreasing spawn interval
 	
 	enemies_remaining_in_wave = enemy_count
 	
@@ -309,7 +401,22 @@ func handle_game_mode_timing(delta):
 			if endless_survival_time >= endless_next_difficulty_time:
 				endless_difficulty_level += 1
 				endless_next_difficulty_time += 60.0  # Next scaling in 60 seconds
-				show_notification("Difficulty Increased!\nLevel " + str(endless_difficulty_level))
+				
+				# Calculate scaling info for display (using a hard enemy as baseline)
+				var baseline_health = get_endless_scaled_health(100, "res://assets/Enemies/magmaCrab/magmaCrab.tres")
+				var baseline_speed = get_endless_scaled_speed(100.0, "res://assets/Enemies/magmaCrab/magmaCrab.tres")
+				var health_scale = "%.1fx" % (baseline_health / 100.0)
+				var speed_scale = "%.1fx" % (baseline_speed / 100.0)
+				
+				var enemy_unlock_msg = ""
+				if endless_difficulty_level == 4:
+					enemy_unlock_msg = "\nMedium enemies unlocked!"
+				elif endless_difficulty_level == 8:
+					enemy_unlock_msg = "\nHard enemies appear rarely!"
+				elif endless_difficulty_level == 10:
+					enemy_unlock_msg = "\nAll enemies + Scaling buffs!"
+				
+				show_notification("Difficulty Increased!\nLevel " + str(endless_difficulty_level) + "\nHealth: " + health_scale + " | Speed: " + speed_scale + enemy_unlock_msg)
 			
 			# Handle continuous enemy spawning
 			handle_endless_continuous_spawning(delta)
@@ -373,15 +480,18 @@ func spawn_enemy_with_scaling(enemy_path_points, enemy_data_path: String):
 	
 	# Apply scaling based on game mode
 	var scaled_health
+	var scaled_speed = enemy_data.speed  # Default to base speed
+	
 	if current_game_mode.mode_type == "endless":
-		# For endless mode, use time-based difficulty scaling
-		scaled_health = get_endless_scaled_health(enemy_data.max_health)
+		# For endless mode, use time-based difficulty scaling with enemy type
+		scaled_health = get_endless_scaled_health(enemy_data.max_health, enemy_data_path)
+		scaled_speed = get_endless_scaled_speed(enemy_data.speed, enemy_data_path)
 	else:
 		# For wave modes, use wave-based scaling
 		scaled_health = current_game_mode.get_scaled_health(enemy_data.max_health, current_wave_number)
 	
-	# Spawn enemy with scaling
-	spawn_enemy(enemy_path_points, enemy_data_path, scaled_health)
+	# Spawn enemy with scaling (including speed)
+	spawn_enemy(enemy_path_points, enemy_data_path, scaled_health, scaled_speed)
 
 func wave_complete():
 	is_wave_active = false
@@ -1999,7 +2109,7 @@ func get_snapped_position(mouse_pos: Vector2) -> Vector2:
 
 
 #testing enemy spawns
-func spawn_enemy(enemy_path_points, enemy_data_path: String = "res://assets/Enemies/firebug/firebug.tres", override_health: int = -1):
+func spawn_enemy(enemy_path_points, enemy_data_path: String = "res://assets/Enemies/firebug/firebug.tres", override_health: int = -1, override_speed: float = -1.0):
 	# Safety check: ensure we have valid path points
 	if enemy_path_points.size() == 0:
 		print("Error: Cannot spawn enemy - path_points is empty")
@@ -2064,6 +2174,10 @@ func spawn_enemy(enemy_path_points, enemy_data_path: String = "res://assets/Enem
 		enemy.set_health(override_health)
 	elif override_health > 0 and "health" in enemy:
 		enemy.health = override_health
+	
+	# Apply speed scaling if provided
+	if override_speed > 0.0 and "speed" in enemy:
+		enemy.speed = override_speed
 	
 	var spawn_offset = Vector2.ZERO
 	if enemy_path_points.size() > 1:
@@ -2132,34 +2246,40 @@ func _on_enemy_spawn_timer_timeout():
 		$EnemySpawnTimer.stop()
 
 func spawn_endless_enemy():
-	# Define enemy types by difficulty tiers
+	# Define enemy types by difficulty tiers (corrected categorization)
 	var easy_enemies = [
 		"res://assets/Enemies/firebug/firebug.tres",
-		"res://assets/Enemies/clampBeetle/clampBeetle.tres"
-		
+		"res://assets/Enemies/leafbug/leafbug.tres"
 	]
 	var medium_enemies = [
 		"res://assets/Enemies/fireWasp/fireWasp.tres",
-		"res://assets/Enemies/scorpion/scorpion.tres",
-		"res://assets/Enemies/magmaCrab/magmaCrab.tres"
+		"res://assets/Enemies/flyingLocust/flyingLocust.tres",
+		"res://assets/Enemies/clampBeetle/clampBeetle.tres"
 	]
 	var hard_enemies = [
 		"res://assets/Enemies/voidButterfly/voidButterfly.tres",
-		"res://assets/Enemies/flyingLocust/flyingLocust.tres",
-		"res://assets/Enemies/leafbug/leafbug.tres"
+		"res://assets/Enemies/scorpion/scorpion.tres",
+		"res://assets/Enemies/magmaCrab/magmaCrab.tres"
 	]
 	
-	# Choose enemy pool based on difficulty level
+	# Choose enemy pool based on difficulty level with new progression
 	var available_enemies = []
-	if endless_difficulty_level <= 2:
-		# Levels 1-2: Only easy enemies
+	if endless_difficulty_level <= 3:
+		# Levels 1-3: Only easy enemies
 		available_enemies = easy_enemies.duplicate()
-	elif endless_difficulty_level <= 4:
-		# Levels 3-4: Easy and medium enemies
+	elif endless_difficulty_level <= 7:
+		# Levels 4-7: Easy and medium enemies
 		available_enemies = easy_enemies.duplicate()
 		available_enemies.append_array(medium_enemies)
+	elif endless_difficulty_level < 10:
+		# Levels 8-9: All enemies, but hard enemies are rare
+		available_enemies = easy_enemies.duplicate()
+		available_enemies.append_array(medium_enemies)
+		# Add only one hard enemy to make them rare
+		if hard_enemies.size() > 0:
+			available_enemies.append(hard_enemies[randi() % hard_enemies.size()])
 	else:
-		# Level 5+: All enemy types
+		# Level 10+: All enemy types with equal probability (random spawning)
 		available_enemies = easy_enemies.duplicate()
 		available_enemies.append_array(medium_enemies)
 		available_enemies.append_array(hard_enemies)
@@ -2394,6 +2514,10 @@ func _on_upgrade_button_pressed() -> void:
 
 func setup_tooltip_system():
 	"""Initialize the tooltip system"""
+	# Only set up once
+	if tower_tooltip != null:
+		return
+		
 	# Create tooltip instance
 	var tooltip_scene = preload("res://scenes/ui/TowerTooltip.tscn")
 	tower_tooltip = tooltip_scene.instantiate()
@@ -2401,11 +2525,12 @@ func setup_tooltip_system():
 	$CanvasLayer.add_child(tower_tooltip)
 	
 	# Create tooltip timer
-	tooltip_timer = Timer.new()
-	tooltip_timer.wait_time = 1.0
-	tooltip_timer.one_shot = true
-	tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
-	add_child(tooltip_timer)
+	if tooltip_timer == null:
+		tooltip_timer = Timer.new()
+		tooltip_timer.wait_time = 1.0
+		tooltip_timer.one_shot = true
+		tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
+		add_child(tooltip_timer)
 	
 	# Connect hover events to tower buttons
 	setup_tower_button_tooltips()
@@ -2430,15 +2555,21 @@ func setup_tower_button_tooltips():
 		var button = $CanvasLayer.get_node("ui/MarginContainer/buildMenu/towerButton%d" % (i+1))
 		var tower_data = load(tower_paths[i])
 		
-		# Connect mouse enter and exit events
-		button.mouse_entered.connect(_on_tower_button_mouse_entered.bind(button, tower_data, 1, false))
-		button.mouse_exited.connect(_on_tower_button_mouse_exited)
+		# Connect mouse enter and exit events only if not already connected
+		if not button.is_connected("mouse_entered", _on_tower_button_mouse_entered.bind(button, tower_data, 1, false)):
+			button.mouse_entered.connect(_on_tower_button_mouse_entered.bind(button, tower_data, 1, false))
+		if not button.is_connected("mouse_exited", _on_tower_button_mouse_exited):
+			button.mouse_exited.connect(_on_tower_button_mouse_exited)
 
 func setup_upgrade_button_tooltip():
 	"""Setup tooltip events for the upgrade button"""
 	var upgrade_button = $TowerMenu.get_node("upgradeButton")
-	upgrade_button.mouse_entered.connect(_on_upgrade_button_mouse_entered)
-	upgrade_button.mouse_exited.connect(_on_upgrade_button_mouse_exited)
+	
+	# Connect events only if not already connected
+	if not upgrade_button.is_connected("mouse_entered", _on_upgrade_button_mouse_entered):
+		upgrade_button.mouse_entered.connect(_on_upgrade_button_mouse_entered)
+	if not upgrade_button.is_connected("mouse_exited", _on_upgrade_button_mouse_exited):
+		upgrade_button.mouse_exited.connect(_on_upgrade_button_mouse_exited)
 
 func _on_tower_button_mouse_entered(button: Control, tower_data: TowerData, level: int, is_upgrade: bool):
 	"""Handle mouse entering a tower button"""
@@ -2541,8 +2672,10 @@ func setup_achievement_system():
 	# Connect to achievement signals
 	var achievement_manager = get_node("/root/AchievementManager")
 	if achievement_manager:
-		achievement_manager.achievement_unlocked.connect(_on_achievement_unlocked)
-		achievement_manager.skin_unlocked.connect(_on_skin_unlocked)
+		if not achievement_manager.achievement_unlocked.is_connected(_on_achievement_unlocked):
+			achievement_manager.achievement_unlocked.connect(_on_achievement_unlocked)
+		if not achievement_manager.skin_unlocked.is_connected(_on_skin_unlocked):
+			achievement_manager.skin_unlocked.connect(_on_skin_unlocked)
 
 func _on_achievement_unlocked(achievement_id: String):
 	"""Handle achievement unlocked"""

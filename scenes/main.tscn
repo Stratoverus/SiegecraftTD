@@ -11,9 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://bsduh72ppslga" path="res://assets/Towers/tower4/base/tower4L1Icon.tres" id="8_tipki"]
 [ext_resource type="Texture2D" uid="uid://bfwedeq8cxw3x" path="res://assets/Towers/tower4/weapon/projectileT4Icon.tres" id="9_85g3d"]
 [ext_resource type="Texture2D" uid="uid://bj2jwuhhpc28r" path="res://assets/Towers/tower5/base/towerT5L1Icon.tres" id="10_ya4ey"]
-[ext_resource type="Texture2D" uid="uid://b0pvxaasj3orr" path="res://assets/Towers/tower4/base/tower4L1Icon.tres" id="10_eb6dy"]
 [ext_resource type="Texture2D" uid="uid://bg6d071qvdahd" path="res://assets/Towers/tower5/weapon/weaponT5L1Icon.tres" id="11_eb6dy"]
-[ext_resource type="Texture2D" uid="uid://bu5a40yv6r30t" path="res://assets/Towers/tower6/base/towerT6L1Icon.tres" id="12_eb6dy"]
 [ext_resource type="Texture2D" uid="uid://bu5a40yv6r30t" path="res://assets/Towers/tower6/base/towerT6L1Icon.tres" id="12_trceg"]
 [ext_resource type="Texture2D" uid="uid://deygqg3vptx0j" path="res://assets/Towers/tower6/weapon/weaponT6L1Icon.tres" id="13_a8y0u"]
 [ext_resource type="Texture2D" uid="uid://wrwfeei5ork1" path="res://assets/Towers/tower7/base/tower7L1Icon.tres" id="14_jkv2x"]
@@ -415,14 +413,10 @@ visible = false
 process_mode = 3
 visible = false
 z_index = 4096
-layout_mode = 1
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -431,10 +425,6 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.7)
@@ -448,8 +438,9 @@ offset_left = -150.0
 offset_top = 50.0
 offset_right = 150.0
 offset_bottom = 100.0
-theme_override_font_sizes/font_size = 48
+grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
+theme_override_font_sizes/font_size = 48
 text = "GAME PAUSED"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -459,16 +450,12 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="gameMenuPanel" type="Panel" parent="CanvasLayer/pauseFade/centerContainer"]
-layout_mode = 2
 custom_minimum_size = Vector2(300, 200)
+layout_mode = 2
 
 [node name="gameMenu" type="VBoxContainer" parent="CanvasLayer/pauseFade/centerContainer/gameMenuPanel"]
 layout_mode = 1
@@ -501,8 +488,8 @@ text = "Quit to Desktop"
 
 [node name="settingsMenuPanel" type="Panel" parent="CanvasLayer/pauseFade/centerContainer"]
 visible = false
-layout_mode = 2
 custom_minimum_size = Vector2(400, 300)
+layout_mode = 2
 
 [node name="settingsMenu" type="VBoxContainer" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel"]
 layout_mode = 1
@@ -518,65 +505,65 @@ grow_vertical = 2
 theme_override_constants/separation = 15
 
 [node name="back" type="Button" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu"]
+process_mode = 3
 custom_minimum_size = Vector2(353, 0)
 layout_mode = 2
 size_flags_horizontal = 4
-process_mode = 3
 text = "BACK"
 
 [node name="fullscreen" type="CheckBox" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu"]
-layout_mode = 2
 process_mode = 3
+layout_mode = 2
 text = "FULLSCREEN"
 
 [node name="mainVolSlider" type="HSlider" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu"]
+process_mode = 3
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
-process_mode = 3
 max_value = 1.0
 step = 0.001
 
 [node name="mainVolLabel" type="Label" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/mainVolSlider"]
+process_mode = 3
 custom_minimum_size = Vector2(400, 55)
 layout_mode = 0
 offset_top = -16.0
 offset_right = 400.0
 offset_bottom = 39.0
-process_mode = 3
 text = "MAIN VOLUME"
 horizontal_alignment = 1
 
 [node name="musicVolSlider" type="HSlider" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu"]
+process_mode = 3
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
-process_mode = 3
 max_value = 1.0
 step = 0.001
 
 [node name="musicVolLabel" type="Label" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/musicVolSlider"]
+process_mode = 3
 custom_minimum_size = Vector2(400, 55)
 layout_mode = 0
 offset_top = -16.0
 offset_right = 400.0
 offset_bottom = 39.0
-process_mode = 3
 text = "MUSIC VOLUME"
 horizontal_alignment = 1
 
 [node name="sfxVolSlider" type="HSlider" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu"]
+process_mode = 3
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
-process_mode = 3
 max_value = 1.0
 step = 0.001
 
 [node name="sfxVolLabel" type="Label" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu/sfxVolSlider"]
+process_mode = 3
 custom_minimum_size = Vector2(400, 55)
 layout_mode = 0
 offset_top = -16.0
 offset_right = 400.0
 offset_bottom = 39.0
-process_mode = 3
 text = "SFX VOLUME"
 horizontal_alignment = 1
 

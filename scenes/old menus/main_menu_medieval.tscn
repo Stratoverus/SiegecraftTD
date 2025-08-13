@@ -1,0 +1,358 @@
+[gd_scene load_steps=8 format=3 uid="uid://cajrdhp0jofh2"]
+
+[ext_resource type="Script" uid="uid://yfasanscw4vc" path="res://scenes/main_menu.gd" id="1_0ettg"]
+[ext_resource type="AudioStream" uid="uid://yemjmkcwpe1a" path="res://assets/sounds/music/Imminent Threat Collection/Imminent Threat.mp3" id="2_ekxnf"]
+[ext_resource type="Texture2D" uid="uid://b7vw6kx16rh7y" path="res://assets/coin_fresh.png" id="3_medieval"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_parchment"]
+bg_color = Color(0.95, 0.9, 0.8, 1)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_color = Color(0.4, 0.3, 0.2, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_left = 15
+corner_radius_bottom_right = 15
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 8
+shadow_offset = Vector2(4, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_medieval_button"]
+bg_color = Color(0.8, 0.7, 0.5, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.4, 0.3, 0.1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 4
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_medieval_button_hover"]
+bg_color = Color(0.9, 0.8, 0.6, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.6, 0.5, 0.3, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 6
+shadow_offset = Vector2(3, 3)
+
+[sub_resource type="Theme" id="Theme_medieval"]
+Button/colors/font_color = Color(0.2, 0.1, 0.05, 1)
+Button/colors/font_hover_color = Color(0.1, 0.05, 0.0, 1)
+Button/colors/font_pressed_color = Color(0.3, 0.2, 0.1, 1)
+Button/font_sizes/font_size = 24
+Button/styles/hover = SubResource("StyleBoxFlat_medieval_button_hover")
+Button/styles/normal = SubResource("StyleBoxFlat_medieval_button")
+Button/styles/pressed = SubResource("StyleBoxFlat_medieval_button")
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_0ettg")
+
+[node name="BackgroundTexture" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.15, 0.1, 0.05, 1)
+
+[node name="ParchmentOverlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.95, 0.9, 0.8, 0.15)
+
+[node name="VignetteEffect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0)
+
+[node name="TitleBanner" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -450.0
+offset_top = 30.0
+offset_right = 450.0
+offset_bottom = 180.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_parchment")
+
+[node name="TitleContainer" type="VBoxContainer" parent="TitleBanner"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+theme_override_constants/separation = 5
+
+[node name="MainTitle" type="Label" parent="TitleBanner/TitleContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.1, 0.05, 1)
+theme_override_colors/font_shadow_color = Color(0.8, 0.7, 0.5, 0.8)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 72
+text = "⚔ SIEGECRAFT TD ⚔"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Subtitle" type="Label" parent="TitleBanner/TitleContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.3, 0.2, 1)
+theme_override_font_sizes/font_size = 24
+text = "~ Defend the Realm ~"
+horizontal_alignment = 1
+
+[node name="ProfileHeraldry" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -320.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 160.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_parchment")
+
+[node name="ProfileContainer" type="VBoxContainer" parent="ProfileHeraldry"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = -15.0
+offset_bottom = -15.0
+theme_override_constants/separation = 8
+
+[node name="HeraldryTitle" type="Label" parent="ProfileHeraldry/ProfileContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.1, 0.05, 1)
+theme_override_font_sizes/font_size = 18
+text = "🛡 LORD/LADY 🛡"
+horizontal_alignment = 1
+
+[node name="profileNameLabel" type="Label" parent="ProfileHeraldry/ProfileContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.2, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Stratoverus"
+horizontal_alignment = 1
+
+[node name="ProfileRank" type="Label" parent="ProfileHeraldry/ProfileContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.4, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+text = "Defender of the Realm"
+horizontal_alignment = 1
+
+[node name="changeNameButton" type="Button" parent="ProfileHeraldry/ProfileContainer"]
+layout_mode = 2
+theme = SubResource("Theme_medieval")
+theme_override_font_sizes/font_size = 14
+text = "Change Heraldry"
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 200.0
+
+[node name="MainMenuScroll" type="Panel" parent="CenterContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(600, 500)
+theme_override_styles/panel = SubResource("StyleBoxFlat_parchment")
+
+[node name="MainMenuContent" type="VBoxContainer" parent="CenterContainer/MainMenuScroll"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+theme_override_constants/separation = 20
+
+[node name="MenuTitle" type="Label" parent="CenterContainer/MainMenuScroll/MainMenuContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.1, 0.05, 1)
+theme_override_font_sizes/font_size = 36
+text = "⚜ ROYAL COMMANDS ⚜"
+horizontal_alignment = 1
+
+[node name="MainButtons" type="VBoxContainer" parent="CenterContainer/MainMenuScroll/MainMenuContent"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="newGame" type="Button" parent="CenterContainer/MainMenuScroll/MainMenuContent/MainButtons"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60)
+theme = SubResource("Theme_medieval")
+theme_override_font_sizes/font_size = 28
+text = "⚔ EMBARK ON QUEST ⚔"
+
+[node name="loadGame" type="Button" parent="CenterContainer/MainMenuScroll/MainMenuContent/MainButtons"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60)
+theme = SubResource("Theme_medieval")
+theme_override_font_sizes/font_size = 28
+text = "📜 CONTINUE CHRONICLE 📜"
+
+[node name="settings" type="Button" parent="CenterContainer/MainMenuScroll/MainMenuContent/MainButtons"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60)
+theme = SubResource("Theme_medieval")
+theme_override_font_sizes/font_size = 28
+text = "⚙ CASTLE SETTINGS ⚙"
+
+[node name="profile" type="Button" parent="CenterContainer/MainMenuScroll/MainMenuContent/MainButtons"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60)
+theme = SubResource("Theme_medieval")
+theme_override_font_sizes/font_size = 28
+text = "👑 ROYAL COURT 👑"
+
+[node name="credits" type="Button" parent="CenterContainer/MainMenuScroll/MainMenuContent/MainButtons"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60)
+theme = SubResource("Theme_medieval")
+theme_override_font_sizes/font_size = 28
+text = "📖 HALL OF HONOR 📖"
+
+[node name="quit" type="Button" parent="CenterContainer/MainMenuScroll/MainMenuContent/MainButtons"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60)
+theme = SubResource("Theme_medieval")
+theme_override_font_sizes/font_size = 28
+text = "🚪 LEAVE REALM 🚪"
+
+[node name="SettingsScroll" type="Panel" parent="CenterContainer"]
+visible = false
+layout_mode = 2
+custom_minimum_size = Vector2(700, 600)
+theme_override_styles/panel = SubResource("StyleBoxFlat_parchment")
+
+[node name="SettingsMenu" type="VBoxContainer" parent="CenterContainer/SettingsScroll"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+theme_override_constants/separation = 25
+
+[node name="SettingsTitle" type="Label" parent="CenterContainer/SettingsScroll/SettingsMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.1, 0.05, 1)
+theme_override_font_sizes/font_size = 36
+text = "⚙ CASTLE CONFIGURATIONS ⚙"
+horizontal_alignment = 1
+
+[node name="SettingsGrid" type="GridContainer" parent="CenterContainer/SettingsScroll/SettingsMenu"]
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 30
+theme_override_constants/v_separation = 20
+
+[node name="FullscreenLabel" type="Label" parent="CenterContainer/SettingsScroll/SettingsMenu/SettingsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.2, 0.1, 1)
+theme_override_font_sizes/font_size = 24
+text = "🏰 Full Castle View:"
+
+[node name="fullscreen" type="CheckBox" parent="CenterContainer/SettingsScroll/SettingsMenu/SettingsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.2, 0.1, 1)
+theme_override_font_sizes/font_size = 24
+text = "Enable"
+
+[node name="MasterVolumeLabel" type="Label" parent="CenterContainer/SettingsScroll/SettingsMenu/SettingsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.2, 0.1, 1)
+theme_override_font_sizes/font_size = 24
+text = "🔊 Master Volume:"
+
+[node name="mainVolSlider" type="HSlider" parent="CenterContainer/SettingsScroll/SettingsMenu/SettingsGrid"]
+custom_minimum_size = Vector2(250, 40)
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+
+[node name="MusicVolumeLabel" type="Label" parent="CenterContainer/SettingsScroll/SettingsMenu/SettingsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.2, 0.1, 1)
+theme_override_font_sizes/font_size = 24
+text = "🎵 Minstrel Songs:"
+
+[node name="musicVolSlider" type="HSlider" parent="CenterContainer/SettingsScroll/SettingsMenu/SettingsGrid"]
+custom_minimum_size = Vector2(250, 40)
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+
+[node name="SFXVolumeLabel" type="Label" parent="CenterContainer/SettingsScroll/SettingsMenu/SettingsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.2, 0.1, 1)
+theme_override_font_sizes/font_size = 24
+text = "⚔ Battle Sounds:"
+
+[node name="sfxVolSlider" type="HSlider" parent="CenterContainer/SettingsScroll/SettingsMenu/SettingsGrid"]
+custom_minimum_size = Vector2(250, 40)
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+
+[node name="back" type="Button" parent="CenterContainer/SettingsScroll/SettingsMenu"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme = SubResource("Theme_medieval")
+theme_override_font_sizes/font_size = 24
+text = "🔙 Return to Court"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_ekxnf")
+volume_db = -10.0
+autoplay = true
+bus = &"MUSIC"
+parameters/looping = false
+
+[connection signal="pressed" from="ProfileHeraldry/ProfileContainer/changeNameButton" to="." method="_on_change_name_pressed"]
+[connection signal="pressed" from="CenterContainer/MainMenuScroll/MainMenuContent/MainButtons/newGame" to="." method="_on_new_game_pressed"]
+[connection signal="pressed" from="CenterContainer/MainMenuScroll/MainMenuContent/MainButtons/loadGame" to="." method="_on_load_game_pressed"]
+[connection signal="pressed" from="CenterContainer/MainMenuScroll/MainMenuContent/MainButtons/settings" to="." method="_on_settings_pressed"]
+[connection signal="pressed" from="CenterContainer/MainMenuScroll/MainMenuContent/MainButtons/profile" to="." method="_on_profile_pressed"]
+[connection signal="pressed" from="CenterContainer/MainMenuScroll/MainMenuContent/MainButtons/credits" to="." method="_on_credits_pressed"]
+[connection signal="pressed" from="CenterContainer/MainMenuScroll/MainMenuContent/MainButtons/quit" to="." method="_on_quit_pressed"]
+[connection signal="pressed" from="CenterContainer/SettingsScroll/SettingsMenu/back" to="." method="_on_back_pressed"]
+[connection signal="toggled" from="CenterContainer/SettingsScroll/SettingsMenu/SettingsGrid/fullscreen" to="." method="_on_fullscreen_toggled"]
+[connection signal="value_changed" from="CenterContainer/SettingsScroll/SettingsMenu/SettingsGrid/mainVolSlider" to="." method="_on_main_vol_slider_value_changed"]
+[connection signal="value_changed" from="CenterContainer/SettingsScroll/SettingsMenu/SettingsGrid/musicVolSlider" to="." method="_on_music_vol_slider_value_changed"]
+[connection signal="value_changed" from="CenterContainer/SettingsScroll/SettingsMenu/SettingsGrid/sfxVolSlider" to="." method="_on_sfx_vol_slider_value_changed"]

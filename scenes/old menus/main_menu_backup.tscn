@@ -1,0 +1,700 @@
+[gd_scene load_steps=4 format=3 uid="uid://d1m8t57voowjq"]
+
+[ext_resource type="Script" uid="uid://yfasanscw4vc" path="res://scenes/main_menu.gd" id="1_0ettg"]
+[ext_resource type="AudioStream" uid="uid://yemjmkcwpe1a" path="res://assets/sounds/music/Imminent Threat Collection/Imminent Threat.mp3" id="2_ekxnf"]
+
+[sub_resource type="Theme" id="Theme_rhts7"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_0ettg")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.05, 0.1, 1)
+
+[node name="BackgroundOverlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.3)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -400.0
+offset_top = 50.0
+offset_right = 400.0
+offset_bottom = 200.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.95)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 4
+theme_override_constants/shadow_offset_y = 4
+theme_override_font_sizes/font_size = 120
+text = "SiegeCraft TD"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ProfileDisplay" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -280.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 120.0
+grow_horizontal = 0
+
+[node name="ProfileContainer" type="VBoxContainer" parent="ProfileDisplay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = -15.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="profileNameLabel" type="Label" parent="ProfileDisplay/ProfileContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Stratoverus"
+horizontal_alignment = 1
+
+[node name="changeNameButton" type="Button" parent="ProfileDisplay/ProfileContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Change Profile"
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_rhts7")
+
+[node name="MainMenuPanel" type="Panel" parent="CenterContainer"]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 2
+
+[node name="MainButtons" type="VBoxContainer" parent="CenterContainer/MainMenuPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="newGame" type="Button" parent="CenterContainer/MainMenuPanel/MainButtons"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "NEW GAME"
+
+[node name="loadGame" type="Button" parent="CenterContainer/MainMenuPanel/MainButtons"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "LOAD GAME"
+
+[node name="settings" type="Button" parent="CenterContainer/MainMenuPanel/MainButtons"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "SETTINGS"
+
+[node name="profile" type="Button" parent="CenterContainer/MainMenuPanel/MainButtons"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "PROFILE"
+
+[node name="credits" type="Button" parent="CenterContainer/MainMenuPanel/MainButtons"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "CREDITS"
+
+[node name="quit" type="Button" parent="CenterContainer/MainMenuPanel/MainButtons"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "QUIT"
+
+[node name="SettingsPanel" type="Panel" parent="CenterContainer"]
+visible = false
+custom_minimum_size = Vector2(600, 500)
+layout_mode = 2
+
+[node name="SettingsMenu" type="VBoxContainer" parent="CenterContainer/SettingsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="SettingsTitle" type="Label" parent="CenterContainer/SettingsPanel/SettingsMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 36
+text = "SETTINGS"
+horizontal_alignment = 1
+
+[node name="fullscreen" type="CheckBox" parent="CenterContainer/SettingsPanel/SettingsMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "FULLSCREEN"
+
+[node name="mainVolSlider" type="HSlider" parent="CenterContainer/SettingsPanel/SettingsMenu"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+
+[node name="mainVolLabel" type="Label" parent="CenterContainer/SettingsPanel/SettingsMenu/mainVolSlider"]
+custom_minimum_size = Vector2(400, 55)
+layout_mode = 0
+offset_top = -30.0
+offset_right = 400.0
+offset_bottom = 25.0
+theme_override_font_sizes/font_size = 20
+text = "MAIN VOLUME"
+horizontal_alignment = 1
+
+[node name="musicVolSlider" type="HSlider" parent="CenterContainer/SettingsPanel/SettingsMenu"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+
+[node name="musicVolLabel" type="Label" parent="CenterContainer/SettingsPanel/SettingsMenu/musicVolSlider"]
+custom_minimum_size = Vector2(400, 55)
+layout_mode = 0
+offset_top = -30.0
+offset_right = 400.0
+offset_bottom = 25.0
+theme_override_font_sizes/font_size = 20
+text = "MUSIC VOLUME"
+horizontal_alignment = 1
+
+[node name="sfxVolSlider" type="HSlider" parent="CenterContainer/SettingsPanel/SettingsMenu"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+
+[node name="sfxVolLabel" type="Label" parent="CenterContainer/SettingsPanel/SettingsMenu/sfxVolSlider"]
+custom_minimum_size = Vector2(400, 55)
+layout_mode = 0
+offset_top = -30.0
+offset_right = 400.0
+offset_bottom = 25.0
+theme_override_font_sizes/font_size = 20
+text = "SFX VOLUME"
+horizontal_alignment = 1
+
+[node name="back" type="Button" parent="CenterContainer/SettingsPanel/SettingsMenu"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+text = "BACK"
+
+[node name="CreditsPanel" type="Panel" parent="CenterContainer"]
+visible = false
+custom_minimum_size = Vector2(500, 300)
+layout_mode = 2
+
+[node name="CreditsMenu" type="VBoxContainer" parent="CenterContainer/CreditsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="CreditsTitle" type="Label" parent="CenterContainer/CreditsPanel/CreditsMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 36
+text = "CREDITS"
+horizontal_alignment = 1
+
+[node name="credits" type="Label" parent="CenterContainer/CreditsPanel/CreditsMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "Developed by Keith Eberhard
+Music by Matthew Pablo"
+horizontal_alignment = 1
+
+[node name="back" type="Button" parent="CenterContainer/CreditsPanel/CreditsMenu"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+text = "BACK"
+
+[node name="LoadPanel" type="Panel" parent="CenterContainer"]
+visible = false
+custom_minimum_size = Vector2(500, 350)
+layout_mode = 2
+
+[node name="LoadMenu" type="VBoxContainer" parent="CenterContainer/LoadPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="title" type="Label" parent="CenterContainer/LoadPanel/LoadMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 36
+text = "LOAD GAME"
+horizontal_alignment = 1
+
+[node name="loadCheckpoint" type="Button" parent="CenterContainer/LoadPanel/LoadMenu"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 20
+text = "CONTINUE (CHECKPOINT)"
+
+[node name="back" type="Button" parent="CenterContainer/LoadPanel/LoadMenu"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+text = "BACK"
+
+[node name="ProfilePanel" type="Panel" parent="CenterContainer"]
+visible = false
+custom_minimum_size = Vector2(600, 500)
+layout_mode = 2
+
+[node name="ProfileMenu" type="VBoxContainer" parent="CenterContainer/ProfilePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="title" type="Label" parent="CenterContainer/ProfilePanel/ProfileMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 36
+text = "PROFILE"
+horizontal_alignment = 1
+
+[node name="profileNameLabel" type="Label" parent="CenterContainer/ProfilePanel/ProfileMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "Profile: Player"
+horizontal_alignment = 1
+
+[node name="MenuButtons" type="VBoxContainer" parent="CenterContainer/ProfilePanel/ProfileMenu"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 16
+
+[node name="viewStatsButton" type="Button" parent="CenterContainer/ProfilePanel/ProfileMenu/MenuButtons"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "VIEW STATISTICS"
+
+[node name="achievementsButton" type="Button" parent="CenterContainer/ProfilePanel/ProfileMenu/MenuButtons"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "ACHIEVEMENTS"
+
+[node name="houseSkinsButton" type="Button" parent="CenterContainer/ProfilePanel/ProfileMenu/MenuButtons"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "HOUSE SKINS"
+
+[node name="back" type="Button" parent="CenterContainer/ProfilePanel/ProfileMenu"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+text = "BACK"
+
+[node name="StatsPanel" type="Panel" parent="CenterContainer"]
+visible = false
+custom_minimum_size = Vector2(700, 600)
+layout_mode = 2
+
+[node name="StatsMenu" type="VBoxContainer" parent="CenterContainer/StatsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="title" type="Label" parent="CenterContainer/StatsPanel/StatsMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 36
+text = "STATISTICS"
+horizontal_alignment = 1
+
+[node name="StatsContainer" type="GridContainer" parent="CenterContainer/StatsPanel/StatsMenu"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 40
+theme_override_constants/v_separation = 15
+columns = 2
+
+[node name="gamesPlayedLabel" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Games Played:"
+
+[node name="gamesPlayedValue" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="timesWonLabel" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Times Won:"
+
+[node name="timesWonValue" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="timesLostLabel" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Times Lost:"
+
+[node name="timesLostValue" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="wavesLabel" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Total Waves Survived:"
+
+[node name="wavesValue" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="enemiesLabel" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Enemies Defeated:"
+
+[node name="enemiesValue" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="towersLabel" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Towers Built:"
+
+[node name="towersValue" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="highestWaveLabel" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Highest Wave:"
+
+[node name="highestWaveValue" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="goldEarnedLabel" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Total Gold Earned:"
+
+[node name="goldEarnedValue" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="playTimeLabel" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Play Time:"
+
+[node name="playTimeValue" type="Label" parent="CenterContainer/StatsPanel/StatsMenu/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0 minutes"
+
+[node name="back" type="Button" parent="CenterContainer/StatsPanel/StatsMenu"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+text = "BACK"
+
+[node name="AchievementsPanel" type="Panel" parent="CenterContainer"]
+visible = false
+custom_minimum_size = Vector2(800, 600)
+layout_mode = 2
+
+[node name="AchievementsMenu" type="VBoxContainer" parent="CenterContainer/AchievementsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="title" type="Label" parent="CenterContainer/AchievementsPanel/AchievementsMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 36
+text = "ACHIEVEMENTS"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/AchievementsPanel/AchievementsMenu"]
+custom_minimum_size = Vector2(720, 400)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="achievementsList" type="VBoxContainer" parent="CenterContainer/AchievementsPanel/AchievementsMenu/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="back" type="Button" parent="CenterContainer/AchievementsPanel/AchievementsMenu"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+text = "BACK"
+
+[node name="HouseSkinsPanel" type="Panel" parent="CenterContainer"]
+visible = false
+custom_minimum_size = Vector2(800, 600)
+layout_mode = 2
+
+[node name="HouseSkinsMenu" type="VBoxContainer" parent="CenterContainer/HouseSkinsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="title" type="Label" parent="CenterContainer/HouseSkinsPanel/HouseSkinsMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 36
+text = "HOUSE SKINS"
+horizontal_alignment = 1
+
+[node name="currentSkinLabel" type="Label" parent="CenterContainer/HouseSkinsPanel/HouseSkinsMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Current House Skin: Classic Cottage"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/HouseSkinsPanel/HouseSkinsMenu"]
+custom_minimum_size = Vector2(720, 300)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="skinGrid" type="GridContainer" parent="CenterContainer/HouseSkinsPanel/HouseSkinsMenu/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 4
+
+[node name="back" type="Button" parent="CenterContainer/HouseSkinsPanel/HouseSkinsMenu"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+text = "BACK"
+
+[node name="GameModePanel" type="Panel" parent="CenterContainer"]
+visible = false
+custom_minimum_size = Vector2(500, 400)
+layout_mode = 2
+
+[node name="GameModeMenu" type="VBoxContainer" parent="CenterContainer/GameModePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="GameModeTitle" type="Label" parent="CenterContainer/GameModePanel/GameModeMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 36
+text = "SELECT GAME MODE"
+horizontal_alignment = 1
+
+[node name="normal" type="Button" parent="CenterContainer/GameModePanel/GameModeMenu"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "NORMAL"
+
+[node name="extraHard" type="Button" parent="CenterContainer/GameModePanel/GameModeMenu"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "EXTRA HARD"
+
+[node name="endless" type="Button" parent="CenterContainer/GameModePanel/GameModeMenu"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "ENDLESS"
+
+[node name="back" type="Button" parent="CenterContainer/GameModePanel/GameModeMenu"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+text = "BACK"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_ekxnf")
+volume_db = -10.0
+autoplay = true
+bus = &"MUSIC"
+parameters/looping = false
+
+[connection signal="pressed" from="ProfileDisplay/ProfileContainer/changeNameButton" to="." method="_on_change_name_pressed"]
+[connection signal="pressed" from="CenterContainer/MainMenuPanel/MainButtons/newGame" to="." method="_on_new_game_pressed"]
+[connection signal="pressed" from="CenterContainer/MainMenuPanel/MainButtons/loadGame" to="." method="_on_load_game_pressed"]
+[connection signal="pressed" from="CenterContainer/MainMenuPanel/MainButtons/settings" to="." method="_on_settings_pressed"]
+[connection signal="pressed" from="CenterContainer/MainMenuPanel/MainButtons/profile" to="." method="_on_profile_pressed"]
+[connection signal="pressed" from="CenterContainer/MainMenuPanel/MainButtons/credits" to="." method="_on_credits_pressed"]
+[connection signal="pressed" from="CenterContainer/MainMenuPanel/MainButtons/quit" to="." method="_on_quit_pressed"]
+[connection signal="toggled" from="CenterContainer/SettingsPanel/SettingsMenu/fullscreen" to="." method="_on_fullscreen_toggled"]
+[connection signal="value_changed" from="CenterContainer/SettingsPanel/SettingsMenu/mainVolSlider" to="." method="_on_main_vol_slider_value_changed"]
+[connection signal="value_changed" from="CenterContainer/SettingsPanel/SettingsMenu/musicVolSlider" to="." method="_on_music_vol_slider_value_changed"]
+[connection signal="value_changed" from="CenterContainer/SettingsPanel/SettingsMenu/sfxVolSlider" to="." method="_on_sfx_vol_slider_value_changed"]
+[connection signal="pressed" from="CenterContainer/SettingsPanel/SettingsMenu/back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CenterContainer/CreditsPanel/CreditsMenu/back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CenterContainer/LoadPanel/LoadMenu/loadCheckpoint" to="." method="_on_load_checkpoint_pressed"]
+[connection signal="pressed" from="CenterContainer/LoadPanel/LoadMenu/back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CenterContainer/ProfilePanel/ProfileMenu/MenuButtons/viewStatsButton" to="." method="_on_view_stats_pressed"]
+[connection signal="pressed" from="CenterContainer/ProfilePanel/ProfileMenu/MenuButtons/achievementsButton" to="." method="_on_achievements_pressed"]
+[connection signal="pressed" from="CenterContainer/ProfilePanel/ProfileMenu/MenuButtons/houseSkinsButton" to="." method="_on_house_skins_pressed"]
+[connection signal="pressed" from="CenterContainer/ProfilePanel/ProfileMenu/back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CenterContainer/StatsPanel/StatsMenu/back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CenterContainer/AchievementsPanel/AchievementsMenu/back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CenterContainer/HouseSkinsPanel/HouseSkinsMenu/back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CenterContainer/GameModePanel/GameModeMenu/normal" to="." method="_on_normal_pressed"]
+[connection signal="pressed" from="CenterContainer/GameModePanel/GameModeMenu/extraHard" to="." method="_on_extra_hard_pressed"]
+[connection signal="pressed" from="CenterContainer/GameModePanel/GameModeMenu/endless" to="." method="_on_endless_pressed"]
+[connection signal="pressed" from="CenterContainer/GameModePanel/GameModeMenu/back" to="." method="_on_back_pressed"]

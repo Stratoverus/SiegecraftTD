@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="SiegecraftTD"
-run/main_scene="uid://d1m8t57voowjq"
+run/main_scene="uid://5wchp34uke3q"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 

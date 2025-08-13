@@ -4,172 +4,177 @@
 [ext_resource type="AudioStream" uid="uid://yemjmkcwpe1a" path="res://assets/sounds/music/Imminent Threat Collection/Imminent Threat.mp3" id="2_ekxnf"]
 
 [sub_resource type="Gradient" id="Gradient_mystical_bg"]
-offsets = PackedFloat32Array(0, 0, 0, 1)
-colors = PackedColorArray(0.08, 0.04, 0.02, 1, 0.12, 0.08, 0.04, 1, 0.06, 0.03, 0.01, 1, 0.1, 0.05, 0.02, 1)
+colors = PackedColorArray(0.03, 0.05, 0.12, 1, 0.08, 0.06, 0.15, 1, 0.12, 0.08, 0.18, 1, 0.06, 0.04, 0.12, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_mystical"]
 gradient = SubResource("Gradient_mystical_bg")
+fill_from = Vector2(0, 0)
 fill_to = Vector2(1, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cinematic_overlay"]
-bg_color = Color(0.05, 0.02, 0.01, 0.6)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_profile_card"]
-bg_color = Color(0.133333, 0.0901961, 0.0470588, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.6, 0.45, 0.2, 0.8)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-shadow_color = Color(0, 0, 0, 0.8)
-shadow_size = 16
-shadow_offset = Vector2(0, 8)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_secondary_button_hover"]
-bg_color = Color(0.35, 0.25, 0.15, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.8, 0.6, 0.3, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-shadow_color = Color(0.6, 0.4, 0.1, 0.4)
-shadow_size = 12
-shadow_offset = Vector2(0, 6)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_secondary_button"]
-bg_color = Color(0.18, 0.12, 0.06, 0.8)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.5, 0.35, 0.15, 0.8)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-shadow_color = Color(0, 0, 0, 0.7)
-shadow_size = 8
-shadow_offset = Vector2(0, 4)
-
-[sub_resource type="Theme" id="Theme_small_buttons"]
-Button/colors/font_color = Color(0.85, 0.75, 0.55, 1)
-Button/colors/font_hover_color = Color(0.95, 0.85, 0.65, 1)
-Button/colors/font_pressed_color = Color(0.75, 0.65, 0.45, 1)
-Button/font_sizes/font_size = 18
-Button/styles/hover = SubResource("StyleBoxFlat_secondary_button_hover")
-Button/styles/normal = SubResource("StyleBoxFlat_secondary_button")
-Button/styles/pressed = SubResource("StyleBoxFlat_secondary_button")
+bg_color = Color(0.02, 0.04, 0.08, 0.7)
+corner_radius_top_left = 0
+corner_radius_top_right = 0
+corner_radius_bottom_left = 0
+corner_radius_bottom_right = 0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hero_panel"]
-bg_color = Color(0.15, 0.1, 0.05, 0.9)
+bg_color = Color(0.08, 0.12, 0.2, 0.9)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.7, 0.5, 0.2, 0.8)
+border_color = Color(0.3, 0.5, 0.8, 0.8)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
-corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
 shadow_color = Color(0, 0, 0, 0.9)
 shadow_size = 24
 shadow_offset = Vector2(0, 12)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_button_hover"]
-bg_color = Color(0.45, 0.3, 0.15, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.9, 0.7, 0.3, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0.6, 0.4, 0.1, 0.6)
-shadow_size = 16
-shadow_offset = Vector2(0, 8)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_button"]
-bg_color = Color(0.25, 0.18, 0.08, 0.95)
+bg_color = Color(0.15, 0.25, 0.4, 0.95)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.7, 0.5, 0.2, 1)
+border_color = Color(0.4, 0.6, 0.9, 1.0)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
-corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
 shadow_color = Color(0, 0, 0, 0.8)
 shadow_size = 12
 shadow_offset = Vector2(0, 6)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_button_hover"]
+bg_color = Color(0.25, 0.4, 0.6, 1.0)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.5, 0.7, 1.0, 1.0)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+shadow_color = Color(0.3, 0.5, 0.8, 0.6)
+shadow_size = 16
+shadow_offset = Vector2(0, 8)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_button_pressed"]
-bg_color = Color(0.2, 0.14, 0.06, 0.9)
+bg_color = Color(0.12, 0.2, 0.35, 0.9)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.8, 0.6, 0.25, 1)
+border_color = Color(0.6, 0.8, 1.0, 1.0)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
-corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+shadow_color = Color(0, 0, 0, 0.6)
 shadow_size = 8
 shadow_offset = Vector2(0, 4)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_secondary_button"]
+bg_color = Color(0.1, 0.15, 0.25, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.45, 0.7, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_left = 6
+corner_radius_bottom_right = 6
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_secondary_button_hover"]
+bg_color = Color(0.18, 0.28, 0.42, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.6, 0.9, 1.0)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_left = 6
+corner_radius_bottom_right = 6
+shadow_color = Color(0.2, 0.4, 0.7, 0.4)
+shadow_size = 12
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_profile_card"]
+bg_color = Color(0.06, 0.1, 0.16, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.4, 0.65, 0.7)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+shadow_color = Color(0, 0, 0, 0.8)
+shadow_size = 16
+shadow_offset = Vector2(0, 8)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_news_panel"]
+bg_color = Color(0.04, 0.08, 0.14, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.35, 0.6, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 12
+shadow_offset = Vector2(0, 6)
+
 [sub_resource type="Theme" id="Theme_primary_buttons"]
-Button/colors/font_color = Color(1, 0.9, 0.7, 1)
-Button/colors/font_focus_color = Color(1, 0.95, 0.8, 1)
-Button/colors/font_hover_color = Color(1, 0.95, 0.8, 1)
-Button/colors/font_pressed_color = Color(0.9, 0.8, 0.6, 1)
+Button/colors/font_color = Color(0.95, 0.98, 1.0, 1.0)
+Button/colors/font_hover_color = Color(1.0, 1.0, 1.0, 1.0)
+Button/colors/font_pressed_color = Color(0.9, 0.95, 1.0, 1.0)
+Button/colors/font_focus_color = Color(1.0, 1.0, 1.0, 1.0)
 Button/font_sizes/font_size = 32
-Button/styles/focus = SubResource("StyleBoxFlat_primary_button_hover")
 Button/styles/hover = SubResource("StyleBoxFlat_primary_button_hover")
 Button/styles/normal = SubResource("StyleBoxFlat_primary_button")
 Button/styles/pressed = SubResource("StyleBoxFlat_primary_button_pressed")
+Button/styles/focus = SubResource("StyleBoxFlat_primary_button_hover")
 
 [sub_resource type="Theme" id="Theme_secondary_buttons"]
-Button/colors/font_color = Color(0.9, 0.8, 0.6, 1)
-Button/colors/font_hover_color = Color(1, 0.9, 0.7, 1)
-Button/colors/font_pressed_color = Color(0.8, 0.7, 0.5, 1)
+Button/colors/font_color = Color(0.85, 0.9, 0.98, 1.0)
+Button/colors/font_hover_color = Color(0.95, 0.98, 1.0, 1.0)
+Button/colors/font_pressed_color = Color(0.8, 0.85, 0.95, 1.0)
 Button/font_sizes/font_size = 24
 Button/styles/hover = SubResource("StyleBoxFlat_secondary_button_hover")
 Button/styles/normal = SubResource("StyleBoxFlat_secondary_button")
 Button/styles/pressed = SubResource("StyleBoxFlat_secondary_button")
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_news_panel"]
-bg_color = Color(0.08, 0.05, 0.02, 0.85)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.4, 0.25, 0.1, 0.7)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0, 0, 0, 0.7)
-shadow_size = 12
-shadow_offset = Vector2(0, 6)
+[sub_resource type="Theme" id="Theme_small_buttons"]
+Button/colors/font_color = Color(0.8, 0.85, 0.95, 1.0)
+Button/colors/font_hover_color = Color(0.9, 0.95, 1.0, 1.0)
+Button/colors/font_pressed_color = Color(0.75, 0.8, 0.9, 1.0)
+Button/font_sizes/font_size = 18
+Button/styles/hover = SubResource("StyleBoxFlat_secondary_button_hover")
+Button/styles/normal = SubResource("StyleBoxFlat_secondary_button")
+Button/styles/pressed = SubResource("StyleBoxFlat_secondary_button")
 
 [sub_resource type="Theme" id="Theme_settings"]
-CheckBox/colors/font_color = Color(0.9, 0.8, 0.6, 1)
-CheckBox/colors/font_hover_color = Color(1, 0.9, 0.7, 1)
+CheckBox/colors/font_color = Color(0.9, 0.95, 1.0, 1.0)
+CheckBox/colors/font_hover_color = Color(1.0, 1.0, 1.0, 1.0)
 CheckBox/font_sizes/font_size = 22
-HSlider/colors/grabber_color = Color(0.7, 0.5, 0.2, 1)
-HSlider/colors/grabber_highlight_color = Color(0.9, 0.7, 0.3, 1)
-HSlider/colors/trough_color = Color(0.3, 0.2, 0.1, 0.8)
-Label/colors/font_color = Color(0.9, 0.8, 0.6, 1)
+HSlider/colors/grabber_color = Color(0.4, 0.6, 0.9, 1.0)
+HSlider/colors/grabber_highlight_color = Color(0.5, 0.7, 1.0, 1.0)
+HSlider/colors/trough_color = Color(0.2, 0.3, 0.4, 0.8)
+Label/colors/font_color = Color(0.9, 0.95, 1.0, 1.0)
 Label/font_sizes/font_size = 20
 
 [node name="MainMenu" type="Control"]
@@ -177,8 +182,6 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 script = ExtResource("1_0ettg")
 
 [node name="MysticalBackground" type="TextureRect" parent="."]
@@ -186,8 +189,6 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 texture = SubResource("GradientTexture2D_mystical")
 stretch_mode = 1
 
@@ -196,8 +197,6 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_cinematic_overlay")
 
 [node name="MagicalParticles" type="Control" parent="."]
@@ -205,26 +204,26 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
 [node name="Particle1" type="Label" parent="MagicalParticles"]
 layout_mode = 1
+anchors_preset = 0
 offset_left = 100.0
 offset_top = 150.0
 offset_right = 120.0
 offset_bottom = 170.0
-theme_override_colors/font_color = Color(0.9, 0.7, 0.3, 0.5)
+theme_override_colors/font_color = Color(0.6, 0.8, 1.0, 0.4)
 theme_override_font_sizes/font_size = 24
 text = "✦"
 
 [node name="Particle2" type="Label" parent="MagicalParticles"]
 layout_mode = 1
+anchors_preset = 0
 offset_left = 300.0
 offset_top = 80.0
 offset_right = 320.0
 offset_bottom = 100.0
-theme_override_colors/font_color = Color(0.8, 0.6, 0.2, 0.4)
+theme_override_colors/font_color = Color(0.5, 0.7, 0.9, 0.3)
 theme_override_font_sizes/font_size = 18
 text = "❋"
 
@@ -237,8 +236,7 @@ offset_left = -150.0
 offset_top = 200.0
 offset_right = -130.0
 offset_bottom = 220.0
-grow_horizontal = 0
-theme_override_colors/font_color = Color(0.7, 0.5, 0.1, 0.6)
+theme_override_colors/font_color = Color(0.4, 0.6, 0.8, 0.5)
 theme_override_font_sizes/font_size = 20
 text = "✧"
 
@@ -247,7 +245,6 @@ layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 offset_bottom = 180.0
-grow_horizontal = 2
 
 [node name="GameLogo" type="Label" parent="TitleCinematic"]
 layout_mode = 1
@@ -260,9 +257,7 @@ offset_left = -400.0
 offset_top = -50.0
 offset_right = 400.0
 offset_bottom = 20.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(0.95, 0.98, 1, 1)
+theme_override_colors/font_color = Color(0.95, 0.98, 1.0, 1.0)
 theme_override_colors/font_shadow_color = Color(0.1, 0.2, 0.4, 0.9)
 theme_override_constants/shadow_offset_x = 4
 theme_override_constants/shadow_offset_y = 4
@@ -282,9 +277,7 @@ offset_left = -300.0
 offset_top = 25.0
 offset_right = 300.0
 offset_bottom = 65.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.9)
+theme_override_colors/font_color = Color(0.7, 0.85, 1.0, 0.9)
 theme_override_colors/font_shadow_color = Color(0.2, 0.4, 0.7, 0.7)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
@@ -303,8 +296,6 @@ offset_left = -150.0
 offset_top = -40.0
 offset_right = -20.0
 offset_bottom = -10.0
-grow_horizontal = 0
-grow_vertical = 0
 theme_override_colors/font_color = Color(0.6, 0.7, 0.85, 0.8)
 theme_override_font_sizes/font_size = 16
 text = "ALPHA v1.0.0"
@@ -315,11 +306,10 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -452.0
-offset_top = 42.0
-offset_right = -152.0
-offset_bottom = 192.0
-grow_horizontal = 0
+offset_left = -350.0
+offset_top = 200.0
+offset_right = -50.0
+offset_bottom = 350.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_profile_card")
 
 [node name="ProfileLayout" type="VBoxContainer" parent="HeroProfileCard"]
@@ -331,27 +321,25 @@ offset_left = 25.0
 offset_top = 20.0
 offset_right = -25.0
 offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_constants/separation = 12
 
 [node name="HeroTitle" type="Label" parent="HeroProfileCard/ProfileLayout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
+theme_override_colors/font_color = Color(0.7, 0.85, 1.0, 1.0)
 theme_override_font_sizes/font_size = 20
-text = "✦ PROFILE ✦"
+text = "✦ HERO PROFILE ✦"
 horizontal_alignment = 1
 
 [node name="profileNameLabel" type="Label" parent="HeroProfileCard/ProfileLayout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.98, 1, 1)
+theme_override_colors/font_color = Color(0.95, 0.98, 1.0, 1.0)
 theme_override_font_sizes/font_size = 26
 text = "Archmage Commander"
 horizontal_alignment = 1
 
 [node name="ProfileRank" type="Label" parent="HeroProfileCard/ProfileLayout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_colors/font_color = Color(0.8, 0.9, 1.0, 1.0)
 theme_override_font_sizes/font_size = 18
 text = "Master of the Mystical Towers"
 horizontal_alignment = 1
@@ -362,20 +350,20 @@ theme_override_constants/separation = 15
 
 [node name="PowerLevel" type="Label" parent="HeroProfileCard/ProfileLayout/StatsContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.8, 0.4, 1)
+theme_override_colors/font_color = Color(0.9, 0.8, 0.4, 1.0)
 theme_override_font_sizes/font_size = 16
-text = "🏆 Best Wave: 25"
+text = "⚡ Power: 847"
 
 [node name="Experience" type="Label" parent="HeroProfileCard/ProfileLayout/StatsContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.8, 0.9, 1)
+theme_override_colors/font_color = Color(0.4, 0.8, 0.9, 1.0)
 theme_override_font_sizes/font_size = 16
-text = "💀 Kills: 1,247"
+text = "✧ XP: 2,341"
 
 [node name="changeNameButton" type="Button" parent="HeroProfileCard/ProfileLayout"]
 layout_mode = 2
 theme = SubResource("Theme_small_buttons")
-text = "Change Profile"
+text = "Customize Hero"
 
 [node name="MainInterface" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -386,8 +374,6 @@ offset_left = 80.0
 offset_top = 220.0
 offset_right = -80.0
 offset_bottom = -80.0
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_constants/separation = 60
 
 [node name="PrimaryMenuPanel" type="Panel" parent="MainInterface"]
@@ -405,13 +391,11 @@ offset_left = 50.0
 offset_top = 40.0
 offset_right = -50.0
 offset_bottom = -40.0
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_constants/separation = 25
 
 [node name="MenuTitle" type="Label" parent="MainInterface/PrimaryMenuPanel/MenuLayout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_colors/font_color = Color(0.8, 0.9, 1.0, 1.0)
 theme_override_font_sizes/font_size = 36
 text = "✦ MAIN QUEST ✦"
 horizontal_alignment = 1
@@ -421,16 +405,16 @@ layout_mode = 2
 theme_override_constants/separation = 20
 
 [node name="newGame" type="Button" parent="MainInterface/PrimaryMenuPanel/MenuLayout/PrimaryActions"]
-custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
+custom_minimum_size = Vector2(0, 70)
 theme = SubResource("Theme_primary_buttons")
-text = "▶ Start Game"
+text = "⚔ BEGIN ADVENTURE ⚔"
 
 [node name="loadGame" type="Button" parent="MainInterface/PrimaryMenuPanel/MenuLayout/PrimaryActions"]
-custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
+custom_minimum_size = Vector2(0, 70)
 theme = SubResource("Theme_primary_buttons")
-text = "▶ Continue"
+text = "✦ CONTINUE SAGA ✦"
 
 [node name="Divider1" type="Control" parent="MainInterface/PrimaryMenuPanel/MenuLayout"]
 custom_minimum_size = Vector2(0, 20)
@@ -441,32 +425,32 @@ layout_mode = 2
 theme_override_constants/separation = 15
 
 [node name="profile" type="Button" parent="MainInterface/PrimaryMenuPanel/MenuLayout/SecondaryActions"]
-custom_minimum_size = Vector2(0, 55)
 layout_mode = 2
+custom_minimum_size = Vector2(0, 55)
 theme = SubResource("Theme_secondary_buttons")
-text = "📊 Progress"
+text = "✧ Hero Chronicles ✧"
 
 [node name="settings" type="Button" parent="MainInterface/PrimaryMenuPanel/MenuLayout/SecondaryActions"]
-custom_minimum_size = Vector2(0, 55)
 layout_mode = 2
+custom_minimum_size = Vector2(0, 55)
 theme = SubResource("Theme_secondary_buttons")
-text = "⚙ Settings"
+text = "⚙ Arcane Settings ⚙"
 
 [node name="credits" type="Button" parent="MainInterface/PrimaryMenuPanel/MenuLayout/SecondaryActions"]
-custom_minimum_size = Vector2(0, 55)
 layout_mode = 2
+custom_minimum_size = Vector2(0, 55)
 theme = SubResource("Theme_secondary_buttons")
-text = "📜 Credits"
+text = "⭐ Hall of Legends ⭐"
 
 [node name="Divider2" type="Control" parent="MainInterface/PrimaryMenuPanel/MenuLayout"]
 layout_mode = 2
 size_flags_vertical = 3
 
 [node name="quit" type="Button" parent="MainInterface/PrimaryMenuPanel/MenuLayout"]
-custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
 theme = SubResource("Theme_secondary_buttons")
-text = "❌ Quit Game"
+text = "🚪 Exit to Realm"
 
 [node name="NewsAndUpdates" type="Panel" parent="MainInterface"]
 layout_mode = 2
@@ -483,13 +467,11 @@ offset_left = 30.0
 offset_top = 30.0
 offset_right = -30.0
 offset_bottom = -30.0
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_constants/separation = 20
 
 [node name="NewsHeader" type="Label" parent="MainInterface/NewsAndUpdates/NewsLayout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
+theme_override_colors/font_color = Color(0.7, 0.85, 1.0, 1.0)
 theme_override_font_sizes/font_size = 28
 text = "✦ MYSTIC CHRONICLES ✦"
 horizontal_alignment = 1
@@ -505,7 +487,7 @@ theme_override_constants/separation = 15
 
 [node name="NewsItem1" type="Label" parent="MainInterface/NewsAndUpdates/NewsLayout/ScrollContainer/NewsContent"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_colors/font_color = Color(0.8, 0.9, 1.0, 1.0)
 theme_override_font_sizes/font_size = 18
 text = "⚡ New Elemental Towers Discovered
 ✦ Ancient Magic System Updated
@@ -514,14 +496,14 @@ autowrap_mode = 2
 
 [node name="NewsItem2" type="Label" parent="MainInterface/NewsAndUpdates/NewsLayout/ScrollContainer/NewsContent"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1.0)
 theme_override_font_sizes/font_size = 16
 text = "The realm's mystical energies have shifted. New arcane towers have been unearthed, each wielding different elemental powers. Prepare your strategies accordingly, brave commander."
 autowrap_mode = 2
 
 [node name="NewsItem3" type="Label" parent="MainInterface/NewsAndUpdates/NewsLayout/ScrollContainer/NewsContent"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.75, 0.85, 1)
+theme_override_colors/font_color = Color(0.6, 0.75, 0.85, 1.0)
 theme_override_font_sizes/font_size = 16
 text = "✧ Patch Notes v1.0.0:
 • Improved spell casting animations
@@ -533,6 +515,18 @@ autowrap_mode = 2
 [node name="QuickActions" type="HBoxContainer" parent="MainInterface/NewsAndUpdates/NewsLayout"]
 layout_mode = 2
 theme_override_constants/separation = 10
+
+[node name="LeaderboardBtn" type="Button" parent="MainInterface/NewsAndUpdates/NewsLayout/QuickActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = SubResource("Theme_small_buttons")
+text = "🏆 Rankings"
+
+[node name="CommunityBtn" type="Button" parent="MainInterface/NewsAndUpdates/NewsLayout/QuickActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = SubResource("Theme_small_buttons")
+text = "👥 Guild"
 
 [node name="SettingsPanel" type="Panel" parent="MainInterface"]
 visible = false
@@ -549,15 +543,13 @@ offset_left = 50.0
 offset_top = 40.0
 offset_right = -50.0
 offset_bottom = -40.0
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_constants/separation = 30
 
 [node name="SettingsTitle" type="Label" parent="MainInterface/SettingsPanel/SettingsLayout"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_colors/font_color = Color(0.8, 0.9, 1.0, 1.0)
 theme_override_font_sizes/font_size = 36
-text = "⚙ SETTINGS ⚙"
+text = "⚙ ARCANE SETTINGS ⚙"
 horizontal_alignment = 1
 
 [node name="SettingsScroll" type="ScrollContainer" parent="MainInterface/SettingsPanel/SettingsLayout"]
@@ -572,19 +564,19 @@ theme_override_constants/separation = 25
 
 [node name="DisplaySection" type="Label" parent="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
+theme_override_colors/font_color = Color(0.7, 0.85, 1.0, 1.0)
 theme_override_font_sizes/font_size = 24
-text = "🖼 Graphics"
+text = "✦ VISUAL ENCHANTMENTS ✦"
 
 [node name="fullscreen" type="CheckBox" parent="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid"]
 layout_mode = 2
-text = "🖥 Fullscreen"
+text = "🖥 Fullscreen Viewing Crystal"
 
 [node name="AudioSection" type="Label" parent="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
+theme_override_colors/font_color = Color(0.7, 0.85, 1.0, 1.0)
 theme_override_font_sizes/font_size = 24
-text = "🔊 Audio"
+text = "✦ SONIC SPELLS ✦"
 
 [node name="MasterVolumeContainer" type="VBoxContainer" parent="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid"]
 layout_mode = 2
@@ -592,7 +584,7 @@ theme_override_constants/separation = 8
 
 [node name="MasterLabel" type="Label" parent="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid/MasterVolumeContainer"]
 layout_mode = 2
-text = "🔊 Master Volume"
+text = "🔊 Master Volume Enchantment"
 
 [node name="mainVolSlider" type="HSlider" parent="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid/MasterVolumeContainer"]
 layout_mode = 2
@@ -605,7 +597,7 @@ theme_override_constants/separation = 8
 
 [node name="MusicLabel" type="Label" parent="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid/MusicVolumeContainer"]
 layout_mode = 2
-text = "🎵 Music Volume"
+text = "🎵 Mystical Melodies"
 
 [node name="musicVolSlider" type="HSlider" parent="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid/MusicVolumeContainer"]
 layout_mode = 2
@@ -618,7 +610,7 @@ theme_override_constants/separation = 8
 
 [node name="SFXLabel" type="Label" parent="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid/SFXVolumeContainer"]
 layout_mode = 2
-text = "💥 Sound Effects"
+text = "⚔ Battle Enchantments"
 
 [node name="sfxVolSlider" type="HSlider" parent="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid/SFXVolumeContainer"]
 layout_mode = 2
@@ -643,7 +635,7 @@ text = "↩ Return"
 custom_minimum_size = Vector2(150, 50)
 layout_mode = 2
 theme = SubResource("Theme_primary_buttons")
-text = "✦ Apply ✦"
+text = "✦ Apply Magic ✦"
 
 [node name="MysticalFooter" type="Label" parent="."]
 layout_mode = 1
@@ -656,11 +648,9 @@ offset_left = -300.0
 offset_top = -50.0
 offset_right = 300.0
 offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_colors/font_color = Color(0.6, 0.5, 0.3, 0.7)
+theme_override_colors/font_color = Color(0.5, 0.6, 0.8, 0.7)
 theme_override_font_sizes/font_size = 16
-text = "✦ Crafted by Stratoverus ✦"
+text = "✦ Crafted by Stratoverus Arcane Studios ✦"
 horizontal_alignment = 1
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
@@ -676,9 +666,11 @@ bus = &"MUSIC"
 [connection signal="pressed" from="MainInterface/PrimaryMenuPanel/MenuLayout/SecondaryActions/settings" to="." method="_on_settings_pressed"]
 [connection signal="pressed" from="MainInterface/PrimaryMenuPanel/MenuLayout/SecondaryActions/credits" to="." method="_on_credits_pressed"]
 [connection signal="pressed" from="MainInterface/PrimaryMenuPanel/MenuLayout/quit" to="." method="_on_quit_pressed"]
+[connection signal="pressed" from="MainInterface/NewsAndUpdates/NewsLayout/QuickActions/LeaderboardBtn" to="." method="_on_leaderboard_pressed"]
+[connection signal="pressed" from="MainInterface/NewsAndUpdates/NewsLayout/QuickActions/CommunityBtn" to="." method="_on_community_pressed"]
+[connection signal="pressed" from="MainInterface/SettingsPanel/SettingsLayout/SettingsActions/back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="MainInterface/SettingsPanel/SettingsLayout/SettingsActions/apply" to="." method="_on_apply_pressed"]
 [connection signal="toggled" from="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid/fullscreen" to="." method="_on_fullscreen_toggled"]
 [connection signal="value_changed" from="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid/MasterVolumeContainer/mainVolSlider" to="." method="_on_main_vol_slider_value_changed"]
 [connection signal="value_changed" from="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid/MusicVolumeContainer/musicVolSlider" to="." method="_on_music_vol_slider_value_changed"]
 [connection signal="value_changed" from="MainInterface/SettingsPanel/SettingsLayout/SettingsScroll/SettingsGrid/SFXVolumeContainer/sfxVolSlider" to="." method="_on_sfx_vol_slider_value_changed"]
-[connection signal="pressed" from="MainInterface/SettingsPanel/SettingsLayout/SettingsActions/back" to="." method="_on_back_pressed"]
-[connection signal="pressed" from="MainInterface/SettingsPanel/SettingsLayout/SettingsActions/apply" to="." method="_on_apply_pressed"]
