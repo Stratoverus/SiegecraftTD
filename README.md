@@ -6,7 +6,7 @@ SiegecraftTD is an immersive tower defense game that challenges players to strat
 This project serves as a practice for game development. I have been fascinated by how games work, and this has been an incredible opportunity for me to see that and experience how intricate this is. I have been enjoying my time working on this and I look forward to continuing to make this
 
 
-[Software Demo Video](http://youtube.link.goes.here)
+[Software Demo Video](https://youtu.be/JQQb7aTup_8)
 
 # Development Environment
 
