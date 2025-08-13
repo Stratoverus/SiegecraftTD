@@ -277,6 +277,9 @@ func handle_reached_destination():
 		
 	has_entered_house = true
 	
+	# Immediately redraw to hide health bar
+	queue_redraw()
+	
 	# Start shrinking animation to simulate going through the door
 	start_shrinking_animation()
 
@@ -325,7 +328,8 @@ func _on_shrinking_finished():
 
 # Draw the health bar above the enemy
 func _draw():
-	if is_dead or health == 0:
+	# Don't draw health bar if enemy is dead, has no health, or is shrinking/entering house
+	if is_dead or health == 0 or has_entered_house:
 		return
 	if health < max_health:
 		var bar_pos = health_bar_offset - Vector2(health_bar_width / 2.0, 0)

@@ -20,78 +20,8 @@ func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	print("AchievementNotification: Ready, process_mode set to ALWAYS")
 	
-	# Style the background with a nice gray background
-	if background:
-		print("AchievementNotification: Background node found, type: ", background.get_class())
-		
-		# Check what type of node the background is and style accordingly
-		if background is Panel:
-			# Create a StyleBoxFlat for Panel
-			var style_box = StyleBoxFlat.new()
-			style_box.bg_color = Color(0.2, 0.2, 0.2, 0.9)  # Dark gray with slight transparency
-			style_box.border_color = Color(0.4, 0.4, 0.4, 1.0)  # Lighter gray border
-			style_box.border_width_left = 2
-			style_box.border_width_right = 2
-			style_box.border_width_top = 2
-			style_box.border_width_bottom = 2
-			style_box.corner_radius_top_left = 8
-			style_box.corner_radius_top_right = 8
-			style_box.corner_radius_bottom_left = 8
-			style_box.corner_radius_bottom_right = 8
-			style_box.content_margin_left = 12
-			style_box.content_margin_right = 12
-			style_box.content_margin_top = 8
-			style_box.content_margin_bottom = 8
-			background.add_theme_stylebox_override("panel", style_box)
-			print("AchievementNotification: Applied Panel styling")
-		elif background is Control:
-			# For generic Control nodes, we need to use a different approach
-			background.modulate = Color(0.2, 0.2, 0.2, 0.9)
-			print("AchievementNotification: Applied Control modulate color")
-		else:
-			print("AchievementNotification: Unknown background node type: ", background.get_class())
-	else:
-		print("AchievementNotification: No background node found")
-	
-	# Apply background styling directly to this notification panel
-	print("AchievementNotification: Applying styling to self, type: ", self.get_class())
-	
-	# Simple approach: Just set a background color on the background node
-	if background:
-		print("AchievementNotification: Found background node, type: ", background.get_class())
-		# Try to make the background visible with a simple color
-		background.modulate = Color.WHITE  # Make sure it's not transparent
-		
-		# Add a simple colored background using the Control's background
-		if background is Control:
-			# Try setting a theme override for background color
-			background.add_theme_color_override("font_color", Color.WHITE)
-			# Create a simple StyleBox for any Control
-			var style_box = StyleBoxFlat.new()
-			style_box.bg_color = Color(0.3, 0.3, 0.3, 0.9)  # Lighter gray for visibility
-			if background is Panel:
-				background.add_theme_stylebox_override("panel", style_box)
-				print("AchievementNotification: Applied StyleBox to Panel background")
-			else:
-				print("AchievementNotification: Background is Control but not Panel: ", background.get_class())
-	else:
-		print("AchievementNotification: No background node found")
-	
-	# Don't add the fallback ColorRect - it's causing text visibility issues
-	# _add_fallback_background()
-	
-	# Style the text labels to be bright and visible
-	if title_label:
-		title_label.add_theme_color_override("font_color", Color.WHITE)
-		title_label.z_index = 1  # Ensure text is above background
-	
-	if description_label:
-		description_label.add_theme_color_override("font_color", Color.WHITE)
-		description_label.z_index = 1  # Ensure text is above background
-	
-	if skin_label:
-		skin_label.add_theme_color_override("font_color", Color.YELLOW)  # Gold color for skin unlocks
-		skin_label.z_index = 1  # Ensure text is above background
+	# No need to apply additional styling - the .tscn file has the main menu styling built-in
+	print("AchievementNotification: Using built-in main menu styling from .tscn file")
 
 func _add_fallback_background():
 	"""Add a ColorRect as a background if the Panel styling doesn't work"""

@@ -41,6 +41,7 @@ var session_gold_spent: int = 0
 var session_waves_completed: int = 0
 var session_starting_health: int = 100
 var session_perfect_run: bool = true
+var has_completed_first_round: bool = false  # Track if player completed at least one round
 
 var current_wave_number: int = 1
 var current_wave_data = null
@@ -75,12 +76,10 @@ func _ready():
 	# Initialize session stats
 	reset_session_stats()
 	
-	# Track profile stats for starting a new game
-	var profile = get_node("/root/ProfileManager")
-	if profile:
-		profile.update_stat("games_played", 1)
-		# Note: This stat will be saved at the next auto-save or victory/defeat screen
-		start_time = Time.get_ticks_msec() / 1000.0  # Convert to seconds
+	# Track game start time for session tracking
+	start_time = Time.get_ticks_msec() / 1000.0  # Convert to seconds
+	
+	# Note: games_played stat will only be incremented when player completes at least one round
 	
 	# Only connect signals if they aren't already connected
 	if not $TowerMenu.is_connected("gui_input", Callable(self, "_on_TowerMenu_gui_input")):
@@ -98,6 +97,9 @@ func _ready():
 	
 	# Add restart checkpoint button to pause menu
 	add_restart_checkpoint_button()
+	
+	# Initialize tower selection visuals
+	reset_all_tower_visuals()
 	
 	# Check if we should load a saved game
 	var game_mode_manager = get_node("/root/GameModeManager")
@@ -157,6 +159,7 @@ func reset_session_stats():
 	session_starting_health = health  # Store starting health
 	session_perfect_run = true
 	session_play_time = 0.0
+	has_completed_first_round = false  # Reset game played tracking
 	
 	load_map("res://scenes/map.tscn")
 	update_ui()
@@ -264,17 +267,6 @@ func start_wave_mode():
 		current_wave_data = current_game_mode.wave_definitions[current_wave_number - 1]
 		wave_timer = current_wave_data.preparation_time
 
-
-func start_endless_wave():
-	is_wave_active = true
-	is_preparation_phase = false
-	
-	# For endless mode, spawn a variety of enemies with scaling
-	spawn_endless_enemies()
-	
-	# Set timer for next wave
-	wave_timer = current_game_mode.endless_wave_interval
-
 func start_endless_continuous_mode():
 	"""Start the continuous endless mode after preparation"""
 	is_wave_active = true
@@ -286,10 +278,10 @@ func start_endless_continuous_mode():
 
 func get_endless_spawn_interval() -> float:
 	"""Get spawn interval based on current difficulty level"""
-	# Start with 3 seconds, decrease as difficulty increases
-	var base_interval = 3.0
-	var reduction_per_level = 0.2
-	return max(0.8, base_interval - (endless_difficulty_level - 1) * reduction_per_level)
+	# Start with 1 second, decrease as difficulty increases to 0.1 minimum
+	var base_interval = 1.0
+	var reduction_per_level = 0.1
+	return max(0.1, base_interval - (endless_difficulty_level - 1) * reduction_per_level)
 
 func get_endless_scaled_health(base_health: int, enemy_type: String = "") -> int:
 	"""Get scaled health for endless mode with gradual scaling and enemy type multipliers"""
@@ -348,17 +340,6 @@ func get_endless_scaled_speed(base_speed: float, enemy_type: String = "") -> flo
 		# Hard enemies keep normal scaling
 	
 	return base_speed * speed_multiplier
-
-func spawn_endless_enemies():
-	# Simple endless mode implementation - spawn random enemies with scaling
-	var enemy_count = 5 + (current_wave_number * 2)  # Increasing enemy count
-	var spawn_interval = max(0.1, 1.0 - (current_wave_number * 0.1))  # Decreasing spawn interval
-	
-	enemies_remaining_in_wave = enemy_count
-	
-	# Use the enemy spawn timer for spacing
-	$EnemySpawnTimer.wait_time = spawn_interval
-	$EnemySpawnTimer.start()
 
 func start_wave():
 	if current_wave_data == null:
@@ -442,10 +423,6 @@ func handle_game_mode_timing(delta):
 	# Update UI
 	update_game_mode_ui()
 
-func handle_endless_spawning(_delta):
-	# Simple spawning logic for endless mode
-	pass  # This will be handled by the existing EnemySpawnTimer
-
 func handle_endless_continuous_spawning(_delta):
 	"""Handle continuous spawning for endless mode - adjust spawn rate based on difficulty"""
 	# Update spawn interval based on current difficulty
@@ -498,6 +475,17 @@ func wave_complete():
 	
 	# Track session stats
 	session_waves_completed += 1
+	
+	# Track this as a game played if it's the first round completed
+	if not has_completed_first_round:
+		has_completed_first_round = true
+		var profile = get_node("/root/ProfileManager")
+		if profile:
+			profile.update_stat("games_played", 1)
+			print("Game counted as played - first round completed")
+		
+		# Update checkpoint button state now that first round is complete
+		_update_checkpoint_button_state()
 	
 	# Track achievement progress for wave completion
 	var achievement_manager = get_node("/root/AchievementManager")
@@ -613,6 +601,10 @@ func hide_tower_menu_with_bg():
 	# Hide attack range for the previously selected tower
 	if selected_tower and is_instance_valid(selected_tower) and selected_tower.has_method("hide_attack_range"):
 		selected_tower.hide_attack_range()
+	
+	# Reset all tower visuals to normal state
+	reset_all_tower_visuals()
+	
 	# Clear selected_tower
 	selected_tower = null
 	tower_menu_open_for = null
@@ -624,7 +616,7 @@ var notification_label: Label = null
 var notification_tween: Tween = null
 
 func show_notification(text: String, duration: float = 3.0):
-	"""Show a notification popup centered on the screen"""
+	"""Show a notification popup centered on the screen with main menu styling"""
 	# Remove existing notification if any
 	hide_notification()
 	
@@ -641,25 +633,35 @@ func show_notification(text: String, duration: float = 3.0):
 	notification_panel.position = Vector2(panel_center_x, panel_y)
 	notification_panel.z_index = 100
 	
-	# Style the panel with black background
+	# Style the panel with main menu mystical styling
 	var style_box = StyleBoxFlat.new()
-	style_box.bg_color = Color.BLACK
-	style_box.border_color = Color.WHITE
-	style_box.border_width_left = 2
-	style_box.border_width_right = 2
-	style_box.border_width_top = 2
-	style_box.border_width_bottom = 2
-	style_box.corner_radius_top_left = 8
-	style_box.corner_radius_top_right = 8
-	style_box.corner_radius_bottom_left = 8
-	style_box.corner_radius_bottom_right = 8
+	style_box.bg_color = Color(0.15, 0.1, 0.05, 0.9)  # Main menu brown background
+	style_box.border_color = Color(0.7, 0.5, 0.2, 0.8)  # Golden border
+	style_box.border_width_left = 3
+	style_box.border_width_right = 3
+	style_box.border_width_top = 3
+	style_box.border_width_bottom = 3
+	style_box.corner_radius_top_left = 12
+	style_box.corner_radius_top_right = 12
+	style_box.corner_radius_bottom_left = 12
+	style_box.corner_radius_bottom_right = 12
+	style_box.content_margin_left = 16
+	style_box.content_margin_right = 16
+	style_box.content_margin_top = 12
+	style_box.content_margin_bottom = 12
+	
+	# Add subtle shadow effect
+	style_box.shadow_color = Color(0.0, 0.0, 0.0, 0.3)
+	style_box.shadow_size = 8
+	style_box.shadow_offset = Vector2(2, 2)
+	
 	notification_panel.add_theme_stylebox_override("panel", style_box)
 	
 	# Create the notification label
 	notification_label = Label.new()
 	notification_label.text = text
 	notification_label.add_theme_font_size_override("font_size", 36)  # Larger font
-	notification_label.add_theme_color_override("font_color", Color.WHITE)  # White text
+	notification_label.add_theme_color_override("font_color", Color(0.9, 0.8, 0.6))  # Warm golden text
 	notification_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	notification_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	notification_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # Enable text wrapping
@@ -708,6 +710,10 @@ func _process(delta):
 	# Handle game mode timing
 	if current_game_mode != null:
 		handle_game_mode_timing(delta)
+	
+	# Occasionally validate tower selection visuals (every 2 seconds)
+	if int(Time.get_ticks_msec() / 1000.0) % 2 == 0 and Engine.get_process_frames() % 120 == 0:
+		update_tower_selection_visuals()
 
 
 # Returns true if mouse is over any tower
@@ -759,8 +765,11 @@ func load_level(level_path):
 
 func is_tower_at_position(pos: Vector2) -> bool:
 	for tower in $TowerContainer.get_children():
-		# Only check actual tower nodes, not construction/destruction animations
+		# Check actual tower nodes (not being destroyed)
 		if tower.has_method("attack_target") and not tower.is_being_destroyed and tower.position == pos:
+			return true
+		# Also check for construction nodes (towers being built) - they have tower_scene and build_time properties
+		elif tower.has_method("_process") and tower.position == pos and tower.has_method("get") and tower.get("tower_scene") != null:
 			return true
 	return false
 
@@ -1186,71 +1195,232 @@ func victory():
 	show_victory_screen()
 
 func show_game_over_screen():
-	"""Display the game over screen with options"""
-	# Create a semi-transparent overlay
+	"""Display the game over screen with options - styled like main menu"""
+	# Create a semi-transparent overlay with mystical gradient background
 	var overlay = ColorRect.new()
-	overlay.color = Color(0, 0, 0, 0.7)  # Semi-transparent black
+	overlay.color = Color(0.02, 0.05, 0.12, 0.9)  # Darker mystical background
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	overlay.mouse_filter = Control.MOUSE_FILTER_STOP  # Block input to underlying UI
+	overlay.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
-	# Create game over panel
+	# Create game over panel with main menu styling
 	var panel = Panel.new()
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(400, 300)
-	panel.position = Vector2(-200, -150)  # Center the panel
+	panel.custom_minimum_size = Vector2(600, 550)  # Increased size to prevent overflow
+	panel.position = Vector2(-300, -275)  # Center the larger panel
+	panel.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	
+	# Apply main menu hero panel styling
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.15, 0.1, 0.05, 0.9)
+	panel_style.border_width_left = 3
+	panel_style.border_width_top = 3
+	panel_style.border_width_right = 3
+	panel_style.border_width_bottom = 3
+	panel_style.border_color = Color(0.7, 0.5, 0.2, 0.8)
+	panel_style.corner_radius_top_left = 12
+	panel_style.corner_radius_top_right = 12
+	panel_style.corner_radius_bottom_right = 12
+	panel_style.corner_radius_bottom_left = 12
+	panel_style.shadow_color = Color(0, 0, 0, 0.9)
+	panel_style.shadow_size = 24
+	panel_style.shadow_offset = Vector2(0, 12)
+	panel.add_theme_stylebox_override("panel", panel_style)
 	
 	# Create vertical box container for layout
 	var vbox = VBoxContainer.new()
 	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	vbox.add_theme_constant_override("separation", 20)
+	vbox.add_theme_constant_override("separation", 25)
+	vbox.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
-	# Game Over title
+	# Add margins for better spacing
+	var margin = MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 40)
+	margin.add_theme_constant_override("margin_right", 40)
+	margin.add_theme_constant_override("margin_top", 30)
+	margin.add_theme_constant_override("margin_bottom", 30)
+	margin.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	
+	# Game Over title with main menu styling
 	var title = Label.new()
-	title.text = "GAME OVER"
+	if current_game_mode != null and current_game_mode.mode_type == "endless":
+		title.text = "⭐ FINAL SCORE ⭐"
+		title.add_theme_color_override("font_color", Color(0.9, 0.8, 0.3, 1))  # Gold color for endless
+	else:
+		title.text = "⚔ DEFEAT ⚔"
+		title.add_theme_color_override("font_color", Color(0.9, 0.4, 0.3, 1))  # Red but more sophisticated
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 32)
-	title.add_theme_color_override("font_color", Color.RED)
+	title.add_theme_font_size_override("font_size", 42)
+	title.add_theme_color_override("font_shadow_color", Color(0.2, 0.1, 0.1, 0.8))
+	title.add_theme_constant_override("shadow_offset_x", 3)
+	title.add_theme_constant_override("shadow_offset_y", 3)
+	title.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
-	# Stats label
+	# Stats section with main menu styling
+	var stats_container = VBoxContainer.new()
+	stats_container.add_theme_constant_override("separation", 15)
+	stats_container.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	
+	var defeat_msg = Label.new()
+	if current_game_mode != null and current_game_mode.mode_type == "endless":
+		defeat_msg.text = "✦ You survived as long as you could against the endless horde ✦"
+	else:
+		defeat_msg.text = "✦ Your fortress has fallen to the enemy forces ✦"
+	defeat_msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	defeat_msg.add_theme_font_size_override("font_size", 18)
+	defeat_msg.add_theme_color_override("font_color", Color(0.8, 0.9, 1, 1))
+	defeat_msg.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	
 	var stats = Label.new()
-	stats.text = "Your defenses have fallen!\nGold Earned: " + str(gold)
+	if current_game_mode != null and current_game_mode.mode_type == "endless":
+		var survival_minutes = int(endless_survival_time / 60)
+		var survival_seconds = int(endless_survival_time) % 60
+		stats.text = "⏱️ Survival Time: " + str(survival_minutes) + "m " + str(survival_seconds) + "s\n💰 Gold Earned: " + str(gold) + "\n🏆 Difficulty Level: " + str(endless_difficulty_level) + "\n💀 Enemies Slain: " + str(endless_enemies_killed)
+	else:
+		stats.text = "💰 Gold Earned: " + str(gold) + "\n🏆 Waves Survived: " + str(current_wave_number)
 	stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stats.add_theme_font_size_override("font_size", 16)
+	stats.add_theme_font_size_override("font_size", 20)
+	stats.add_theme_color_override("font_color", Color(0.9, 0.8, 0.6, 1))
+	stats.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
-	# Restart button
+	stats_container.add_child(defeat_msg)
+	stats_container.add_child(stats)
+	
+	# Button container
+	var button_container = VBoxContainer.new()
+	button_container.add_theme_constant_override("separation", 18)
+	button_container.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	
+	# Create primary button theme (for restart)
+	var primary_theme = Theme.new()
+	var primary_style_normal = StyleBoxFlat.new()
+	primary_style_normal.bg_color = Color(0.25, 0.18, 0.08, 0.95)
+	primary_style_normal.border_width_left = 2
+	primary_style_normal.border_width_top = 2
+	primary_style_normal.border_width_right = 2
+	primary_style_normal.border_width_bottom = 2
+	primary_style_normal.border_color = Color(0.7, 0.5, 0.2, 1)
+	primary_style_normal.corner_radius_top_left = 8
+	primary_style_normal.corner_radius_top_right = 8
+	primary_style_normal.corner_radius_bottom_right = 8
+	primary_style_normal.corner_radius_bottom_left = 8
+	primary_style_normal.shadow_color = Color(0, 0, 0, 0.8)
+	primary_style_normal.shadow_size = 12
+	primary_style_normal.shadow_offset = Vector2(0, 6)
+	
+	var primary_style_hover = StyleBoxFlat.new()
+	primary_style_hover.bg_color = Color(0.45, 0.3, 0.15, 1)
+	primary_style_hover.border_width_left = 3
+	primary_style_hover.border_width_top = 3
+	primary_style_hover.border_width_right = 3
+	primary_style_hover.border_width_bottom = 3
+	primary_style_hover.border_color = Color(0.9, 0.7, 0.3, 1)
+	primary_style_hover.corner_radius_top_left = 8
+	primary_style_hover.corner_radius_top_right = 8
+	primary_style_hover.corner_radius_bottom_right = 8
+	primary_style_hover.corner_radius_bottom_left = 8
+	primary_style_hover.shadow_color = Color(0.6, 0.4, 0.1, 0.6)
+	primary_style_hover.shadow_size = 16
+	primary_style_hover.shadow_offset = Vector2(0, 8)
+	
+	primary_theme.set_stylebox("normal", "Button", primary_style_normal)
+	primary_theme.set_stylebox("hover", "Button", primary_style_hover)
+	primary_theme.set_stylebox("pressed", "Button", primary_style_hover)
+	primary_theme.set_color("font_color", "Button", Color(1, 0.9, 0.7, 1))
+	primary_theme.set_color("font_hover_color", "Button", Color(1, 0.95, 0.8, 1))
+	primary_theme.set_color("font_pressed_color", "Button", Color(0.9, 0.8, 0.6, 1))
+	primary_theme.set_font_size("font_size", "Button", 28)
+	
+	# Create secondary button theme
+	var secondary_theme = Theme.new()
+	var secondary_style_normal = StyleBoxFlat.new()
+	secondary_style_normal.bg_color = Color(0.18, 0.12, 0.06, 0.8)
+	secondary_style_normal.border_width_left = 2
+	secondary_style_normal.border_width_top = 2
+	secondary_style_normal.border_width_right = 2
+	secondary_style_normal.border_width_bottom = 2
+	secondary_style_normal.border_color = Color(0.5, 0.35, 0.15, 0.8)
+	secondary_style_normal.corner_radius_top_left = 6
+	secondary_style_normal.corner_radius_top_right = 6
+	secondary_style_normal.corner_radius_bottom_right = 6
+	secondary_style_normal.corner_radius_bottom_left = 6
+	secondary_style_normal.shadow_color = Color(0, 0, 0, 0.7)
+	secondary_style_normal.shadow_size = 8
+	secondary_style_normal.shadow_offset = Vector2(0, 4)
+	
+	var secondary_style_hover = StyleBoxFlat.new()
+	secondary_style_hover.bg_color = Color(0.35, 0.25, 0.15, 0.95)
+	secondary_style_hover.border_width_left = 2
+	secondary_style_hover.border_width_top = 2
+	secondary_style_hover.border_width_right = 2
+	secondary_style_hover.border_width_bottom = 2
+	secondary_style_hover.border_color = Color(0.8, 0.6, 0.3, 1)
+	secondary_style_hover.corner_radius_top_left = 6
+	secondary_style_hover.corner_radius_top_right = 6
+	secondary_style_hover.corner_radius_bottom_right = 6
+	secondary_style_hover.corner_radius_bottom_left = 6
+	secondary_style_hover.shadow_color = Color(0.6, 0.4, 0.1, 0.4)
+	secondary_style_hover.shadow_size = 12
+	secondary_style_hover.shadow_offset = Vector2(0, 6)
+	
+	secondary_theme.set_stylebox("normal", "Button", secondary_style_normal)
+	secondary_theme.set_stylebox("hover", "Button", secondary_style_hover)
+	secondary_theme.set_stylebox("pressed", "Button", secondary_style_hover)
+	secondary_theme.set_color("font_color", "Button", Color(0.9, 0.8, 0.6, 1))
+	secondary_theme.set_color("font_hover_color", "Button", Color(1, 0.9, 0.7, 1))
+	secondary_theme.set_color("font_pressed_color", "Button", Color(0.8, 0.7, 0.5, 1))
+	secondary_theme.set_font_size("font_size", "Button", 22)
+	
+	# Restart button (primary style)
 	var restart_btn = Button.new()
-	restart_btn.text = "Restart Game"
-	restart_btn.custom_minimum_size = Vector2(200, 50)
+	if current_game_mode != null and current_game_mode.mode_type == "endless":
+		restart_btn.text = "🔄 Try Again"
+	else:
+		restart_btn.text = "⚔ Restart Battle"
+	restart_btn.custom_minimum_size = Vector2(300, 60)
+	restart_btn.theme = primary_theme
 	restart_btn.connect("pressed", Callable(self, "_on_restart_pressed"))
+	restart_btn.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
-	# Main menu button
+	# Main menu button (secondary style)
 	var menu_btn = Button.new()
-	menu_btn.text = "Main Menu"
-	menu_btn.custom_minimum_size = Vector2(200, 50)
+	menu_btn.text = "� Back to Main Menu"
+	menu_btn.custom_minimum_size = Vector2(300, 50)
+	menu_btn.theme = secondary_theme
 	menu_btn.connect("pressed", Callable(self, "_on_main_menu_pressed"))
+	menu_btn.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
-	# Quit button
+	# Quit button (secondary style)
 	var quit_btn = Button.new()
-	quit_btn.text = "Quit Game"
-	quit_btn.custom_minimum_size = Vector2(200, 50)
+	quit_btn.text = "🚪 Exit Game"
+	quit_btn.custom_minimum_size = Vector2(300, 50)
+	quit_btn.theme = secondary_theme
 	quit_btn.connect("pressed", Callable(self, "_on_quit_pressed"))
+	quit_btn.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
-	# Add spacers for centering buttons
+	# Add spacers for centering
 	var spacer1 = Control.new()
 	spacer1.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	spacer1.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	var spacer2 = Control.new()
 	spacer2.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	spacer2.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	
+	# Add buttons to container
+	button_container.add_child(restart_btn)
+	button_container.add_child(menu_btn)
+	button_container.add_child(quit_btn)
 	
 	# Add elements to layout
 	vbox.add_child(spacer1)
 	vbox.add_child(title)
-	vbox.add_child(stats)
-	vbox.add_child(restart_btn)
-	vbox.add_child(menu_btn)
-	vbox.add_child(quit_btn)
+	vbox.add_child(stats_container)
+	vbox.add_child(button_container)
 	vbox.add_child(spacer2)
 	
-	panel.add_child(vbox)
+	margin.add_child(vbox)
+	panel.add_child(margin)
 	overlay.add_child(panel)
 	
 	# Add to scene with high z-index
@@ -1274,76 +1444,194 @@ func _on_quit_pressed():
 	get_tree().quit()
 
 func show_victory_screen():
-	"""Display the victory screen with options"""
-	# Create a semi-transparent overlay
+	"""Display the victory screen with options - styled like main menu"""
+	# Create a semi-transparent overlay with mystical gradient background
 	var overlay = ColorRect.new()
-	overlay.color = Color(0, 0, 0, 0.7)  # Semi-transparent black
+	overlay.color = Color(0.02, 0.05, 0.12, 0.9)  # Mystical background
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	overlay.mouse_filter = Control.MOUSE_FILTER_STOP  # Block input to underlying UI
 	overlay.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
-	# Create victory panel
+	# Create victory panel with main menu styling
 	var panel = Panel.new()
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(500, 400)
-	panel.position = Vector2(-250, -200)  # Center the panel
+	panel.custom_minimum_size = Vector2(550, 500)
+	panel.position = Vector2(-275, -250)  # Center the panel
 	panel.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
-	# Create vertical box container for layout
+	# Apply main menu hero panel styling
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.15, 0.1, 0.05, 0.9)
+	panel_style.border_width_left = 3
+	panel_style.border_width_top = 3
+	panel_style.border_width_right = 3
+	panel_style.border_width_bottom = 3
+	panel_style.border_color = Color(0.7, 0.5, 0.2, 0.8)
+	panel_style.corner_radius_top_left = 12
+	panel_style.corner_radius_top_right = 12
+	panel_style.corner_radius_bottom_right = 12
+	panel_style.corner_radius_bottom_left = 12
+	panel_style.shadow_color = Color(0, 0, 0, 0.9)
+	panel_style.shadow_size = 24
+	panel_style.shadow_offset = Vector2(0, 12)
+	panel.add_theme_stylebox_override("panel", panel_style)
+	
+	# Create vertical box container for layout with margins
+	var margin = MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 40)
+	margin.add_theme_constant_override("margin_right", 40)
+	margin.add_theme_constant_override("margin_top", 30)
+	margin.add_theme_constant_override("margin_bottom", 30)
+	margin.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	
 	var vbox = VBoxContainer.new()
 	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	vbox.add_theme_constant_override("separation", 15)
+	vbox.add_theme_constant_override("separation", 20)
 	vbox.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
-	# Victory title
+	# Victory title with main menu styling
 	var title = Label.new()
-	title.text = "VICTORY!"
+	title.text = "⚔ VICTORY! ⚔"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 32)
-	title.add_theme_color_override("font_color", Color.GREEN)
+	title.add_theme_font_size_override("font_size", 42)
+	title.add_theme_color_override("font_color", Color(0.3, 0.8, 0.3, 1))  # Victory green but more sophisticated
+	title.add_theme_color_override("font_shadow_color", Color(0.1, 0.3, 0.1, 0.8))
+	title.add_theme_constant_override("shadow_offset_x", 3)
+	title.add_theme_constant_override("shadow_offset_y", 3)
+	title.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
-	# Basic victory message
+	# Victory message with main menu styling
 	var victory_msg = Label.new()
 	var mode_name = current_game_mode.mode_name if current_game_mode else "Unknown"
 	var perfect_text = " (Perfect Run!)" if session_perfect_run else ""
-	victory_msg.text = "You successfully defended against all waves!\nMode: %s%s" % [mode_name, perfect_text]
+	victory_msg.text = "✦ Your fortress stands victorious! ✦\nMode: %s%s" % [mode_name, perfect_text]
 	victory_msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	victory_msg.add_theme_font_size_override("font_size", 16)
+	victory_msg.add_theme_font_size_override("font_size", 18)
+	victory_msg.add_theme_color_override("font_color", Color(0.8, 0.9, 1, 1))
+	victory_msg.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
 	# Quick stats summary
 	var quick_stats = Label.new()
 	var minutes = int(session_play_time / 60)
 	var seconds = int(session_play_time) % 60
-	quick_stats.text = "Time: %02d:%02d | Waves: %d | Final Gold: %d | Health: %d" % [minutes, seconds, session_waves_completed, gold, health]
+	quick_stats.text = "⏱ Time: %02d:%02d | 🏆 Waves: %d | 💰 Gold: %d | ❤️ Health: %d" % [minutes, seconds, session_waves_completed, gold, health]
 	quick_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	quick_stats.add_theme_font_size_override("font_size", 14)
+	quick_stats.add_theme_font_size_override("font_size", 16)
+	quick_stats.add_theme_color_override("font_color", Color(0.9, 0.8, 0.6, 1))
+	quick_stats.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
-	# View Detailed Stats button
+	# Create button themes (same as game over screen)
+	var primary_theme = Theme.new()
+	var primary_style_normal = StyleBoxFlat.new()
+	primary_style_normal.bg_color = Color(0.25, 0.18, 0.08, 0.95)
+	primary_style_normal.border_width_left = 2
+	primary_style_normal.border_width_top = 2
+	primary_style_normal.border_width_right = 2
+	primary_style_normal.border_width_bottom = 2
+	primary_style_normal.border_color = Color(0.7, 0.5, 0.2, 1)
+	primary_style_normal.corner_radius_top_left = 8
+	primary_style_normal.corner_radius_top_right = 8
+	primary_style_normal.corner_radius_bottom_right = 8
+	primary_style_normal.corner_radius_bottom_left = 8
+	primary_style_normal.shadow_color = Color(0, 0, 0, 0.8)
+	primary_style_normal.shadow_size = 12
+	primary_style_normal.shadow_offset = Vector2(0, 6)
+	
+	var primary_style_hover = StyleBoxFlat.new()
+	primary_style_hover.bg_color = Color(0.45, 0.3, 0.15, 1)
+	primary_style_hover.border_width_left = 3
+	primary_style_hover.border_width_top = 3
+	primary_style_hover.border_width_right = 3
+	primary_style_hover.border_width_bottom = 3
+	primary_style_hover.border_color = Color(0.9, 0.7, 0.3, 1)
+	primary_style_hover.corner_radius_top_left = 8
+	primary_style_hover.corner_radius_top_right = 8
+	primary_style_hover.corner_radius_bottom_right = 8
+	primary_style_hover.corner_radius_bottom_left = 8
+	primary_style_hover.shadow_color = Color(0.6, 0.4, 0.1, 0.6)
+	primary_style_hover.shadow_size = 16
+	primary_style_hover.shadow_offset = Vector2(0, 8)
+	
+	primary_theme.set_stylebox("normal", "Button", primary_style_normal)
+	primary_theme.set_stylebox("hover", "Button", primary_style_hover)
+	primary_theme.set_stylebox("pressed", "Button", primary_style_hover)
+	primary_theme.set_color("font_color", "Button", Color(1, 0.9, 0.7, 1))
+	primary_theme.set_color("font_hover_color", "Button", Color(1, 0.95, 0.8, 1))
+	primary_theme.set_color("font_pressed_color", "Button", Color(0.9, 0.8, 0.6, 1))
+	primary_theme.set_font_size("font_size", "Button", 24)
+	
+	# Secondary button theme
+	var secondary_theme = Theme.new()
+	var secondary_style_normal = StyleBoxFlat.new()
+	secondary_style_normal.bg_color = Color(0.18, 0.12, 0.06, 0.8)
+	secondary_style_normal.border_width_left = 2
+	secondary_style_normal.border_width_top = 2
+	secondary_style_normal.border_width_right = 2
+	secondary_style_normal.border_width_bottom = 2
+	secondary_style_normal.border_color = Color(0.5, 0.35, 0.15, 0.8)
+	secondary_style_normal.corner_radius_top_left = 6
+	secondary_style_normal.corner_radius_top_right = 6
+	secondary_style_normal.corner_radius_bottom_right = 6
+	secondary_style_normal.corner_radius_bottom_left = 6
+	secondary_style_normal.shadow_color = Color(0, 0, 0, 0.7)
+	secondary_style_normal.shadow_size = 8
+	secondary_style_normal.shadow_offset = Vector2(0, 4)
+	
+	var secondary_style_hover = StyleBoxFlat.new()
+	secondary_style_hover.bg_color = Color(0.35, 0.25, 0.15, 0.95)
+	secondary_style_hover.border_width_left = 2
+	secondary_style_hover.border_width_top = 2
+	secondary_style_hover.border_width_right = 2
+	secondary_style_hover.border_width_bottom = 2
+	secondary_style_hover.border_color = Color(0.8, 0.6, 0.3, 1)
+	secondary_style_hover.corner_radius_top_left = 6
+	secondary_style_hover.corner_radius_top_right = 6
+	secondary_style_hover.corner_radius_bottom_right = 6
+	secondary_style_hover.corner_radius_bottom_left = 6
+	secondary_style_hover.shadow_color = Color(0.6, 0.4, 0.1, 0.4)
+	secondary_style_hover.shadow_size = 12
+	secondary_style_hover.shadow_offset = Vector2(0, 6)
+	
+	secondary_theme.set_stylebox("normal", "Button", secondary_style_normal)
+	secondary_theme.set_stylebox("hover", "Button", secondary_style_hover)
+	secondary_theme.set_stylebox("pressed", "Button", secondary_style_hover)
+	secondary_theme.set_color("font_color", "Button", Color(0.9, 0.8, 0.6, 1))
+	secondary_theme.set_color("font_hover_color", "Button", Color(1, 0.9, 0.7, 1))
+	secondary_theme.set_color("font_pressed_color", "Button", Color(0.8, 0.7, 0.5, 1))
+	secondary_theme.set_font_size("font_size", "Button", 20)
+	
+	# View Detailed Stats button (primary style)
 	var stats_btn = Button.new()
-	stats_btn.text = "View Detailed Stats"
-	stats_btn.custom_minimum_size = Vector2(200, 50)
+	stats_btn.text = "📊 View Detailed Stats"
+	stats_btn.custom_minimum_size = Vector2(300, 55)
+	stats_btn.theme = primary_theme
 	stats_btn.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	stats_btn.connect("pressed", Callable(self, "_on_view_stats_pressed"))
 	
-	# Main menu button
+	# Main menu button (secondary style)
 	var menu_btn = Button.new()
-	menu_btn.text = "Return to Main Menu"
-	menu_btn.custom_minimum_size = Vector2(200, 50)
+	menu_btn.text = "🏠 Back to Main Menu"
+	menu_btn.custom_minimum_size = Vector2(300, 50)
+	menu_btn.theme = secondary_theme
 	menu_btn.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	menu_btn.connect("pressed", Callable(self, "_on_main_menu_pressed"))
 	
-	# Quit button
+	# Quit button (secondary style)
 	var quit_btn = Button.new()
-	quit_btn.text = "Quit Game"
-	quit_btn.custom_minimum_size = Vector2(200, 50)
+	quit_btn.text = "🚪 Exit Game"
+	quit_btn.custom_minimum_size = Vector2(300, 50)
+	quit_btn.theme = secondary_theme
 	quit_btn.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	quit_btn.connect("pressed", Callable(self, "_on_quit_pressed"))
 	
-	# Add spacers for centering buttons
+	# Add spacers for centering
 	var spacer1 = Control.new()
 	spacer1.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	spacer1.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	var spacer2 = Control.new()
 	spacer2.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	spacer2.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
 	# Add elements to layout
 	vbox.add_child(spacer1)
@@ -1355,22 +1643,15 @@ func show_victory_screen():
 	vbox.add_child(quit_btn)
 	vbox.add_child(spacer2)
 	
-	panel.add_child(vbox)
+	margin.add_child(vbox)
+	panel.add_child(margin)
 	overlay.add_child(panel)
 	
 	# Add to scene with high z-index
 	$CanvasLayer.add_child(overlay)
 	overlay.z_index = 100
 
-func _on_victory_continue_pressed():
-	"""Continue playing after victory"""
-	get_tree().paused = false
-	if current_game_mode.mode_type == "endless":
-		# For endless mode, just continue the current game
-		pass
-	else:
-		# For other modes, restart the level
-		get_tree().reload_current_scene()
+
 
 func _on_view_stats_pressed():
 	"""Show detailed session stats popup"""
@@ -1659,11 +1940,16 @@ func _unhandled_input(event):
 			hide_tower_menu_with_bg()
 	# Handle ESC for pause menu
 	if event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed:
-		if $pauseFade.visible:
-			$pauseFade.visible = false
+		if $CanvasLayer/pauseFade.visible:
+			# If pause menu is open, pressing ESC closes it and resumes the game
+			$CanvasLayer/pauseFade.visible = false
 			get_tree().paused = false
 		else:
-			$pauseFade.visible = true
+			# Open pause menu
+			$CanvasLayer/pauseFade/centerContainer/gameMenuPanel.visible = true
+			$CanvasLayer/pauseFade/centerContainer/settingsMenuPanel.visible = false
+			_apply_pause_menu_styling()
+			$CanvasLayer/pauseFade.visible = true
 			get_tree().paused = true
 	
 	# Test achievement notification (T key) - for development testing
@@ -1950,12 +2236,12 @@ func _on_pause_settings_back_pressed() -> void:
 
 
 func _apply_pause_menu_styling() -> void:
-	"""Apply styled backgrounds to pause menu panels"""
-	# Style the main game menu panel
+	"""Apply styled backgrounds to pause menu panels - matching main menu style"""
+	# Style the main game menu panel with main menu hero panel styling
 	if $CanvasLayer/pauseFade/centerContainer/gameMenuPanel.visible:
 		var style_box = StyleBoxFlat.new()
-		style_box.bg_color = Color(0.05, 0.1, 0.15, 0.95)  # Dark blue-gray like notifications
-		style_box.border_color = Color(0.3, 0.6, 1.0, 0.8)  # Blue border like notifications
+		style_box.bg_color = Color(0.15, 0.1, 0.05, 0.9)  # Main menu hero panel color
+		style_box.border_color = Color(0.7, 0.5, 0.2, 0.8)  # Golden border like main menu
 		style_box.border_width_left = 3
 		style_box.border_width_right = 3
 		style_box.border_width_top = 3
@@ -1964,13 +2250,22 @@ func _apply_pause_menu_styling() -> void:
 		style_box.corner_radius_top_right = 12
 		style_box.corner_radius_bottom_left = 12
 		style_box.corner_radius_bottom_right = 12
+		style_box.shadow_color = Color(0, 0, 0, 0.9)
+		style_box.shadow_size = 24
+		style_box.shadow_offset = Vector2(0, 12)
 		$CanvasLayer/pauseFade/centerContainer/gameMenuPanel.add_theme_stylebox_override("panel", style_box)
+		
+		# Style the buttons to match main menu
+		_style_pause_menu_buttons()
+		
+		# Update checkpoint button state
+		_update_checkpoint_button_state()
 	
-	# Style the settings menu panel
+	# Style the settings menu panel with same styling
 	if $CanvasLayer/pauseFade/centerContainer/settingsMenuPanel.visible:
 		var style_box = StyleBoxFlat.new()
-		style_box.bg_color = Color(0.05, 0.1, 0.15, 0.95)  # Dark blue-gray like notifications
-		style_box.border_color = Color(0.3, 0.6, 1.0, 0.8)  # Blue border like notifications
+		style_box.bg_color = Color(0.15, 0.1, 0.05, 0.9)  # Main menu hero panel color
+		style_box.border_color = Color(0.7, 0.5, 0.2, 0.8)  # Golden border like main menu
 		style_box.border_width_left = 3
 		style_box.border_width_right = 3
 		style_box.border_width_top = 3
@@ -1979,7 +2274,212 @@ func _apply_pause_menu_styling() -> void:
 		style_box.corner_radius_top_right = 12
 		style_box.corner_radius_bottom_left = 12
 		style_box.corner_radius_bottom_right = 12
+		style_box.shadow_color = Color(0, 0, 0, 0.9)
+		style_box.shadow_size = 24
+		style_box.shadow_offset = Vector2(0, 12)
 		$CanvasLayer/pauseFade/centerContainer/settingsMenuPanel.add_theme_stylebox_override("panel", style_box)
+		
+		# Style the settings controls
+		_style_pause_settings_controls()
+
+
+func _style_pause_menu_buttons() -> void:
+	"""Apply main menu button styling to pause menu buttons"""
+	var game_menu = $CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu
+	
+	# Style the title
+	var title = game_menu.get_node("pauseMenuTitle")
+	title.add_theme_color_override("font_color", Color(0.8, 0.9, 1, 1))
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_shadow_color", Color(0.2, 0.4, 0.7, 0.7))
+	title.add_theme_constant_override("shadow_offset_x", 2)
+	title.add_theme_constant_override("shadow_offset_y", 2)
+	
+	# Primary button style (for Resume)
+	var primary_style_normal = StyleBoxFlat.new()
+	primary_style_normal.bg_color = Color(0.25, 0.18, 0.08, 0.95)
+	primary_style_normal.border_width_left = 2
+	primary_style_normal.border_width_top = 2
+	primary_style_normal.border_width_right = 2
+	primary_style_normal.border_width_bottom = 2
+	primary_style_normal.border_color = Color(0.7, 0.5, 0.2, 1)
+	primary_style_normal.corner_radius_top_left = 8
+	primary_style_normal.corner_radius_top_right = 8
+	primary_style_normal.corner_radius_bottom_right = 8
+	primary_style_normal.corner_radius_bottom_left = 8
+	primary_style_normal.shadow_color = Color(0, 0, 0, 0.8)
+	primary_style_normal.shadow_size = 12
+	primary_style_normal.shadow_offset = Vector2(0, 6)
+	
+	var primary_style_hover = StyleBoxFlat.new()
+	primary_style_hover.bg_color = Color(0.45, 0.3, 0.15, 1)
+	primary_style_hover.border_width_left = 3
+	primary_style_hover.border_width_top = 3
+	primary_style_hover.border_width_right = 3
+	primary_style_hover.border_width_bottom = 3
+	primary_style_hover.border_color = Color(0.9, 0.7, 0.3, 1)
+	primary_style_hover.corner_radius_top_left = 8
+	primary_style_hover.corner_radius_top_right = 8
+	primary_style_hover.corner_radius_bottom_right = 8
+	primary_style_hover.corner_radius_bottom_left = 8
+	primary_style_hover.shadow_color = Color(0.6, 0.4, 0.1, 0.6)
+	primary_style_hover.shadow_size = 16
+	primary_style_hover.shadow_offset = Vector2(0, 8)
+	
+	# Secondary button style (for other buttons)
+	var secondary_style_normal = StyleBoxFlat.new()
+	secondary_style_normal.bg_color = Color(0.18, 0.12, 0.06, 0.8)
+	secondary_style_normal.border_width_left = 2
+	secondary_style_normal.border_width_top = 2
+	secondary_style_normal.border_width_right = 2
+	secondary_style_normal.border_width_bottom = 2
+	secondary_style_normal.border_color = Color(0.5, 0.35, 0.15, 0.8)
+	secondary_style_normal.corner_radius_top_left = 6
+	secondary_style_normal.corner_radius_top_right = 6
+	secondary_style_normal.corner_radius_bottom_right = 6
+	secondary_style_normal.corner_radius_bottom_left = 6
+	secondary_style_normal.shadow_color = Color(0, 0, 0, 0.7)
+	secondary_style_normal.shadow_size = 8
+	secondary_style_normal.shadow_offset = Vector2(0, 4)
+	
+	var secondary_style_hover = StyleBoxFlat.new()
+	secondary_style_hover.bg_color = Color(0.35, 0.25, 0.15, 0.95)
+	secondary_style_hover.border_width_left = 2
+	secondary_style_hover.border_width_top = 2
+	secondary_style_hover.border_width_right = 2
+	secondary_style_hover.border_width_bottom = 2
+	secondary_style_hover.border_color = Color(0.8, 0.6, 0.3, 1)
+	secondary_style_hover.corner_radius_top_left = 6
+	secondary_style_hover.corner_radius_top_right = 6
+	secondary_style_hover.corner_radius_bottom_right = 6
+	secondary_style_hover.corner_radius_bottom_left = 6
+	secondary_style_hover.shadow_color = Color(0.6, 0.4, 0.1, 0.4)
+	secondary_style_hover.shadow_size = 12
+	secondary_style_hover.shadow_offset = Vector2(0, 6)
+	
+	# Apply primary styling to Resume button
+	var resume_btn = game_menu.get_node("resumeButton")
+	resume_btn.add_theme_stylebox_override("normal", primary_style_normal)
+	resume_btn.add_theme_stylebox_override("hover", primary_style_hover)
+	resume_btn.add_theme_stylebox_override("pressed", primary_style_hover)
+	resume_btn.add_theme_color_override("font_color", Color(1, 0.9, 0.7, 1))
+	resume_btn.add_theme_color_override("font_hover_color", Color(1, 0.95, 0.8, 1))
+	resume_btn.add_theme_font_size_override("font_size", 28)
+	resume_btn.text = "▶ Resume Battle"
+	
+	# Apply secondary styling to other buttons
+	var buttons = [
+		{"node": game_menu.get_node("gameMenuSettings"), "text": "⚙ Settings"},
+		{"node": game_menu.get_node("quitToMainMenuButton"), "text": "� Back to Main Menu"},
+		{"node": game_menu.get_node("quitToDesktopButton"), "text": "🚪 Exit Game"}
+	]
+	
+	for button_info in buttons:
+		var btn = button_info.node
+		btn.add_theme_stylebox_override("normal", secondary_style_normal)
+		btn.add_theme_stylebox_override("hover", secondary_style_hover)
+		btn.add_theme_stylebox_override("pressed", secondary_style_hover)
+		btn.add_theme_color_override("font_color", Color(0.9, 0.8, 0.6, 1))
+		btn.add_theme_color_override("font_hover_color", Color(1, 0.9, 0.7, 1))
+		btn.add_theme_font_size_override("font_size", 22)
+		btn.text = button_info.text
+
+	# Style the checkpoint button if it exists
+	var checkpoint_btn = null
+	for child in game_menu.get_children():
+		if child.name == "RestartCheckpointButton":
+			checkpoint_btn = child
+			break
+	
+	if checkpoint_btn:
+		checkpoint_btn.add_theme_stylebox_override("normal", secondary_style_normal)
+		checkpoint_btn.add_theme_stylebox_override("hover", secondary_style_hover)
+		checkpoint_btn.add_theme_stylebox_override("pressed", secondary_style_hover)
+		checkpoint_btn.add_theme_color_override("font_color", Color(0.9, 0.8, 0.6, 1))
+		checkpoint_btn.add_theme_color_override("font_hover_color", Color(1, 0.9, 0.7, 1))
+		checkpoint_btn.add_theme_font_size_override("font_size", 22)
+
+
+func _style_pause_settings_controls() -> void:
+	"""Apply main menu styling to pause settings controls"""
+	var settings_menu = $CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu
+	
+	# Style the title
+	var title = settings_menu.get_node("settingsMenuTitle")
+	title.add_theme_color_override("font_color", Color(0.8, 0.9, 1, 1))
+	title.add_theme_font_size_override("font_size", 30)
+	title.add_theme_color_override("font_shadow_color", Color(0.2, 0.4, 0.7, 0.7))
+	title.add_theme_constant_override("shadow_offset_x", 2)
+	title.add_theme_constant_override("shadow_offset_y", 2)
+	
+	# Style the back button like secondary buttons
+	var secondary_style_normal = StyleBoxFlat.new()
+	secondary_style_normal.bg_color = Color(0.18, 0.12, 0.06, 0.8)
+	secondary_style_normal.border_width_left = 2
+	secondary_style_normal.border_width_top = 2
+	secondary_style_normal.border_width_right = 2
+	secondary_style_normal.border_width_bottom = 2
+	secondary_style_normal.border_color = Color(0.5, 0.35, 0.15, 0.8)
+	secondary_style_normal.corner_radius_top_left = 6
+	secondary_style_normal.corner_radius_top_right = 6
+	secondary_style_normal.corner_radius_bottom_right = 6
+	secondary_style_normal.corner_radius_bottom_left = 6
+	secondary_style_normal.shadow_color = Color(0, 0, 0, 0.7)
+	secondary_style_normal.shadow_size = 8
+	secondary_style_normal.shadow_offset = Vector2(0, 4)
+	
+	var secondary_style_hover = StyleBoxFlat.new()
+	secondary_style_hover.bg_color = Color(0.35, 0.25, 0.15, 0.95)
+	secondary_style_hover.border_width_left = 2
+	secondary_style_hover.border_width_top = 2
+	secondary_style_hover.border_width_right = 2
+	secondary_style_hover.border_width_bottom = 2
+	secondary_style_hover.border_color = Color(0.8, 0.6, 0.3, 1)
+	secondary_style_hover.corner_radius_top_left = 6
+	secondary_style_hover.corner_radius_top_right = 6
+	secondary_style_hover.corner_radius_bottom_right = 6
+	secondary_style_hover.corner_radius_bottom_left = 6
+	secondary_style_hover.shadow_color = Color(0.6, 0.4, 0.1, 0.4)
+	secondary_style_hover.shadow_size = 12
+	secondary_style_hover.shadow_offset = Vector2(0, 6)
+	
+	# Style the back button
+	var back_btn = settings_menu.get_node("back")
+	back_btn.add_theme_stylebox_override("normal", secondary_style_normal)
+	back_btn.add_theme_stylebox_override("hover", secondary_style_hover)
+	back_btn.add_theme_stylebox_override("pressed", secondary_style_hover)
+	back_btn.add_theme_color_override("font_color", Color(0.9, 0.8, 0.6, 1))
+	back_btn.add_theme_color_override("font_hover_color", Color(1, 0.9, 0.7, 1))
+	back_btn.add_theme_font_size_override("font_size", 22)
+	back_btn.text = "🔙 Back to Game Menu"
+	
+	# Style the fullscreen checkbox
+	var fullscreen_cb = settings_menu.get_node("fullscreen")
+	fullscreen_cb.add_theme_color_override("font_color", Color(0.9, 0.8, 0.6, 1))
+	fullscreen_cb.add_theme_color_override("font_hover_color", Color(1, 0.9, 0.7, 1))
+	fullscreen_cb.add_theme_font_size_override("font_size", 22)
+	fullscreen_cb.text = "🖥 Fullscreen Mode"
+	
+	# Style volume sliders and labels
+	var sliders = [
+		{"slider": settings_menu.get_node("mainVolSlider"), "label": settings_menu.get_node("mainVolSlider/mainVolLabel"), "text": "🔊 Master Volume"},
+		{"slider": settings_menu.get_node("musicVolSlider"), "label": settings_menu.get_node("musicVolSlider/musicVolLabel"), "text": "🎵 Music Volume"},
+		{"slider": settings_menu.get_node("sfxVolSlider"), "label": settings_menu.get_node("sfxVolSlider/sfxVolLabel"), "text": "🔊 SFX Volume"}
+	]
+	
+	for slider_info in sliders:
+		var slider = slider_info.slider
+		var label = slider_info.label
+		
+		# Style slider
+		slider.add_theme_color_override("grabber_color", Color(0.7, 0.5, 0.2, 1))
+		slider.add_theme_color_override("grabber_highlight_color", Color(0.9, 0.7, 0.3, 1))
+		slider.add_theme_color_override("trough_color", Color(0.3, 0.2, 0.1, 0.8))
+		
+		# Style label
+		label.add_theme_color_override("font_color", Color(0.9, 0.8, 0.6, 1))
+		label.add_theme_font_size_override("font_size", 20)
+		label.text = slider_info.text
 
 
 func _setup_pause_settings_values() -> void:
@@ -2034,10 +2534,10 @@ func _on_quit_menu_pressed() -> void:
 
 func add_restart_checkpoint_button():
 	"""Add restart checkpoint button to pause menu"""
-	if not has_node("pauseFade/gameMenu"):
+	if not has_node("CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu"):
 		return
 		
-	var game_menu = $pauseFade/gameMenu
+	var game_menu = $CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu
 	
 	# Check if button already exists
 	for child in game_menu.get_children():
@@ -2047,26 +2547,84 @@ func add_restart_checkpoint_button():
 	# Create the restart checkpoint button
 	var restart_btn = Button.new()
 	restart_btn.name = "RestartCheckpointButton"
-	restart_btn.text = "Restart Checkpoint"
+	restart_btn.text = "🔄 Restore Checkpoint"
 	
-	# Since it's in a VBoxContainer, just add it and let the container handle positioning
+	# Connect the button to the function
 	restart_btn.pressed.connect(_on_restart_checkpoint_pressed)
 	
-	# Add it before the quit buttons (after settings if it exists)
-	var settings_index = -1
+	# Add it right after the Resume button (position 1, after title at 0 and resume at 1)
+	var resume_index = -1
 	for i in range(game_menu.get_child_count()):
 		var child = game_menu.get_child(i)
-		if child.name == "settings":
-			settings_index = i
+		if child.name == "resumeButton":
+			resume_index = i
 			break
 	
-	if settings_index >= 0:
+	if resume_index >= 0:
 		game_menu.add_child(restart_btn)
-		game_menu.move_child(restart_btn, settings_index + 1)
+		game_menu.move_child(restart_btn, resume_index + 1)
 	else:
 		game_menu.add_child(restart_btn)
+	
+	# Update button state based on game mode and checkpoint availability
+	_update_checkpoint_button_state()
+
+func _update_checkpoint_button_state():
+	"""Update the checkpoint button's enabled state and visibility based on game mode"""
+	if not has_node("CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu"):
+		return
+		
+	var game_menu = $CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu
+	var checkpoint_button = null
+	
+	# Find the checkpoint button
+	for child in game_menu.get_children():
+		if child.name == "RestartCheckpointButton":
+			checkpoint_button = child
+			break
+	
+	if not checkpoint_button:
+		return
+	
+	# Hide in endless mode
+	if current_game_mode and current_game_mode.mode_type == "endless":
+		checkpoint_button.visible = false
+		return
+	
+	# Show in normal and extra hard modes
+	checkpoint_button.visible = true
+	
+	# Check if checkpoint exists AND if player has completed at least one round in current session
+	var save_manager = get_node("/root/SaveManager")
+	var has_checkpoint = false
+	if save_manager:
+		has_checkpoint = save_manager.has_checkpoint_save()
+	
+	# Checkpoint restore is only valid if:
+	# 1. A checkpoint save file exists
+	# 2. Player has completed at least one round in the current game session
+	var can_restore = has_checkpoint and has_completed_first_round
+	
+	# Enable/disable based on both checkpoint availability and game progress
+	checkpoint_button.disabled = not can_restore
+	
+	# Update button text and visual state to indicate why it's disabled
+	if not has_checkpoint:
+		checkpoint_button.text = "🔄 Restore Checkpoint (None Available)"
+		checkpoint_button.modulate = Color(0.7, 0.7, 0.7)  # Grayed out
+	elif not has_completed_first_round:
+		checkpoint_button.text = "🔄 Restore Checkpoint"
+		checkpoint_button.modulate = Color(0.7, 0.7, 0.7)  # Grayed out but same text
+	else:
+		checkpoint_button.text = "🔄 Restore Checkpoint"
+		checkpoint_button.modulate = Color.WHITE
 
 func _on_restart_checkpoint_pressed() -> void:
+	# Prevent checkpoint restore if first round hasn't been completed yet
+	if not has_completed_first_round:
+		show_notification("Complete the first round before restoring from checkpoint!")
+		return
+	
 	# Restart from the checkpoint save like the Continue button in main menu
 	var save_manager = get_node("/root/SaveManager")
 	if not save_manager:
@@ -2209,32 +2767,7 @@ func spawn_enemy(enemy_path_points, enemy_data_path: String = "res://assets/Enem
 	if enemy.has_signal("enemy_died"):
 		enemy.connect("enemy_died", Callable(self, "_on_enemy_died"))
 
-# Example: Spawn different enemy types randomly
-func spawn_random_enemy(enemy_path_points):
-	var enemy_types = [
-		"res://assets/Enemies/firebug/firebug.tres",
-		# Add more enemy types here as you create them:
-		# "res://assets/Enemies/orc/orc.tres",
-		# "res://assets/Enemies/dragon/dragon.tres",
-	]
-	var random_type = enemy_types[randi() % enemy_types.size()]
-	spawn_enemy(enemy_path_points, random_type)
 
-# Example: Spawn enemies based on wave number
-func spawn_enemy_for_wave(enemy_path_points, wave_number: int):
-	var enemy_type = "res://assets/Enemies/firebug/firebug.tres"  # default
-	
-	# Define different enemies for different waves
-	if wave_number <= 3:
-		enemy_type = "res://assets/Enemies/firebug/firebug.tres"
-	elif wave_number <= 6:
-		# Mix of firebugs and stronger enemies
-		var types = ["res://assets/Enemies/firebug/firebug.tres"]
-		# Add: "res://assets/Enemies/orc/orc.tres" when you create it
-		enemy_type = types[randi() % types.size()]
-	# Add more wave logic here
-	
-	spawn_enemy(enemy_path_points, enemy_type)
 
 
 func _on_enemy_spawn_timer_timeout():
@@ -2249,17 +2782,17 @@ func spawn_endless_enemy():
 	# Define enemy types by difficulty tiers (corrected categorization)
 	var easy_enemies = [
 		"res://assets/Enemies/firebug/firebug.tres",
-		"res://assets/Enemies/leafbug/leafbug.tres"
+		"res://assets/Enemies/clampBeetle/clampBeetle.tres"
 	]
 	var medium_enemies = [
 		"res://assets/Enemies/fireWasp/fireWasp.tres",
-		"res://assets/Enemies/flyingLocust/flyingLocust.tres",
-		"res://assets/Enemies/clampBeetle/clampBeetle.tres"
+		"res://assets/Enemies/magmaCrab/magmaCrab.tres",
+		"res://assets/Enemies/scorpion/scorpion.tres"
 	]
 	var hard_enemies = [
-		"res://assets/Enemies/voidButterfly/voidButterfly.tres",
-		"res://assets/Enemies/scorpion/scorpion.tres",
-		"res://assets/Enemies/magmaCrab/magmaCrab.tres"
+		"res://assets/Enemies/flyingLocust/flyingLocust.tres",
+		"res://assets/Enemies/leafbug/leafbug.tres",
+		"res://assets/Enemies/voidButterfly/voidButterfly.tres"
 	]
 	
 	# Choose enemy pool based on difficulty level with new progression
@@ -2310,6 +2843,15 @@ func _on_enemy_died(gold_earned):
 	# Track enemies killed in endless mode
 	if current_game_mode != null and current_game_mode.mode_type == "endless":
 		endless_enemies_killed += 1
+		
+		# For endless mode, count as game played after surviving some time AND killing some enemies
+		# This prevents quick exits from being counted as games played
+		if not has_completed_first_round and endless_enemies_killed >= 10 and endless_survival_time >= 60.0:
+			has_completed_first_round = true
+			var profile = get_node("/root/ProfileManager")
+			if profile:
+				profile.update_stat("games_played", 1)
+				print("Endless game counted as played - survived 60s and killed 10+ enemies")
 	
 	# Track enemies for wave completion
 	if current_game_mode != null and is_wave_active:
@@ -2340,8 +2882,18 @@ func show_tower_menu(tower):
 	# Prevent opening if cooldown is active for this tower
 	if tower_menu_click_cooldown > 0.0 and tower_menu_cooldown_for == tower:
 		return
+	
 	# Always close the menu and remove background before opening a new one
-	hide_tower_menu_with_bg()
+	# But preserve visuals if switching between towers
+	if selected_tower != tower:
+		hide_tower_menu_with_bg()  # Full reset including visuals
+	else:
+		# Just hide menu without resetting visuals since it's the same tower
+		$TowerMenu.visible = false
+		if tower_menu_bg and is_instance_valid(tower_menu_bg):
+			tower_menu_bg.queue_free()
+			tower_menu_bg = null
+	
 	just_opened_tower_menu = true
 	tower_menu_click_cooldown = 0.15 # 150ms cooldown
 	tower_menu_cooldown_for = tower
@@ -2381,6 +2933,9 @@ func show_tower_menu(tower):
 	menu.get_node("TowerStats/attackSpeedLabel").text = "Attack Speed: " + str(attack_speed)
 	selected_tower = tower
 	tower_menu_open_for = tower
+	
+	# Update tower visual selection highlighting
+	highlight_selected_tower(tower)
 	
 	# Show attack range for the selected tower
 	if tower.has_method("show_attack_range"):
@@ -2468,6 +3023,57 @@ func _on_delete_button_pressed() -> void:
 
 # --- Confirmation Popup Logic ---
 var selected_tower = null
+
+# --- Tower Visual Selection System ---
+func highlight_selected_tower(tower: Node2D):
+	"""Highlight the selected tower and dim others"""
+	if not tower:
+		return
+	
+	# First, reset all towers to normal state
+	reset_all_tower_visuals()
+	
+	# Apply dimming to ALL towers first
+	for t in $TowerContainer.get_children():
+		if t.has_method("attack_target"):
+			t.modulate = Color(0.6, 0.6, 0.6, 1.0)  # Dim all towers
+	
+	# Then highlight the selected tower (this ensures it's applied last and consistently)
+	tower.modulate = Color(1.4, 1.4, 1.4, 1.0)  # Brighter white glow
+	
+	# Add a subtle pulsing effect using a tween
+	var pulse_tween = create_tween()
+	pulse_tween.set_loops()
+	pulse_tween.tween_property(tower, "modulate", Color(1.6, 1.6, 1.6, 1.0), 1.0)
+	pulse_tween.tween_property(tower, "modulate", Color(1.4, 1.4, 1.4, 1.0), 1.0)
+	
+	# Store the tween reference on the tower so we can stop it later
+	tower.set_meta("selection_tween", pulse_tween)
+
+func reset_all_tower_visuals():
+	"""Reset all towers to normal visual state"""
+	for tower in $TowerContainer.get_children():
+		if tower.has_method("attack_target"):
+			# Stop any existing selection tween
+			if tower.has_meta("selection_tween"):
+				var tween = tower.get_meta("selection_tween")
+				if tween and is_instance_valid(tween):
+					tween.kill()
+				tower.remove_meta("selection_tween")
+			
+			tower.modulate = Color.WHITE  # Normal state
+
+func update_tower_selection_visuals():
+	"""Update tower visuals based on current selection"""
+	if selected_tower and is_instance_valid(selected_tower):
+		highlight_selected_tower(selected_tower)
+	else:
+		reset_all_tower_visuals()
+		# Clean up invalid selection
+		if selected_tower and not is_instance_valid(selected_tower):
+			selected_tower = null
+			tower_menu_open_for = null
+			$TowerMenu.visible = false
 
 
 func show_delete_confirmation():

@@ -1,6 +1,7 @@
-[gd_resource type="Resource" load_steps=2 format=3 uid="uid://02yvico4i0v7"]
+[gd_resource type="Resource" script_class="GameModeData" load_steps=3 format=3 uid="uid://02yvico4i0v7"]
 
 [ext_resource type="Script" uid="uid://dp4wkxlu5vn2s" path="res://assets/gameMode/gameModeData.gd" id="1_0"]
+[ext_resource type="Script" uid="uid://fhldp7d61iwx" path="res://assets/gameMode/waveDefinition.gd" id="2_nl3hx"]
 
 [resource]
 script = ExtResource("1_0")
@@ -11,5 +12,5 @@ damage_multiplier = 1.0
 gold_multiplier = 1.0
 endless_scaling_factor = 1.15
 endless_wave_interval = 30.0
-wave_definitions = Array[Resource]([])
+wave_definitions = Array[ExtResource("2_nl3hx")]([])
 break_between_waves = 10.0

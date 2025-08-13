@@ -461,15 +461,24 @@ func set_house_tile_position(tile_pos: Vector2i):
 
 func is_enemy_on_house_tile(enemy_position: Vector2) -> bool:
 	"""Check if an enemy position is on the house tile"""
-	# Convert world position to tile position (assuming 64x64 tiles)
-	var tile_size = 64
-	var enemy_tile = Vector2i(int(enemy_position.x / tile_size), int(enemy_position.y / tile_size))
+	# Get the actual tile size from the tilemap
+	var main_scene = get_tree().get_first_node_in_group("main_game")
+	if not main_scene:
+		return false
 	
-	# Check if enemy is within the house's tile area
-	for x in range(house_size.x):
-		for y in range(house_size.y):
-			if enemy_tile == house_tile_position + Vector2i(x, y):
-				return true
+	var tilemap = main_scene.get_node_or_null("LevelContainer/map/tileLayer1")
+	if not tilemap:
+		return false
+	
+	# Convert world position to tile position using tilemap's method
+	var enemy_tile = tilemap.local_to_map(enemy_position)
+	
+	# Get all house tiles and check if enemy is on any of them
+	var house_tiles = find_house_tiles()
+	for tile_pos in house_tiles:
+		if enemy_tile == tile_pos:
+			return true
+	
 	return false
 
 func enemy_enters_house(enemy: Node2D):

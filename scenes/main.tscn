@@ -427,7 +427,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.7)
+color = Color(0.02, 0.05, 0.12, 0.9)
 
 [node name="pausedIndicator" type="Label" parent="CanvasLayer/pauseFade"]
 layout_mode = 1
@@ -439,9 +439,12 @@ offset_top = 50.0
 offset_right = 150.0
 offset_bottom = 100.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.9)
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_colors/font_shadow_color = Color(0.2, 0.4, 0.7, 0.7)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
 theme_override_font_sizes/font_size = 48
-text = "GAME PAUSED"
+text = "⚔ BATTLE PAUSED ⚔"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -454,7 +457,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="gameMenuPanel" type="Panel" parent="CanvasLayer/pauseFade/centerContainer"]
-custom_minimum_size = Vector2(300, 200)
+custom_minimum_size = Vector2(400, 380)
 layout_mode = 2
 
 [node name="gameMenu" type="VBoxContainer" parent="CanvasLayer/pauseFade/centerContainer/gameMenuPanel"]
@@ -462,13 +465,20 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
+offset_left = 25.0
+offset_top = 25.0
+offset_right = -25.0
+offset_bottom = -25.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 15
+
+[node name="pauseMenuTitle" type="Label" parent="CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 32
+text = "✦ BATTLE MENU ✦"
+horizontal_alignment = 1
 
 [node name="resumeButton" type="Button" parent="CanvasLayer/pauseFade/centerContainer/gameMenuPanel/gameMenu"]
 layout_mode = 2
@@ -488,7 +498,7 @@ text = "Quit to Desktop"
 
 [node name="settingsMenuPanel" type="Panel" parent="CanvasLayer/pauseFade/centerContainer"]
 visible = false
-custom_minimum_size = Vector2(400, 300)
+custom_minimum_size = Vector2(500, 450)
 layout_mode = 2
 
 [node name="settingsMenu" type="VBoxContainer" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel"]
@@ -502,7 +512,14 @@ offset_right = -30.0
 offset_bottom = -30.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 20
+
+[node name="settingsMenuTitle" type="Label" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 30
+text = "✦ BATTLE SETTINGS ✦"
+horizontal_alignment = 1
 
 [node name="back" type="Button" parent="CanvasLayer/pauseFade/centerContainer/settingsMenuPanel/settingsMenu"]
 process_mode = 3

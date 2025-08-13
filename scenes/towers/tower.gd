@@ -78,7 +78,23 @@ func _process(delta):
 
 # --- Attack logic ---
 func is_valid_target(enemy):
-	return enemy and enemy.is_inside_tree() and enemy.health > 0 and position.distance_to(enemy.position) <= attack_range
+	if not enemy or not enemy.is_inside_tree() or enemy.health <= 0:
+		return false
+	
+	if position.distance_to(enemy.position) > attack_range:
+		return false
+	
+	# Check if enemy has entered house (is shrinking)
+	if enemy.has_method("get") and enemy.get("has_entered_house") == true:
+		return false
+	
+	# Check if enemy is on a house tile
+	var houses = get_tree().get_nodes_in_group("houses")
+	for house in houses:
+		if house.has_method("is_enemy_on_house_tile") and house.is_enemy_on_house_tile(enemy.position):
+			return false
+	
+	return true
 
 
 # Optionally pass a position to find the closest enemy to that point (default: tower's position)
@@ -114,14 +130,24 @@ func find_target(reference_position = null):
 							target_valid = false
 				
 				if target_valid:
-					# Check if enemy is on a house tile (and therefore untargetable)
+					# Check if enemy is currently on a house tile or predicted to be on a house tile
 					var is_on_house_tile = false
 					for house in houses:
-						if house.has_method("is_enemy_on_house_tile") and house.is_enemy_on_house_tile(enemy.position):
-							is_on_house_tile = true
-							break
+						if house.has_method("is_enemy_on_house_tile"):
+							# Check current position
+							if house.is_enemy_on_house_tile(enemy.position):
+								is_on_house_tile = true
+								break
+							# Also check predicted impact position
+							if house.is_enemy_on_house_tile(predicted_position):
+								is_on_house_tile = true
+								break
 					
-					# Only target if not on house tile
+					# Also check if enemy has entered house (is shrinking)
+					if enemy.has_method("get") and enemy.get("has_entered_house") == true:
+						is_on_house_tile = true
+					
+					# Only target if not on house tile and not entering house
 					if not is_on_house_tile:
 						best = enemy
 						best_dist = dist_to_ref
